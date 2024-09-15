@@ -1,0 +1,8 @@
+#ifndef CANMASTER_LOOPBACKCANSHIM_H
+#define CANMASTER_LOOPBACKCANSHIM_H
+
+#include "CANShim.h"
+
+extern CANShim loopBackCanShim;
+
+#endif //CANMASTER_LOOPBACKCANSHIM_H
