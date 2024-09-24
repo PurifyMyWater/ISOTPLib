@@ -2,6 +2,7 @@
 add_subdirectory(OSShim)
 add_subdirectory(CANShim)
 add_subdirectory(DoCANCpp)
+add_subdirectory(Tests)
 
 # Create a combined library
 add_library(DoCANCppLib INTERFACE)

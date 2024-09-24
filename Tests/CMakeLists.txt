@@ -1,0 +1,13 @@
+project(Google_tests)
+add_subdirectory(googletest)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
+file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
+# adding the Google_Tests_run target
+add_executable(Google_Tests_run ${TEST_SOURCES})
+
+# linking Google_Tests_run with DateConverter_lib which will be tested
+target_link_libraries(Google_Tests_run DoCANCppLib)
+
+target_link_libraries(Google_Tests_run gtest gtest_main)
