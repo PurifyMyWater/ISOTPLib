@@ -1,7 +1,3 @@
-//
-// Created by victor on 13/09/24.
-//
-
 #ifndef CANMASTER_DOCANCPP_SIGNAL_STORAGE_H
 #define CANMASTER_DOCANCPP_SIGNAL_STORAGE_H
 

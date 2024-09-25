@@ -1,7 +1,3 @@
-//
-// Created by victor on 8/08/24.
-//
-
 #ifndef CANMASTER_N_USDATA_RUNNER_H
 #define CANMASTER_N_USDATA_RUNNER_H
 

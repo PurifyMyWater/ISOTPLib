@@ -1,7 +1,3 @@
-//
-// Created by victor on 9/08/24.
-//
-
 #ifndef CANMASTER_OSSHIM_MUTEX_H
 #define CANMASTER_OSSHIM_MUTEX_H
 
