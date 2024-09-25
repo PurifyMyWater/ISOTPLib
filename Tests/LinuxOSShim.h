@@ -1,0 +1,8 @@
+#ifndef DOCANCPPLIBTEST_OSLINUXSHIM_H
+#define DOCANCPPLIBTEST_OSLINUXSHIM_H
+
+#include "OSShim.h"
+
+extern OSShim linuxOSShim;
+
+#endif //DOCANCPPLIBTEST_OSLINUXSHIM_H

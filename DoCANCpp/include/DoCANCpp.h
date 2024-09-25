@@ -140,7 +140,7 @@ private:
     volatile typeof(N_AI::N_SA) nSA;
     std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs;
     uint8_t blockSize;
-    STmin stMin;
+    STmin stMin{};
 
     // Internal data
     uint32_t lastRunTime;

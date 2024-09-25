@@ -16,7 +16,9 @@ DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunne
     this->N_USData_indication_cb = N_USData_indication_cb;
     this->N_USData_FF_indication_cb = N_USData_FF_indication_cb;
     this->blockSize = blockSize;
-    this->stMin = stMin;
+    this->stMin.value = stMin.value;
+    this->stMin.unit = stMin.unit;
+    this->lastRunTime = 0;
 
     this->configMutex = this->osShim->createMutex();
     this->notStartedRunnersMutex = this->osShim->createMutex();
