@@ -1,8 +1,10 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include <mutex>
-#include <time.h>
+#include <ctime>
 #include "OSShim.h"
 #include "OSShim_Mutex.h"
+
+#define CONFIG_USE_BUSY_SLEEP 0
 
 class linuxMutex : public OSShim_Mutex
 {
@@ -22,7 +24,16 @@ public:
     bool wait(uint32_t max_time_to_wait_ms) override
     {
         struct timespec ts{};
-        ts.tv_nsec = max_time_to_wait_ms * 1000000;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec += max_time_to_wait_ms / 1000;
+        ts.tv_nsec += (max_time_to_wait_ms % 1000) * 1000000;
+
+        // Handle overflow of nanoseconds
+        if (ts.tv_nsec >= 1000000000)
+        {
+            ts.tv_sec += 1;
+            ts.tv_nsec -= 1000000000;
+        }
 
         return pthread_mutex_timedlock(&mutex, &ts) == 0;
     }
@@ -31,19 +42,28 @@ private:
     pthread_mutex_t mutex;
 };
 
-void linuxSleep(uint32_t ms)
-{
-    timespec ts{};
-    ts.tv_nsec = ms * 1000000;
-    nanosleep(&ts, nullptr);
-}
-
 uint32_t linuxMillis()
 {
     timespec ts{};
     clock_gettime(CLOCK_REALTIME, &ts);
     return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
+
+#if CONFIG_USE_BUSY_SLEEP
+void linuxSleep(uint32_t ms)
+{
+    uint32_t start = linuxMillis();
+    while (linuxMillis() - start < ms);
+}
+#else
+void linuxSleep(uint32_t ms)
+{
+    timespec ts{};
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms%1000) * 1000000;
+    nanosleep(&ts, nullptr);
+}
+#endif
 
 OSShim_Mutex* linuxCreateMutex()
 {
