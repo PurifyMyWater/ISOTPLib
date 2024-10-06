@@ -10,7 +10,7 @@ message(STATUS "TEST_UTILS_SOURCES contents: ${TEST_UTILS_SOURCES}")
 add_executable(Google_Tests_run ${TEST_SOURCES} ${TEST_UTILS_SOURCES})
 target_include_directories(Google_Tests_run PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# linking Google_Tests_run with DateConverter_lib which will be tested
+# linking Google_Tests_run with DoCANCppLib which will be tested
 target_link_libraries(Google_Tests_run DoCANCppLib)
 
 target_link_libraries(Google_Tests_run gtest gtest_main)
