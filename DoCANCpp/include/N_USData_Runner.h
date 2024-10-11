@@ -48,7 +48,7 @@ public:
     uint32_t getMessageLength() const;
 
     /**
-     * @brief Returns the result of the runner.
+     * @brief Returns the result of the last run_step().
      * @return The result of the runner.
      */
     N_Result getResult() const;

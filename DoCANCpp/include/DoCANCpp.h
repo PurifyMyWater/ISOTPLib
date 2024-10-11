@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include <deque>
+#include <list>
 
 #include "OSShim.h"
 #include "CANShim.h"
@@ -123,11 +123,7 @@ private:
     CANShim* canShim;
 
     // Synchronization & mutual exclusion
-//    OSShim_Mutex* volatile notStartedRunnersMutex;
-//    OSShim_Mutex* volatile finishedRunnersMutex;
-//
     OSShim_Mutex* volatile configMutex;
-
     OSShim_Mutex* volatile notStartedRunnersMutex;
 
     // Internal configuration
@@ -144,9 +140,9 @@ private:
 
     // Internal data
     uint32_t lastRunTime;
-    std::deque<N_USData_Runner*> notStartedRunners;
+    std::list<N_USData_Runner*> notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
-    std::deque<N_USData_Runner*> finishedRunners;
+    std::list<N_USData_Runner*> finishedRunners;
 
 };
 
