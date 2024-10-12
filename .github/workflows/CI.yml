@@ -17,7 +17,7 @@ jobs:
 
     - name: LS
       working-directory: ${{runner.workspace}}
-      run: ls -lra
+      run: ls -lRa
 
     - name: Configure CMake
       run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
@@ -28,7 +28,7 @@ jobs:
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
-      run: ls -lra
+      run: ls -lRa
 
     # - name: Upload test results
     #   uses: actions/upload-artifact@v4
