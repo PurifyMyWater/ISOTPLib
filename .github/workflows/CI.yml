@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
 
     - name: Configure CMake
       run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
