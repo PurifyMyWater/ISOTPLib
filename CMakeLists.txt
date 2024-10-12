@@ -1,3 +1,6 @@
+Project(DoCANCppLib)
+set(CMAKE_CXX_STANDARD 20)
+
 # Include the subdirectories
 add_subdirectory(OSShim)
 add_subdirectory(CANShim)
