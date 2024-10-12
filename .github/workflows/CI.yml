@@ -15,6 +15,10 @@ jobs:
       with:
         submodules: 'recursive'
 
+    - name: LS
+      working-directory: ${{runner.workspace}}
+      run: ls -lra
+
     - name: Configure CMake
       run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
 
@@ -24,7 +28,7 @@ jobs:
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
-      run: ls -la
+      run: ls -lra
 
     # - name: Upload test results
     #   uses: actions/upload-artifact@v4
