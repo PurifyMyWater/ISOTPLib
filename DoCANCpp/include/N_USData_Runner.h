@@ -97,7 +97,6 @@ protected:
     Mtype mtype;
     uint8_t* messageData;
     uint32_t messageLength;
-    volatile uint32_t* availableMemoryForRunners;
     uint32_t offset;
     N_Result result;
     uint32_t nextRunTime;

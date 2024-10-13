@@ -179,8 +179,8 @@ void DoCANCpp::run_step(DoCANCpp* self)
                     // Check if the runner has finished
                     switch (result)
                     {
-                        case N_Result::IN_PROGRESS_FF:
-                            self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
+                        case N_Result::IN_PROGRESS_FF: // TODO aqui hace falta FF?
+                            self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype()); // TODO y si es nullptr?
                             [[fallthrough]]; // Indicate intentional fall-through
                         case N_Result::IN_PROGRESS:
                             break;
@@ -201,10 +201,10 @@ void DoCANCpp::run_step(DoCANCpp* self)
                     case N_Result::IN_PROGRESS_FF:
                         self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
                         [[fallthrough]]; // Indicate intentional fall-through
-                    case N_Result::IN_PROGRESS:
+                    case N_Result::IN_PROGRESS: // TODO esto no deberia existir, pero el insert es necesario para el FF
                         self->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
                         break;
-                    default:
+                    default: // Single frame or error
                         self->finishedRunners.push_front(runner);
                         break;
                 }
