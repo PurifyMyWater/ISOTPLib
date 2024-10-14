@@ -7,7 +7,6 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim* osShim, CANShim* canShim)
     this->mtype = Mtype::Mtype_Unknown;
     this->messageData = nullptr;
     this->messageLength = 0;
-    this->availableMemoryForRunners = nullptr;
     this->offset = 0;
     this->result = N_Result::NOT_STARTED;
     this->nextRunTime = 0;
