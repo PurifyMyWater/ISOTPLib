@@ -135,11 +135,6 @@ void DoCANCpp::run_step(DoCANCpp* self)
                 }
             }
 
-            for(auto runner : self->notStartedRunners)
-            {
-                self->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
-            }
-            self->notStartedRunners.clear();
             self->notStartedRunnersMutex->signal();
 
             // The third part of the run_step is to check if a message is available, read it and check if this DoCANCpp object is interested in it.
