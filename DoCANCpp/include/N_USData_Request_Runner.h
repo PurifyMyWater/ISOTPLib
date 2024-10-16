@@ -11,7 +11,7 @@ public:
 
     ~N_USData_Request_Runner() override;
 
-    N_Result run_step(CANShim::CANFrame* frame) override;
+    N_Result run_step(CANFrame* frame) override;
 };
 
 #endif //CANMASTER_N_USDATA_REQUEST_RUNNER_H
