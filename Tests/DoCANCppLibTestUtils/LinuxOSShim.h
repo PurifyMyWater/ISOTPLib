@@ -6,12 +6,12 @@
 class LinuxOSShim : public OSShim
 {
 public:
-    void osSleep(uint32_t ms);
-    uint32_t osMillis();
-    OSShim_Mutex* osCreateMutex();
+    void osSleep(uint32_t ms) override;
+    uint32_t osMillis() override;
+    OSShim_Mutex* osCreateMutex() override;
 
-    void* osMalloc(uint32_t size);
-    void osFree(void* ptr);
+    void* osMalloc(uint32_t size) override;
+    void osFree(void* ptr) override;
 
 };
 
