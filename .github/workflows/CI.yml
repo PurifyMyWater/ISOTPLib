@@ -1,6 +1,12 @@
 name: CMake Tests
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches: 
+      - main
 
 jobs:
   Test:
