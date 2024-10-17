@@ -5,6 +5,8 @@
 #include <vector>
 #include <list>
 
+class LocalCANNetworkCANShim;
+
 /**
  * @brief A local CAN network that can be used to test CANShim implementations
  * The ID of each node is the index of the node in the network vector
@@ -18,7 +20,7 @@ public:
     uint32_t frameAvailable(uint32_t receiverID);
     bool active();
 
-    CANShim* newCANShimConnection();
+    LocalCANNetworkCANShim* newCANShimConnection();
 
 private:
     bool checkNodeID(uint32_t nodeID);
@@ -36,6 +38,8 @@ public:
     bool readFrame(CANFrame* frame) override;
     bool writeFrame(CANFrame* frame) override;
     bool active() override;
+
+    uint32_t getNodeID();
 
     LocalCANNetworkCANShim(LocalCANNetwork* network, uint32_t nodeID);
 private:

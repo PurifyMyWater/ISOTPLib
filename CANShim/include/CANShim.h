@@ -77,6 +77,8 @@ public:
      * @return True if the bus is active, false if the bus is not active
      */
     virtual bool active() = 0;
+
+    virtual ~CANShim() = default;
 };
 
 #endif // CANShim_h

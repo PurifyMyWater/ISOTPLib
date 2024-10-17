@@ -26,9 +26,14 @@ bool LocalCANNetworkCANShim::active()
     return network->active();
 }
 
+uint32_t LocalCANNetworkCANShim::getNodeID()
+{
+    return nodeID;
+}
+
 bool LocalCANNetwork::writeFrame(uint32_t emmiterID, CANFrame* frame)
 {
-
+    return false;
 }
 
 bool LocalCANNetwork::readFrame(uint32_t receiverID, CANFrame* frame)
@@ -51,7 +56,7 @@ bool LocalCANNetwork::active()
     return false;
 }
 
-CANShim* LocalCANNetwork::newCANShimConnection()
+LocalCANNetworkCANShim* LocalCANNetwork::newCANShimConnection()
 {
     return nullptr;
 }

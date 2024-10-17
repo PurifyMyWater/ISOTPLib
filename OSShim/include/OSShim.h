@@ -45,6 +45,8 @@ public:
 
     virtual void* osMalloc(uint32_t size) = 0;
     virtual void osFree(void* ptr) = 0;
+
+    virtual ~OSShim() = default;
 };
 
 #endif // OSShim_h
