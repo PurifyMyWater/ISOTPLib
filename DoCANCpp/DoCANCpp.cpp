@@ -20,8 +20,8 @@ DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunne
     this->stMin.unit = stMin.unit;
     this->lastRunTime = 0;
 
-    this->configMutex = this->osShim->createMutex();
-    this->notStartedRunnersMutex = this->osShim->createMutex();
+    this->configMutex = this->osShim->osCreateMutex();
+    this->notStartedRunnersMutex = this->osShim->osCreateMutex();
 }
 
 typeof(N_AI::N_SA) DoCANCpp::getN_SA() const
@@ -110,9 +110,9 @@ void DoCANCpp::N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint
 void DoCANCpp::run_step(DoCANCpp* self)
 {
     // The first part of the run_step is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed since the last run.
-    if(self->osShim->millis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
+    if(self->osShim->osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
     {
-        self->lastRunTime = self->osShim->millis(); // TODO count from the start or the end of the function call?
+        self->lastRunTime = self->osShim->osMillis(); // TODO count from the start or the end of the function call?
 
         if(self->canShim->active())
         {
@@ -140,7 +140,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // The third part of the run_step is to check if a message is available, read it and check if this DoCANCpp object is interested in it.
             enum FrameStatus {frameNotAvailable = 0, frameAvailable, frameProcessed};
             FrameStatus frameStatus = frameNotAvailable;
-            CANShim::CANFrame frame;
+            CANFrame frame;
             if(self->canShim->frameAvailable())
             {
                 self->canShim->readFrame(&frame);

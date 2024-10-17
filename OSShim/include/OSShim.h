@@ -2,7 +2,6 @@
 #define OSShim_h
 
 #include <cstdint>
-#include "OSShim_Mutex.h"
 
 #ifdef ESP_PLATFORM
 
@@ -30,30 +29,24 @@
 
 #endif
 
+class OSShim_Mutex
+{
+public:
+    virtual void signal() = 0;
+    virtual bool wait(uint32_t max_time_to_wait_ms) = 0;
+};
+
 class OSShim
 {
 public:
-    void sleep(uint32_t ms);
-    uint32_t millis();
-    OSShim_Mutex* createMutex();
+    virtual void osSleep(uint32_t ms) = 0;
+    virtual uint32_t osMillis() = 0;
+    virtual OSShim_Mutex* osCreateMutex() = 0;
 
-    void* malloc(uint32_t size);
-    void free(void* ptr);
+    virtual void* osMalloc(uint32_t size) = 0;
+    virtual void osFree(void* ptr) = 0;
 
-    typedef void (*SleepCallback)(uint32_t ms);
-    typedef uint32_t (*MillisCallback)();
-    typedef OSShim_Mutex* (*CreateMutexCallback)();
-    typedef void* (*MallocCallback)(uint32_t size);
-    typedef void (*FreeCallback)(void* ptr);
-
-    OSShim(SleepCallback sleepCallback, MillisCallback millisCallback, CreateMutexCallback createMutexCallback, MallocCallback mallocCallback, FreeCallback freeCallback);
-
-private:
-    SleepCallback sleepCallback;
-    MillisCallback millisCallback;
-    CreateMutexCallback createMutexCallback;
-    MallocCallback mallocCallback;
-    FreeCallback freeCallback;
+    virtual ~OSShim() = default;
 };
 
 #endif // OSShim_h

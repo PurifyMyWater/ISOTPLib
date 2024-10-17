@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "LinuxOSShim.h"
 
+LinuxOSShim linuxOSShim;
+
 TEST(LinuxOSShim, timeTest)
 {
     uint32_t timeToSleep = 50;
@@ -9,9 +11,9 @@ TEST(LinuxOSShim, timeTest)
 
     for (uint32_t i = 0; i < repeat; i++)
     {
-        uint32_t millis = linuxOSShim.millis();
-        linuxOSShim.sleep(timeToSleep);
-        uint32_t millis2 = linuxOSShim.millis();
+        uint32_t millis = linuxOSShim.osMillis();
+        linuxOSShim.osSleep(timeToSleep);
+        uint32_t millis2 = linuxOSShim.osMillis();
 
         EXPECT_GE(millis2, millis + timeToSleep);
         if (millis2 >= millis + timeToSleep + 100)
@@ -29,21 +31,21 @@ TEST(LinuxOSShim, timeTest)
 
 TEST(LinuxOSShim, mutexWait)
 {
-    OSShim_Mutex* mutex = linuxOSShim.createMutex();
+    OSShim_Mutex* mutex = linuxOSShim.osCreateMutex();
     EXPECT_TRUE(mutex != nullptr);
     EXPECT_TRUE(mutex->wait(1000));
 }
 
 TEST(LinuxOSShim, mutexSignal)
 {
-    OSShim_Mutex* mutex = linuxOSShim.createMutex();
+    OSShim_Mutex* mutex = linuxOSShim.osCreateMutex();
     EXPECT_TRUE(mutex != nullptr);
     mutex->signal();
 }
 
 TEST(LinuxOSShim, mutexTestNormal)
 {
-    OSShim_Mutex* mutex = linuxOSShim.createMutex();
+    OSShim_Mutex* mutex = linuxOSShim.osCreateMutex();
     ASSERT_NE(mutex, nullptr);
 
     // Lock the mutex
@@ -78,7 +80,7 @@ TEST(LinuxOSShim, mutexTestNormal)
 
 TEST(LinuxOSShim, mutexTestTimeout)
 {
-    OSShim_Mutex* mutex = linuxOSShim.createMutex();
+    OSShim_Mutex* mutex = linuxOSShim.osCreateMutex();
     ASSERT_NE(mutex, nullptr);
 
     // Lock the mutex
@@ -114,36 +116,36 @@ TEST(LinuxOSShim, mutexTestTimeout)
     EXPECT_FALSE(secondThreadLocked);
 }
 
-TEST(LinuxOSShim, mallocSimpleAlloc)
+TEST(LinuxOSShim, osMallocSimpleAlloc)
 {
-    void* ptr = linuxOSShim.malloc(100);
+    void* ptr = linuxOSShim.osMalloc(100);
     ASSERT_NE(ptr, nullptr);
-    linuxOSShim.free(ptr);
+    linuxOSShim.osFree(ptr);
 }
 
-TEST(LinuxOSShim, mallocZeroAlloc)
+TEST(LinuxOSShim, osMallocZeroAlloc)
 {
-    void* ptr = linuxOSShim.malloc(0);
+    void* ptr = linuxOSShim.osMalloc(0);
     ASSERT_NE(ptr, nullptr);
-    linuxOSShim.free(ptr);
+    linuxOSShim.osFree(ptr);
 }
 
-TEST(LinuxOSShim, mallocLargeAlloc)
+TEST(LinuxOSShim, osMallocLargeAlloc)
 {
-    void* ptr = linuxOSShim.malloc(1024*1024*6);
+    void* ptr = linuxOSShim.osMalloc(1024*1024*6);
     ASSERT_NE(ptr, nullptr);
-    linuxOSShim.free(ptr);
+    linuxOSShim.osFree(ptr);
 }
 
-TEST(LinuxOSShim, mallocMultipleAlloc)
+TEST(LinuxOSShim, osMallocMultipleAlloc)
 {
-    void* ptr1 = linuxOSShim.malloc(100);
-    void* ptr2 = linuxOSShim.malloc(100);
-    void* ptr3 = linuxOSShim.malloc(100);
+    void* ptr1 = linuxOSShim.osMalloc(100);
+    void* ptr2 = linuxOSShim.osMalloc(100);
+    void* ptr3 = linuxOSShim.osMalloc(100);
     ASSERT_NE(ptr1, nullptr);
     ASSERT_NE(ptr2, nullptr);
     ASSERT_NE(ptr3, nullptr);
-    linuxOSShim.free(ptr1);
-    linuxOSShim.free(ptr2);
-    linuxOSShim.free(ptr3);
+    linuxOSShim.osFree(ptr1);
+    linuxOSShim.osFree(ptr2);
+    linuxOSShim.osFree(ptr3);
 }

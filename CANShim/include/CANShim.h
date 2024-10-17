@@ -25,46 +25,60 @@ typedef union N_AI
     uint32_t N_AI;
 } N_AI;
 
+typedef struct CANFrame
+{
+    union
+    {
+        struct
+        {
+            uint32_t extd: 1;           /**< Extended Frame Format (29bit ID) */
+            uint32_t rtr: 1;            /**< Message is a Remote Frame */
+            uint32_t ss: 1;             /**< Transmit as a Single Shot Transmission. Unused for received. */
+            uint32_t self: 1;           /**< Transmit as a Self Reception Request. Unused for received. */
+            uint32_t dlc_non_comp: 1;   /**< Message's Data length code is larger than 8. This will break compliance with ISO 11898-1 */
+            uint32_t reserved: 27;      /**< Reserved bits */
+        };
+        uint32_t flags;                 /**< Deprecated: Alternate way to set bits using message flags */
+    };
+    N_AI identifier;                /**< 11 or 29 bit identifier */
+    uint8_t data_length_code;           /**< Data length code */
+    uint8_t data[CAN_FRAME_MAX_DLC];    /**< Data bytes (not relevant in RTR frame) */
+} CANFrame;
+
+/**
+ * @brief Interface for a CAN bus driver
+ */
 class CANShim
 {
 public:
-    typedef struct CANFrame
-    {
-        union
-        {
-            struct
-            {
-                uint32_t extd: 1;           /**< Extended Frame Format (29bit ID) */
-                uint32_t rtr: 1;            /**< Message is a Remote Frame */
-                uint32_t ss: 1;             /**< Transmit as a Single Shot Transmission. Unused for received. */
-                uint32_t self: 1;           /**< Transmit as a Self Reception Request. Unused for received. */
-                uint32_t dlc_non_comp: 1;   /**< Message's Data length code is larger than 8. This will break compliance with ISO 11898-1 */
-                uint32_t reserved: 27;      /**< Reserved bits */
-            };
-            uint32_t flags;                 /**< Deprecated: Alternate way to set bits using message flags */
-        };
-        N_AI identifier;                /**< 11 or 29 bit identifier */
-        uint8_t data_length_code;           /**< Data length code */
-        uint8_t data[CAN_FRAME_MAX_DLC];    /**< Data bytes (not relevant in RTR frame) */
-    } CANFrame;
 
-    uint32_t frameAvailable();
-    bool readFrame(CANFrame* frame);
-    bool writeFrame(CANFrame* frame);
-    bool active();
+    /**
+     * @brief Check if a frame is available to read
+     * @return Number of frames available to read
+     */
+    virtual uint32_t frameAvailable() = 0;
 
-    typedef uint32_t (*FrameAvailableCallback)();
-    typedef bool (*ReadFrameCallback)(CANFrame* frame);
-    typedef bool (*WriteFrameCallback)(CANFrame* frame);
-    typedef bool (*ActiveCallback)();
+    /**
+     * @brief Read a frame from the CAN bus
+     * @param frame Pointer to a CANFrame struct to store the read frame
+     * @return True if a frame was read, false if no frame was available
+     */
+    virtual bool readFrame(CANFrame* frame) = 0;
 
-    CANShim(FrameAvailableCallback frameAvailableCallback, ReadFrameCallback readFrameCallback, WriteFrameCallback writeFrameCallback, ActiveCallback activeCallback);
+    /**
+     * @brief Write a frame to the CAN bus
+     * @param frame Pointer to a CANFrame struct to write to the bus
+     * @return True if the frame was written, false if the bus is not active or the frame was not written
+     */
+    virtual bool writeFrame(CANFrame* frame) = 0;
 
-private:
-    FrameAvailableCallback frameAvailableCallback;
-    ReadFrameCallback readFrameCallback;
-    WriteFrameCallback writeFrameCallback;
-    ActiveCallback activeCallback;
+    /**
+     * @brief Check if the bus is active
+     * @return True if the bus is active, false if the bus is not active
+     */
+    virtual bool active() = 0;
+
+    virtual ~CANShim() = default;
 };
 
 #endif // CANShim_h

@@ -15,7 +15,7 @@ public:
     virtual ~N_USData_Runner() = default;
 
     // If no frame is received, the runner will only execute if it is not awaiting a message, otherwise it will return an error.
-    virtual N_Result run_step(CANShim::CANFrame* frame) = 0;
+    virtual N_Result run_step(CANFrame* frame) = 0;
 
     /**
      * @brief Returns if the runner is awaiting a message.

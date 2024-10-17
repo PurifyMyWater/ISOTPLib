@@ -1,8 +1,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <ctime>
-#include "OSShim.h"
-#include "OSShim_Mutex.h"
+#include "LinuxOSShim.h"
 
 #define CONFIG_USE_BUSY_SLEEP 0
 
@@ -42,7 +41,7 @@ private:
     pthread_mutex_t mutex;
 };
 
-uint32_t linuxMillis()
+uint32_t LinuxOSShim::osMillis()
 {
     timespec ts{};
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -56,7 +55,7 @@ void linuxSleep(uint32_t ms)
     while (linuxMillis() - start < ms);
 }
 #else
-void linuxSleep(uint32_t ms)
+void LinuxOSShim::osSleep(uint32_t ms)
 {
     timespec ts{};
     ts.tv_sec = ms / 1000;
@@ -65,19 +64,17 @@ void linuxSleep(uint32_t ms)
 }
 #endif
 
-OSShim_Mutex* linuxCreateMutex()
+OSShim_Mutex* LinuxOSShim::osCreateMutex()
 {
     return new linuxMutex();
 }
 
-void* linuxMalloc(uint32_t size)
+void* LinuxOSShim::osMalloc(uint32_t size)
 {
     return malloc(size);
 }
 
-void linuxFree(void* ptr)
+void LinuxOSShim::osFree(void* ptr)
 {
     free(ptr);
 }
-
-OSShim linuxOSShim(linuxSleep, linuxMillis, linuxCreateMutex, linuxMalloc, linuxFree);
