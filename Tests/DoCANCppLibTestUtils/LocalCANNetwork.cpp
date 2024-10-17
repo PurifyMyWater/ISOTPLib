@@ -26,39 +26,63 @@ bool LocalCANNetworkCANShim::active()
     return network->active();
 }
 
-uint32_t LocalCANNetworkCANShim::getNodeID()
+uint32_t LocalCANNetworkCANShim::getNodeID() const
 {
     return nodeID;
 }
 
-bool LocalCANNetwork::writeFrame(uint32_t emmiterID, CANFrame* frame)
+
+
+LocalCANNetworkCANShim* LocalCANNetwork::newCANShimConnection()
 {
-    return false;
+    network.emplace_back();
+    return new LocalCANNetworkCANShim(this, nextNodeID++);
 }
 
-bool LocalCANNetwork::readFrame(uint32_t receiverID, CANFrame* frame)
+bool LocalCANNetwork::writeFrame(uint32_t emitterID, CANFrame* frame)
 {
+    if(active() && checkNodeID(emitterID))
+    {
+        for(auto& frames : network)
+        {
+            if(&frames != &network[emitterID])
+            {
+                frames.push_back(*frame);
+            }
+        }
+        return true;
+    }
     return false;
 }
 
 bool LocalCANNetwork::peekFrame(uint32_t receiverID, CANFrame* frame)
 {
+    if(active() && checkNodeID(receiverID) && !network[receiverID].empty())
+    {
+        *frame = network[receiverID].front();
+        return true;
+    }
+    return false;
+}
+
+bool LocalCANNetwork::readFrame(uint32_t receiverID, CANFrame* frame)
+{
+    if(peekFrame(receiverID, frame))
+    {
+        network[receiverID].pop_front();
+        return true;
+    }
     return false;
 }
 
 uint32_t LocalCANNetwork::frameAvailable(uint32_t receiverID)
 {
-    return 0;
+    return active() && checkNodeID(receiverID) ? network[receiverID].size() : 0;
 }
 
 bool LocalCANNetwork::active()
 {
-    return false;
-}
-
-LocalCANNetworkCANShim* LocalCANNetwork::newCANShimConnection()
-{
-    return nullptr;
+    return network.size() > 1;
 }
 
 bool LocalCANNetwork::checkNodeID(uint32_t nodeID)

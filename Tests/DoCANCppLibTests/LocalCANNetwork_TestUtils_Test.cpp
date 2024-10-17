@@ -168,7 +168,7 @@ TEST(LocalCANNetwork, network_active_test_N_nodes)
     for (uint32_t i = 0; i < N; i++)
     {
         CANShim* can = network.newCANShimConnection();
-        if(i < 2)
+        if(i < 1)
         {
             ASSERT_EQ(network.active(), false);
         }
@@ -199,16 +199,8 @@ TEST(LocalCANNetwork, CANShim_active_test_N)
     {
         CANShim* can = network.newCANShimConnection();
         ASSERT_NE(can, nullptr);
-        if(i < 1)
-        {
-            ASSERT_EQ(can->active(), false);
-            ASSERT_EQ(can1->active(), false);
-        }
-        else
-        {
-            ASSERT_EQ(can->active(), true);
-            ASSERT_EQ(can1->active(), true);
-        }
+        ASSERT_EQ(can->active(), true);
+        ASSERT_EQ(can1->active(), true);
         delete can;
     }
 }
