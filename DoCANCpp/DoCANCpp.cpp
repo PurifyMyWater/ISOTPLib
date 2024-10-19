@@ -77,7 +77,7 @@ void DoCANCpp::setBlockSize(uint8_t bs)
     configMutex->signal();
 }
 
-DoCANCpp::STmin DoCANCpp::getSTmin() const
+STmin DoCANCpp::getSTmin() const
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     STmin stM = this->stMin;
@@ -85,7 +85,7 @@ DoCANCpp::STmin DoCANCpp::getSTmin() const
     return stM;
 }
 
-bool DoCANCpp::setSTmin(DoCANCpp::STmin stM)
+bool DoCANCpp::setSTmin(STmin stM)
 {
     if((stM.unit == ms && stM.value > 127) || (stM.unit == us && (stM.value < 100 || stM.value > 900)))
     {
@@ -112,10 +112,18 @@ void DoCANCpp::run_step(DoCANCpp* self)
     // The first part of the run_step is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed since the last run.
     if(self->osShim->osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
     {
-        self->lastRunTime = self->osShim->osMillis(); // TODO count from the start or the end of the function call?
+        self->lastRunTime = self->osShim->osMillis();
 
         if(self->canShim->active())
         {
+            // Get the configuration used in this run_step.
+            self->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+            typeof(N_AI::N_SA) nSA = self->nSA;
+            std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs = self->acceptedFunctionalN_TAs;
+            STmin stMin = self->stMin;
+            uint8_t blockSize = self->blockSize;
+            self->configMutex->signal();
+
             // The second part of the run_step is to check if there are any runners in notStartedRunners, and move them to activeRunners.
             // ISO 15765-2 specifies that there should not be more than one message with the same N_AI being transmitted or received at the same time.
             // If that happens, leave the message in the notStartedRunners queue until the current message with this N_AI is processed.
@@ -144,7 +152,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             if(self->canShim->frameAvailable())
             {
                 self->canShim->readFrame(&frame);
-                if((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == self->nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
+                if((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
                 {
                     frameStatus = frameAvailable;
                 }
@@ -154,6 +162,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             for(auto runnerPair : self->activeRunners)
             {
                 auto runner = runnerPair.second;
+                assert(runner != nullptr);
                 // If the runner has pending actions to run
                 if(self->lastRunTime - runner->getNextRunTime() > 0)
                 {
@@ -174,9 +183,8 @@ void DoCANCpp::run_step(DoCANCpp* self)
                     // Check if the runner has finished
                     switch (result)
                     {
-                        case N_Result::IN_PROGRESS_FF: // TODO aqui hace falta FF?
-                            self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype()); // TODO y si es nullptr?
-                            [[fallthrough]]; // Indicate intentional fall-through
+                        case N_Result::IN_PROGRESS_FF:
+                            assert(false && "N_Result::IN_PROGRESS_FF should not happen, as the runner has already received at least one frame (if it is an indication runner)");
                         case N_Result::IN_PROGRESS:
                             break;
                         default:
@@ -189,14 +197,14 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // The fifth part of the run_step is to check if a runner processed a message, and if no one did, start a new runner to handle it.
             if(frameStatus == frameAvailable)
             {
-                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, &self->availableMemoryForRunners, self->osShim, self->canShim);
+                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, &self->availableMemoryForRunners, blockSize, stMin, self->osShim, self->canShim);
                 N_Result result = runner->run_step(&frame);
                 switch (result)
                 {
+                    case N_Result::IN_PROGRESS:
+                        assert(false && "N_Result::IN_PROGRESS should not happen, as the runner was just created");
                     case N_Result::IN_PROGRESS_FF:
                         self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
-                        [[fallthrough]]; // Indicate intentional fall-through
-                    case N_Result::IN_PROGRESS: // TODO esto no deberia existir, pero el insert es necesario para el FF
                         self->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
                         break;
                     default: // Single frame or error

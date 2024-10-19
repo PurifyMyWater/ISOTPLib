@@ -17,6 +17,13 @@
 
 #define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header=0b110, .N_NFA_Padding=0b00, .N_TAtype=_N_TAtype, .N_TA=_N_TA, .N_SA=_N_SA}
 
+typedef enum SeparationTimeMinUnit {ms, us} STminUnit;
+typedef struct SeparationTimeMin {uint8_t value; STminUnit unit;} STmin;
+
+typedef void (*N_USData_confirm_cb_t)(N_AI nAi, N_Result nResult, Mtype mtype);
+typedef void (*N_USData_indication_cb_t)(N_AI nAi, uint8_t* messageData, uint32_t length, N_Result nResult, Mtype mtype);
+typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t length, Mtype mtype);
+
 /**
  * This class provides a C++ implementation of the DoCAN protocol aka ISO-TP, it currently only supports N_TAtype #5 & #6
  * (Standard CAN, 29bit ID Physical & Functional address modes using normal fixed addressing (See ISO 15765-2 for more details)).
@@ -24,12 +31,6 @@
 class DoCANCpp
 {
 public:
-    typedef enum SeparationTimeMinUnit {ms, us} STminUnit;
-    typedef struct SeparationTimeMin {uint16_t value; STminUnit unit;} STmin;
-    typedef void (*N_USData_confirm_cb_t)(N_AI nAi, N_Result nResult, Mtype mtype);
-    typedef void (*N_USData_indication_cb_t)(N_AI nAi, uint8_t* messageData, uint32_t length, N_Result nResult, Mtype mtype);
-    typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t length, Mtype mtype);
-
     static const char* TAG;
 
     /**
@@ -112,6 +113,7 @@ public:
      * This function is used to set the separation time for this DoCANCpp object.
      * All messages sent or received by this object will have this separation time, even if they are being sent or received before setting the new separation time.
      * @param stMin The separation time to set for this DoCANCpp object.
+     * @return True if the separation time was set, false otherwise.
      */
     bool setSTmin(STmin stMin);
 
@@ -126,13 +128,13 @@ private:
     OSShim_Mutex* volatile configMutex;
     OSShim_Mutex* volatile notStartedRunnersMutex;
 
-    // Internal configuration
+    // Internal configuration (constant)
     N_USData_confirm_cb_t N_USData_confirm_cb;
     N_USData_indication_cb_t N_USData_indication_cb;
     N_USData_FF_indication_cb_t N_USData_FF_indication_cb;
-
     uint32_t availableMemoryForRunners;
 
+    // Internal configuration (mutable)
     volatile typeof(N_AI::N_SA) nSA;
     std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs;
     uint8_t blockSize;
