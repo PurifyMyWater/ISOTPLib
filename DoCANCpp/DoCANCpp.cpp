@@ -22,6 +22,21 @@ DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunne
 
     this->configMutex = this->osShim->osCreateMutex();
     this->notStartedRunnersMutex = this->osShim->osCreateMutex();
+
+    assert(this->configMutex == nullptr || this->notStartedRunnersMutex == nullptr && "Mutex creation failed");
+
+    if(this->N_USData_confirm_cb == nullptr)
+    {
+        OSShimWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
+    }
+    if(this->N_USData_indication_cb == nullptr)
+    {
+        OSShimWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
+    }
+    if(this->N_USData_FF_indication_cb == nullptr)
+    {
+        OSShimWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
+    }
 }
 
 typeof(N_AI::N_SA) DoCANCpp::getN_SA() const
@@ -204,7 +219,10 @@ void DoCANCpp::run_step(DoCANCpp* self)
                     case N_Result::IN_PROGRESS:
                         assert(false && "N_Result::IN_PROGRESS should not happen, as the runner was just created");
                     case N_Result::IN_PROGRESS_FF:
-                        self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
+                        if(self->N_USData_FF_indication_cb != nullptr)
+                        {
+                            self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
+                        }
                         self->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
                         break;
                     default: // Single frame or error
@@ -220,11 +238,17 @@ void DoCANCpp::run_step(DoCANCpp* self)
                 // Call the callbacks.
                 if(runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
                 {
-                    self->N_USData_confirm_cb(runner->getN_AI(), runner->getResult(), runner->getMtype());
+                    if(self->N_USData_confirm_cb != nullptr)
+                    {
+                        self->N_USData_confirm_cb(runner->getN_AI(), runner->getResult(), runner->getMtype());
+                    }
                 }
                 else if(runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
                 {
-                    self->N_USData_indication_cb(runner->getN_AI(), runner->getMessageData(), runner->getMessageLength(), runner->getResult(), runner->getMtype());
+                    if(self->N_USData_indication_cb != nullptr)
+                    {
+                        self->N_USData_indication_cb(runner->getN_AI(), runner->getMessageData(), runner->getMessageLength(), runner->getResult(), runner->getMtype());
+                    }
                 }
 
                 // Remove the runner from activeRunners.

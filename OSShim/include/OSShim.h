@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #ifdef ESP_PLATFORM
+#warning "MOVE THIS CODE TO ESP PLATFORM IMPLEMENTATION"
 
     #include "esp_log.h"
 
@@ -19,8 +20,8 @@
     #define OSShimInfo(tag, format, ...) ESP_LOGI(tag, format, ##__VA_ARGS__)
     #endif
 
-    #ifndef OSShimWarn
-    #define OSShimWarn(tag, format, ...) ESP_LOGW(tag, format, ##__VA_ARGS__)
+    #ifndef OSShimWarning
+    #define OSShimWarning(tag, format, ...) ESP_LOGW(tag, format, ##__VA_ARGS__)
     #endif
 
     #ifndef OSShimError
@@ -28,6 +29,12 @@
     #endif
 
 #endif
+
+#define OSShimVerbose(tag, format, ...) printf( "Verbose - %s: " format "\n", tag, ##__VA_ARGS__)
+#define OSShimDebug(tag, format, ...) printf( "Debug - %s: " format "\n", tag, ##__VA_ARGS__)
+#define OSShimInfo(tag, format, ...) printf( "Info - %s: " format "\n", tag, ##__VA_ARGS__)
+#define OSShimWarning(tag, format, ...) printf( "Warning - %s: " format "\n", tag, ##__VA_ARGS__)
+#define OSShimError(tag, format, ...) printf( "Error - %s: " format "\n", tag, ##__VA_ARGS__)
 
 class OSShim_Mutex
 {
