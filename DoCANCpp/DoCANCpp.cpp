@@ -18,12 +18,12 @@ DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunne
     this->blockSize = blockSize;
     this->lastRunTime = 0;
 
-    assert(setSTmin(stMin) && "STmin is invalid");
-
     this->configMutex = this->osShim->osCreateMutex();
     this->notStartedRunnersMutex = this->osShim->osCreateMutex();
 
-    assert(this->configMutex == nullptr || this->notStartedRunnersMutex == nullptr && "Mutex creation failed");
+    assert(this->configMutex != nullptr && this->notStartedRunnersMutex != nullptr && "Mutex creation failed");
+
+    assert(setSTmin(stMin) && "STmin is invalid");
 
     if(this->N_USData_confirm_cb == nullptr)
     {
