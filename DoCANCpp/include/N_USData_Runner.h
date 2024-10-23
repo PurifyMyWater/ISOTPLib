@@ -1,5 +1,5 @@
-#ifndef CANMASTER_N_USDATA_RUNNER_H
-#define CANMASTER_N_USDATA_RUNNER_H
+#ifndef N_USDATA_RUNNER_H
+#define N_USDATA_RUNNER_H
 
 #include "CANShim.h"
 #include "OSShim.h"
@@ -107,4 +107,4 @@ protected:
     CANShim* canShim;
 };
 
-#endif //CANMASTER_N_USDATA_RUNNER_H
+#endif //N_USDATA_RUNNER_H

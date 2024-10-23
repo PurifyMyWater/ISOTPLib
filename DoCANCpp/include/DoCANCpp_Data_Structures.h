@@ -1,5 +1,5 @@
-#ifndef CANMASTER_DOCANCPP_DATA_STRUCTURES_H
-#define CANMASTER_DOCANCPP_DATA_STRUCTURES_H
+#ifndef DOCANCPP_DATA_STRUCTURES_H
+#define DOCANCPP_DATA_STRUCTURES_H
 
 #include <cstdint>
 #include <optional>
@@ -31,4 +31,4 @@ typedef enum N_Result
 
 const char* N_Result_to_string(N_Result result);
 
-#endif //CANMASTER_DOCANCPP_DATA_STRUCTURES_H
+#endif //DOCANCPP_DATA_STRUCTURES_H

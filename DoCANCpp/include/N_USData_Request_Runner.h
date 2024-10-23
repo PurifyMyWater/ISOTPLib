@@ -1,5 +1,5 @@
-#ifndef CANMASTER_N_USDATA_REQUEST_RUNNER_H
-#define CANMASTER_N_USDATA_REQUEST_RUNNER_H
+#ifndef N_USDATA_REQUEST_RUNNER_H
+#define N_USDATA_REQUEST_RUNNER_H
 
 #include "N_USData_Runner.h"
 
@@ -14,4 +14,4 @@ public:
     N_Result run_step(CANFrame* frame) override;
 };
 
-#endif //CANMASTER_N_USDATA_REQUEST_RUNNER_H
+#endif //N_USDATA_REQUEST_RUNNER_H

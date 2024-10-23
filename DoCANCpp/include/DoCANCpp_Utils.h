@@ -1,5 +1,5 @@
-#ifndef CANMASTER_DOCANCPP_UTILS_H
-#define CANMASTER_DOCANCPP_UTILS_H
+#ifndef DOCANCPP_UTILS_H
+#define DOCANCPP_UTILS_H
 
 #include "DoCANCpp.h"
 
@@ -120,4 +120,4 @@ class DoCANCpp_CircularBuffer
     }
 };
 
-#endif //CANMASTER_DOCANCPP_UTILS_H
+#endif //DOCANCPP_UTILS_H
