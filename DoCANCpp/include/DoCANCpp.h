@@ -10,19 +10,19 @@
 #include "DoCANCpp_Data_Structures.h"
 #include "N_USData_Runner.h"
 
-#define DoCANCpp_MaxTimeToWaitForSync_MS 100
-#define DoCANCpp_RunPeriod_MS 100
-#define DoCANCpp_DefaultBlockSize 0 // 0 means that all CFs are sent without waiting for an FC.
-#define DoCANCpp_DefaultSTmin {20, ms}
-
 #define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header=0b110, .N_NFA_Padding=0b00, .N_TAtype=_N_TAtype, .N_TA=_N_TA, .N_SA=_N_SA}
 
 typedef enum SeparationTimeMinUnit {ms, us} STminUnit;
-typedef struct SeparationTimeMin {uint8_t value; STminUnit unit;} STmin;
+typedef struct SeparationTimeMin {uint16_t value; STminUnit unit;} STmin;
+
+constexpr uint32_t DoCANCpp_RunPeriod_MS = 100;
+constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
+constexpr STmin DoCANCpp_DefaultSTmin = {20, ms};
+constexpr uint8_t DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
 typedef void (*N_USData_confirm_cb_t)(N_AI nAi, N_Result nResult, Mtype mtype);
-typedef void (*N_USData_indication_cb_t)(N_AI nAi, uint8_t* messageData, uint32_t length, N_Result nResult, Mtype mtype);
-typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t length, Mtype mtype);
+typedef void (*N_USData_indication_cb_t)(N_AI nAi, uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype);
+typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t expectedMessageLength, Mtype mtype);
 
 /**
  * This class provides a C++ implementation of the DoCAN protocol aka ISO-TP, it currently only supports N_TAtype #5 & #6

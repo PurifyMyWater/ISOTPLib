@@ -16,9 +16,9 @@ DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunne
     this->N_USData_indication_cb = N_USData_indication_cb;
     this->N_USData_FF_indication_cb = N_USData_FF_indication_cb;
     this->blockSize = blockSize;
-    this->stMin.value = stMin.value;
-    this->stMin.unit = stMin.unit;
     this->lastRunTime = 0;
+
+    assert(setSTmin(stMin) && "STmin is invalid");
 
     this->configMutex = this->osShim->osCreateMutex();
     this->notStartedRunnersMutex = this->osShim->osCreateMutex();
@@ -181,7 +181,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
                 // If the runner has pending actions to run
                 if(self->lastRunTime - runner->getNextRunTime() > 0)
                 {
-                    N_Result result = N_Result::N_ERROR;
+                    N_Result result;
                     // If a message is available, and the runner is waiting for it.
                     if(frameStatus == frameAvailable && runner->awaitingMessage() && runner->getN_AI().N_AI == frame.identifier.N_AI)
                     {
