@@ -9,7 +9,7 @@ void N_USData_confirm_dummy_cb(N_AI nAi, N_Result nResult, Mtype mType)
 
 }
 
-void N_USData_indication_dummy_cb(N_AI nAi,uint8_t* messageData, uint32_t messageLength,N_Result nResult, Mtype mtype)
+void N_USData_indication_dummy_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,N_Result nResult, Mtype mtype)
 {
 
 }

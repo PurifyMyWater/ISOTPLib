@@ -247,7 +247,13 @@ void DoCANCpp::run_step(DoCANCpp* self)
                 {
                     if(self->N_USData_indication_cb != nullptr)
                     {
-                        self->N_USData_indication_cb(runner->getN_AI(), runner->getMessageData(), runner->getMessageLength(), runner->getResult(), runner->getMtype());
+                        uint8_t* messageData = runner->getMessageData();
+                        self->N_USData_indication_cb(runner->getN_AI(), messageData, runner->getMessageLength(), runner->getResult(), runner->getMtype());
+                        if(messageData != nullptr) // Automatically free the memory allocated to the message.
+                        {
+                            free(messageData);
+                            self->availableMemoryForRunners += runner->getMessageLength();
+                        }
                     }
                 }
 

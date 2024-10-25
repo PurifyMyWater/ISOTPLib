@@ -20,8 +20,31 @@ constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
 constexpr STmin DoCANCpp_DefaultSTmin = {20, ms};
 constexpr uint8_t DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
+/**
+ * This function is used to confirm the reception of a message.
+ * @param nAi The N_AI of the message.
+ * @param nResult The result of the reception.
+ * @param mtype The Mtype of the message.
+ */
 typedef void (*N_USData_confirm_cb_t)(N_AI nAi, N_Result nResult, Mtype mtype);
-typedef void (*N_USData_indication_cb_t)(N_AI nAi, uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype);
+
+/**
+ * This function is used to indicate the reception of a message.
+ * @warning The messageData is only valid during the callback, if you need to keep the data, copy it elsewhere.
+ * @param nAi The N_AI of the message.
+ * @param messageData The message data of the message.
+ * @param messageLength The length of the message data.
+ * @param nResult The result of the reception.
+ * @param mtype The Mtype of the message.
+ */
+typedef void (*N_USData_indication_cb_t)(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype);
+
+/**
+ * This function is used to indicate the reception of the first frame of a multi-frame message.
+ * @param nAi The N_AI of the message.
+ * @param expectedMessageLength The expected length of the message.
+ * @param mtype The Mtype of the message.
+ */
 typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t expectedMessageLength, Mtype mtype);
 
 /**
@@ -145,7 +168,6 @@ private:
     std::list<N_USData_Runner*> notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
     std::list<N_USData_Runner*> finishedRunners;
-
 };
 
 #endif // DoCANCpp_H
