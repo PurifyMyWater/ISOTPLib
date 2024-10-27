@@ -1,14 +1,6 @@
 #include "gtest/gtest.h"
+#include "ASSERT_MACROS.h"
 #include "LocalCANNetwork.h"
-
-#define ASSERT_EQ_FRAMES(frame1, frame2) \
-    ASSERT_EQ(frame1.identifier.N_AI, frame2.identifier.N_AI); \
-    ASSERT_EQ(frame1.flags, frame2.flags); \
-    ASSERT_EQ(frame1.data_length_code, frame2.data_length_code); \
-    for (uint32_t i = 0; i < frame1.data_length_code; i++) \
-    { \
-        ASSERT_EQ(frame1.data[i], frame2.data[i]); \
-    }
 
 TEST(LocalCANNetwork, network_newCANShimConnection_test)
 {

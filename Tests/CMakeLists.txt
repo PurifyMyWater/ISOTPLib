@@ -7,7 +7,7 @@ file(GLOB_RECURSE TEST_UTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTes
 
 # adding the Google_Tests_run target
 add_executable(Google_Tests_run ${TEST_SOURCES} ${TEST_UTILS_SOURCES})
-target_include_directories(Google_Tests_run PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(Google_Tests_run PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTestUtils")
 
 # linking Google_Tests_run with DoCANCppLib which will be tested
 target_link_libraries(Google_Tests_run DoCANCppLib)
