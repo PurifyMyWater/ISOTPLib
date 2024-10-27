@@ -42,10 +42,10 @@ typedef void (*N_USData_indication_cb_t)(N_AI nAi, const uint8_t* messageData, u
 /**
  * This function is used to indicate the reception of the first frame of a multi-frame message.
  * @param nAi The N_AI of the message.
- * @param expectedMessageLength The expected length of the message.
+ * @param messageLength The expected length of the message.
  * @param mtype The Mtype of the message.
  */
-typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t expectedMessageLength, Mtype mtype);
+typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t messageLength, Mtype mtype);
 
 /**
  * This class provides a C++ implementation of the DoCAN protocol aka ISO-TP, it currently only supports N_TAtype #5 & #6

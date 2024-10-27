@@ -3,7 +3,7 @@
 
 N_USData_Request_Runner::N_USData_Request_Runner(N_AI nAi, Mtype mType, uint8_t* messageData, uint32_t messageLength, OSShim* osShim, CANShim* canShim) : N_USData_Runner(nAi, osShim, canShim)
 {
-
+    this->runnerType = RunnerRequestType;
 }
 
 N_USData_Request_Runner::~N_USData_Request_Runner()
