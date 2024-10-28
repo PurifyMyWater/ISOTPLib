@@ -9,20 +9,20 @@ OSShim* auxOSShim = new LinuxOSShim();
 constexpr uint32_t GLOBAL_MESSAGE_TIMEOUT_MS = 2000;
 
 // Fake callbacks used to avoid nullptr exceptions when the tests don't need to check the callbacks.
-void N_USData_confirm_dummy_cb(N_AI nAi, N_Result nResult, Mtype mType){}
-void N_USData_indication_dummy_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,N_Result nResult, Mtype mtype){}
-void N_USData_FF_indication_dummy_cb(N_AI nAi, uint32_t expectedMessageLength, Mtype mtype){}
+void N_USData_confirm_dummy_cb([[maybe_unused]] N_AI nAi, [[maybe_unused]] N_Result nResult, [[maybe_unused]] Mtype mType){}
+void N_USData_indication_dummy_cb([[maybe_unused]] N_AI nAi, [[maybe_unused]] const uint8_t* messageData, [[maybe_unused]] uint32_t messageLength, [[maybe_unused]] N_Result nResult, [[maybe_unused]] Mtype mtype){}
+void N_USData_FF_indication_dummy_cb([[maybe_unused]] N_AI nAi, [[maybe_unused]] uint32_t expectedMessageLength, [[maybe_unused]] Mtype mtype){}
 
 /// flag to check if the message send has finished
 bool send_end_flag;
 
-#define send_loop(DO_CAN_OBJ)do{\
+#define send_loop(DO_CAN_OBJ, expected_send_end_flag)do{\
     uint32_t init = auxOSShim->osMillis();\
     while(!send_end_flag && auxOSShim->osMillis() - init < GLOBAL_MESSAGE_TIMEOUT_MS)\
     {\
         DoCANCpp::run_step(&DO_CAN_OBJ);\
     }\
-    ASSERT_TRUE(send_end_flag); \
+    ASSERT_EQ(send_end_flag, expected_send_end_flag); \
 } while(0)
 
 
@@ -36,18 +36,41 @@ bool reception_end_flag;
  * @warning The test developer should set the reception_end_flag to true in the reception callback or use the provided macros to set the callback
  * @param doCanReception The DoCANCpp object to run the reception thread
  */
-void receptionThreadFunction(DoCANCpp* doCanReception)
+void receptionThreadFunction(DoCANCpp* doCanReception, bool expected_reception_end_flag)
 {
     uint32_t init = auxOSShim->osMillis();
     while(!reception_end_flag && auxOSShim->osMillis() - init < GLOBAL_MESSAGE_TIMEOUT_MS)
     {
         DoCANCpp::run_step(doCanReception);
     }
-    ASSERT_TRUE(reception_end_flag);
+    ASSERT_EQ(reception_end_flag, expected_reception_end_flag);
+}
+
+/// flag to check if the reception thread has finished
+bool reception_end_flag_2;
+
+/**
+ * @brief Function to run the reception thread
+ * This function will run the reception thread until the reception_end_flag is set to true or the GLOBAL_MESSAGE_TIMEOUT_MS is reached
+ * This will happen when the reception callback is called or the timeout is reached
+ * @warning The test developer should set the reception_end_flag to true in the reception callback or use the provided macros to set the callback
+ * @param doCanReception The DoCANCpp object to run the reception thread
+ */
+void receptionThreadFunction_2(DoCANCpp* doCanReception, bool expected_reception_end_flag)
+{
+    uint32_t init = auxOSShim->osMillis();
+    while(!reception_end_flag && auxOSShim->osMillis() - init < GLOBAL_MESSAGE_TIMEOUT_MS)
+    {
+        DoCANCpp::run_step(doCanReception);
+    }
+    ASSERT_EQ(reception_end_flag, expected_reception_end_flag);
 }
 
 /// Macro to initialize the default structures for the tests
 #define INIT_DEFAULT_STRUCTURES(nSA) \
+    reception_end_flag = false; \
+    reception_end_flag_2 = false; \
+    send_end_flag = false; \
     typeof(N_AI::N_SA) N_SA = nSA; \
     uint32_t totalAvailableMemoryForRunners = 1000000;\
     LocalCANNetwork network; \
@@ -285,41 +308,257 @@ TEST(DoCANCpp, removeAcceptedFunctionalN_TA_not_added)
     ASSERT_FALSE(doCan.removeAcceptedFunctionalN_TA(nTa));
 }
 
-// START TEST message_transmission_with_physical_N_TA
-const uint8_t message_short_message_transmission_with_physical_N_TA[] = "Hello World!";
-const uint32_t messageLength_short_message_transmission_with_physical_N_TA = sizeof(message_short_message_transmission_with_physical_N_TA);
-typeof(N_AI::N_SA) N_SA_REC_short_message_transmission_with_physical_N_TA = 210;
-typeof(N_AI::N_SA) N_SA_SEND_short_message_transmission_with_physical_N_TA = 123;
+// START TEST message_SF_transmission_with_physical_N_TA
+const uint8_t message_SF_transmission_with_physical_N_TA[] = "123456\0"; // 7 bytes (max SF_DL)
+const uint32_t messageLength_message_SF_transmission_with_physical_N_TA = sizeof(message_SF_transmission_with_physical_N_TA);
+typeof(N_AI::N_SA) N_SA_REC_message_SF_transmission_with_physical_N_TA = 210;
+typeof(N_AI::N_SA) N_SA_SEND_message_SF_transmission_with_physical_N_TA = 123;
 
-N_USData_indication_reception_cb(message_short_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_short_message_transmission_with_physical_N_TA, N_SA_SEND_short_message_transmission_with_physical_N_TA), messageLength_short_message_transmission_with_physical_N_TA, Mtype_Diagnostics, message_short_message_transmission_with_physical_N_TA, N_Result::N_OK)
-
-}
-
-N_USData_FF_indication_reception_cb(message_short_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_short_message_transmission_with_physical_N_TA, N_SA_SEND_short_message_transmission_with_physical_N_TA), messageLength_short_message_transmission_with_physical_N_TA, Mtype_Diagnostics)
+N_USData_indication_reception_cb(message_SF_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_message_SF_transmission_with_physical_N_TA, N_SA_SEND_message_SF_transmission_with_physical_N_TA), messageLength_message_SF_transmission_with_physical_N_TA, Mtype_Diagnostics, message_SF_transmission_with_physical_N_TA, N_Result::N_OK)
 
 }
 
-N_USData_confirm_cb(message_short_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_short_message_transmission_with_physical_N_TA, N_SA_SEND_short_message_transmission_with_physical_N_TA), N_Result::N_OK, Mtype_Diagnostics)
+N_USData_FF_indication_reception_cb(message_SF_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_message_SF_transmission_with_physical_N_TA, N_SA_SEND_message_SF_transmission_with_physical_N_TA), messageLength_message_SF_transmission_with_physical_N_TA, Mtype_Diagnostics)
 
 }
 
-TEST(DoCANCpp, message_short_transmission_with_physical_N_TA)
+N_USData_confirm_cb(message_SF_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_message_SF_transmission_with_physical_N_TA, N_SA_SEND_message_SF_transmission_with_physical_N_TA), N_Result::N_OK, Mtype_Diagnostics)
+
+}
+
+TEST(DoCANCpp, message_SF_transmission_with_physical_N_TA)
 {
-    reception_end_flag = false;
-    send_end_flag = false;
-    INIT_DEFAULT_STRUCTURES(N_SA_SEND_short_message_transmission_with_physical_N_TA)
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_SF_transmission_with_physical_N_TA)
     CANShim* canShimReception = network.newCANShimConnection();
     ASSERT_NE(canShimReception, nullptr);
 
-    DoCANCpp doCan(N_SA_REC_short_message_transmission_with_physical_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_short_transmission_with_physical_N_TA, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
-    DoCANCpp doCanReception(N_SA_REC_short_message_transmission_with_physical_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_short_transmission_with_physical_N_TA, N_USData_FF_indication_reception_cb_message_short_transmission_with_physical_N_TA, *osShim, *canShimReception);
+    DoCANCpp doCan(N_SA_REC_message_SF_transmission_with_physical_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_SF_transmission_with_physical_N_TA, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception(N_SA_REC_message_SF_transmission_with_physical_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_SF_transmission_with_physical_N_TA, N_USData_FF_indication_reception_cb_message_SF_transmission_with_physical_N_TA, *osShim, *canShimReception);
 
-    std::thread receptionThread(receptionThreadFunction, &doCanReception);
+    std::thread receptionThread(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called
 
-    doCan.N_USData_request(N_SA_REC_short_message_transmission_with_physical_N_TA, N_TAtype::CAN_CLASSIC_29bit_Physical, (uint8_t*)message_short_message_transmission_with_physical_N_TA, messageLength_short_message_transmission_with_physical_N_TA);
+    doCan.N_USData_request(N_SA_REC_message_SF_transmission_with_physical_N_TA, N_TAtype::CAN_CLASSIC_29bit_Physical, (uint8_t*)message_SF_transmission_with_physical_N_TA, messageLength_message_SF_transmission_with_physical_N_TA);
 
-    send_loop(doCan);
+    send_loop(doCan, true); // expect the confirm callback to be called
 
     receptionThread.join();
+
+    ASSERT_TRUE(N_USData_FF_indication_callback_called_message_SF_transmission_with_physical_N_TA); // expect the FF indication callback to be called
 }
-// END TEST message_transmission_with_physical_N_TA
+// END TEST message_SF_transmission_with_physical_N_TA
+
+// START TEST message_MF_transmission_with_physical_N_TA
+const uint8_t message_MF_transmission_with_physical_N_TA[] = "123456789_123456789_123456789_123456789_123456789_"; // more than 7 bytes (max SF_DL)
+const uint32_t messageLength_message_MF_transmission_with_physical_N_TA = sizeof(message_MF_transmission_with_physical_N_TA);
+typeof(N_AI::N_SA) N_SA_REC_message_MF_transmission_with_physical_N_TA = 210;
+typeof(N_AI::N_SA) N_SA_SEND_message_MF_transmission_with_physical_N_TA = 123;
+
+N_USData_indication_reception_cb(message_MF_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_message_MF_transmission_with_physical_N_TA, N_SA_SEND_message_MF_transmission_with_physical_N_TA), messageLength_message_MF_transmission_with_physical_N_TA, Mtype_Diagnostics, message_MF_transmission_with_physical_N_TA, N_Result::N_OK)
+
+}
+
+N_USData_FF_indication_reception_cb(message_MF_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_message_MF_transmission_with_physical_N_TA, N_SA_SEND_message_MF_transmission_with_physical_N_TA), messageLength_message_MF_transmission_with_physical_N_TA, Mtype_Diagnostics)
+
+}
+
+N_USData_confirm_cb(message_MF_transmission_with_physical_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Physical, N_SA_REC_message_MF_transmission_with_physical_N_TA, N_SA_SEND_message_MF_transmission_with_physical_N_TA), N_Result::N_OK, Mtype_Diagnostics)
+
+}
+
+TEST(DoCANCpp, message_MF_transmission_with_physical_N_TA)
+{
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_MF_transmission_with_physical_N_TA)
+    CANShim* canShimReception = network.newCANShimConnection();
+    ASSERT_NE(canShimReception, nullptr);
+
+    DoCANCpp doCan(N_SA_REC_message_MF_transmission_with_physical_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_MF_transmission_with_physical_N_TA, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception(N_SA_REC_message_MF_transmission_with_physical_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_MF_transmission_with_physical_N_TA, N_USData_FF_indication_reception_cb_message_MF_transmission_with_physical_N_TA, *osShim, *canShimReception);
+
+    std::thread receptionThread(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called
+
+    doCan.N_USData_request(N_SA_REC_message_MF_transmission_with_physical_N_TA, N_TAtype::CAN_CLASSIC_29bit_Physical, (uint8_t*)message_MF_transmission_with_physical_N_TA, messageLength_message_MF_transmission_with_physical_N_TA);
+
+    send_loop(doCan, true); // expect the confirm callback to be called
+
+    receptionThread.join();
+
+    ASSERT_TRUE(N_USData_FF_indication_callback_called_message_MF_transmission_with_physical_N_TA); // expect the FF indication callback to be called
+}
+// END TEST message_MF_transmission_with_physical_N_TA
+
+// START TEST message_transmission_with_functional_N_TA
+
+const uint8_t message_message_transmission_with_functional_N_TA[] = "123456\0"; // 7 bytes (max SF_DL)
+const uint32_t messageLength_message_transmission_with_functional_N_TA = sizeof(message_message_transmission_with_functional_N_TA);
+typeof(N_AI::N_SA) N_SA_REC_message_transmission_with_functional_N_TA = 210;
+typeof(N_AI::N_SA) N_SA_REC_2_message_transmission_with_functional_N_TA = 211;
+typeof(N_AI::N_SA) N_SA_SEND_message_transmission_with_functional_N_TA = 123;
+
+N_USData_indication_reception_cb(message_transmission_with_functional_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), messageLength_message_transmission_with_functional_N_TA, Mtype_Diagnostics, message_message_transmission_with_functional_N_TA, N_Result::N_OK)
+
+}
+
+N_USData_confirm_cb(message_transmission_with_functional_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), N_Result::N_OK, Mtype_Diagnostics)
+
+}
+
+N_USData_FF_indication_reception_cb(message_transmission_with_functional_N_TA, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), messageLength_message_transmission_with_functional_N_TA, Mtype_Diagnostics)
+
+}
+
+N_USData_indication_reception_cb(message_transmission_with_functional_N_TA_2, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), messageLength_message_transmission_with_functional_N_TA, Mtype_Diagnostics, message_message_transmission_with_functional_N_TA, N_Result::N_OK)
+
+}
+
+N_USData_confirm_cb(message_transmission_with_functional_N_TA_2, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), N_Result::N_OK, Mtype_Diagnostics)
+
+}
+
+N_USData_FF_indication_reception_cb(message_transmission_with_functional_N_TA_2, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), messageLength_message_transmission_with_functional_N_TA, Mtype_Diagnostics)
+
+}
+
+TEST(DoCANCpp, message_transmission_with_functional_N_TA)
+{
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_transmission_with_functional_N_TA)
+    CANShim* canShimReception = network.newCANShimConnection();
+    ASSERT_NE(canShimReception, nullptr);
+    CANShim* canShimReception2 = network.newCANShimConnection();
+    ASSERT_NE(canShimReception2, nullptr);
+
+    DoCANCpp doCan(N_SA_REC_message_transmission_with_functional_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_transmission_with_functional_N_TA, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception(N_SA_REC_message_transmission_with_functional_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_transmission_with_functional_N_TA, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception2(N_SA_REC_2_message_transmission_with_functional_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_transmission_with_functional_N_TA_2, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception2);
+
+    std::thread receptionThread(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called
+    std::thread receptionThread2(receptionThreadFunction_2, &doCanReception2, true); // expect the indication callback to be called
+
+    doCan.N_USData_request(N_SA_REC_message_transmission_with_functional_N_TA, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_transmission_with_functional_N_TA, messageLength_message_transmission_with_functional_N_TA);
+
+    send_loop(doCan, true); // expect the confirm callback to be called
+
+    receptionThread.join();
+    receptionThread2.join();
+
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_functional_N_TA); // expect the FF indication callback to not be called
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_functional_N_TA_2); // expect the FF indication callback to not be called
+}
+// END TEST message_transmission_with_functional_N_TA
+
+// START TEST message_transmission_with_functional_N_TA_multicast
+
+const uint8_t message_message_transmission_with_functional_N_TA_multicast[] = "123456\0"; // 7 bytes (max SF_DL)
+const uint32_t messageLength_message_transmission_with_functional_N_TA_multicast = sizeof(message_message_transmission_with_functional_N_TA_multicast);
+typeof(N_AI::N_SA) N_SA_REC_message_transmission_with_functional_N_TA_multicast = 210;
+typeof(N_AI::N_SA) N_SA_SEND_message_transmission_with_functional_N_TA_multicast = 123;
+
+N_USData_indication_reception_cb(message_transmission_with_functional_N_TA_multicast, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA_multicast, N_SA_SEND_message_transmission_with_functional_N_TA_multicast), messageLength_message_transmission_with_functional_N_TA_multicast, Mtype_Diagnostics, message_message_transmission_with_functional_N_TA_multicast, N_Result::N_OK)
+
+}
+
+N_USData_confirm_cb(message_transmission_with_functional_N_TA_multicast, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA_multicast, N_SA_SEND_message_transmission_with_functional_N_TA_multicast), N_Result::N_OK, Mtype_Diagnostics)
+
+}
+
+N_USData_FF_indication_reception_cb(message_transmission_with_functional_N_TA_multicast, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA_multicast, N_SA_SEND_message_transmission_with_functional_N_TA_multicast), messageLength_message_transmission_with_functional_N_TA_multicast, Mtype_Diagnostics)
+
+}
+
+TEST(DoCANCpp, message_transmission_with_functional_N_TA_multicast) // TODO make it multicast
+{
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_transmission_with_functional_N_TA_multicast)
+    CANShim* canShimReception = network.newCANShimConnection();
+    ASSERT_NE(canShimReception, nullptr);
+
+    DoCANCpp doCan(N_SA_REC_message_transmission_with_functional_N_TA_multicast, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_transmission_with_functional_N_TA_multicast, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception(N_SA_REC_message_transmission_with_functional_N_TA_multicast, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_transmission_with_functional_N_TA_multicast, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+
+    std::thread receptionThread(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called
+
+    doCan.N_USData_request(N_SA_REC_message_transmission_with_functional_N_TA_multicast, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_transmission_with_functional_N_TA_multicast, messageLength_message_transmission_with_functional_N_TA_multicast);
+
+    send_loop(doCan, true); // expect the confirm callback to be called
+
+    receptionThread.join();
+
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_functional_N_TA_multicast); // expect the FF indication callback to not be called
+}
+// END TEST message_transmission_with_functional_N_TA_multicast
+
+// START TEST message_transmission_with_functional_N_TA_bigger_than_SF_DL
+
+const uint8_t message_message_transmission_with_functional_N_TA_bigger_than_SF_DL[] = "1234567"; // 8 bytes (bigger than SF_DL)
+const uint32_t messageLength_message_transmission_with_functional_N_TA_bigger_than_SF_DL = sizeof(message_message_transmission_with_functional_N_TA_bigger_than_SF_DL);
+typeof(N_AI::N_SA) N_SA_REC_message_transmission_with_functional_N_TA_bigger_than_SF_DL = 210;
+typeof(N_AI::N_SA) N_SA_SEND_message_transmission_with_functional_N_TA_bigger_than_SF_DL = 123;
+
+N_USData_indication_reception_cb(message_transmission_with_functional_N_TA_bigger_than_SF_DL, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), messageLength_message_transmission_with_functional_N_TA_bigger_than_SF_DL, Mtype_Diagnostics, message_message_transmission_with_functional_N_TA_bigger_than_SF_DL, N_Result::N_ERROR)
+
+}
+
+N_USData_confirm_cb(message_transmission_with_functional_N_TA_bigger_than_SF_DL, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_ERROR, N_SA_SEND_message_transmission_with_functional_N_TA), N_Result::N_ERROR, Mtype_Diagnostics)
+
+}
+
+N_USData_FF_indication_reception_cb(message_transmission_with_functional_N_TA_bigger_than_SF_DL, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA, N_SA_SEND_message_transmission_with_functional_N_TA), messageLength_message_transmission_with_functional_N_TA_bigger_than_SF_DL, Mtype_Diagnostics)
+
+}
+
+TEST(DoCANCpp, message_transmission_with_functional_N_TA_bigger_than_SF_DL)
+{
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_transmission_with_functional_N_TA_bigger_than_SF_DL)
+    CANShim* canShimReception = network.newCANShimConnection();
+    ASSERT_NE(canShimReception, nullptr);
+
+    DoCANCpp doCan(N_SA_REC_message_transmission_with_functional_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_transmission_with_functional_N_TA_bigger_than_SF_DL, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception(N_SA_REC_message_transmission_with_functional_N_TA, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_transmission_with_functional_N_TA_bigger_than_SF_DL, N_USData_FF_indication_reception_cb_message_transmission_with_functional_N_TA_bigger_than_SF_DL, *osShim, *canShimReception);
+
+    std::thread receptionThread(receptionThreadFunction, &doCanReception, false); // expect the indication callback not to be called
+
+    doCan.N_USData_request(N_SA_REC_message_transmission_with_functional_N_TA, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_transmission_with_functional_N_TA_bigger_than_SF_DL, messageLength_message_transmission_with_functional_N_TA_bigger_than_SF_DL, Mtype_Diagnostics);
+    send_loop(doCan, true); // expect the confirm callback to be called
+
+    receptionThread.join();
+
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_functional_N_TA_bigger_than_SF_DL); // expect the FF indication callback not to be called
+}
+// END TEST message_transmission_with_functional_N_TA_bigger_than_SF_DL
+
+// START TEST message_transmission_with_functional_N_TA_invalid_small_message
+
+const uint8_t message_message_transmission_with_functional_N_TA_invalid_small_message[] = ""; // 0 bytes (smaller than min SF_DL)
+const uint32_t messageLength_message_transmission_with_functional_N_TA_invalid_small_message = sizeof(message_message_transmission_with_functional_N_TA_invalid_small_message);
+typeof(N_AI::N_SA) N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message = 210;
+typeof(N_AI::N_SA) N_SA_SEND_message_transmission_with_functional_N_TA_invalid_small_message = 123;
+
+N_USData_confirm_cb(message_transmission_with_functional_N_TA_invalid_small_message, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message, N_SA_SEND_message_transmission_with_functional_N_TA_invalid_small_message), N_Result::N_ERROR, Mtype_Diagnostics)
+
+}
+
+N_USData_FF_indication_reception_cb(message_transmission_with_functional_N_TA_invalid_small_message, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message, N_SA_SEND_message_transmission_with_functional_N_TA_invalid_small_message), messageLength_message_transmission_with_functional_N_TA_invalid_small_message, Mtype_Diagnostics)
+
+}
+
+N_USData_indication_reception_cb(message_transmission_with_functional_N_TA_invalid_small_message, DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message, N_SA_SEND_message_transmission_with_functional_N_TA_invalid_small_message), messageLength_message_transmission_with_functional_N_TA_invalid_small_message, Mtype_Diagnostics, message_message_transmission_with_functional_N_TA_invalid_small_message, N_Result::N_ERROR)
+
+}
+
+TEST(DoCANCpp, message_transmission_with_functional_N_TA_invalid_small_message)
+{
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_transmission_with_functional_N_TA_invalid_small_message)
+    CANShim* canShimReception = network.newCANShimConnection();
+    ASSERT_NE(canShimReception, nullptr);
+
+    DoCANCpp doCan(N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_transmission_with_functional_N_TA_invalid_small_message, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShimReception);
+    DoCANCpp doCanReception(N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_transmission_with_functional_N_TA_invalid_small_message, N_USData_FF_indication_reception_cb_message_transmission_with_functional_N_TA_invalid_small_message, *osShim, *canShimReception);
+
+    std::thread receptionThread(receptionThreadFunction, &doCanReception, false); // expect the indication callback not to be called
+
+    doCan.N_USData_request(N_SA_REC_message_transmission_with_functional_N_TA_invalid_small_message, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_transmission_with_functional_N_TA_invalid_small_message, messageLength_message_transmission_with_functional_N_TA_invalid_small_message, Mtype_Diagnostics);
+    send_loop(doCan, true); // expect the confirm callback to be called
+
+    receptionThread.join();
+
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_functional_N_TA_invalid_small_message); // expect the FF indication callback not to be called
+}
+// END TEST message_transmission_with_functional_N_TA_invalid_small_message
