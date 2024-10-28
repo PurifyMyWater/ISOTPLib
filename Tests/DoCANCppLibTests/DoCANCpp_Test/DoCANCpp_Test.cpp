@@ -14,7 +14,7 @@ void N_USData_indication_dummy_cb([[maybe_unused]] N_AI nAi, [[maybe_unused]] co
 void N_USData_FF_indication_dummy_cb([[maybe_unused]] N_AI nAi, [[maybe_unused]] uint32_t expectedMessageLength, [[maybe_unused]] Mtype mtype){}
 
 /// flag to check if the message send has finished
-bool send_end_flag;
+volatile bool send_end_flag;
 
 #define send_loop(DO_CAN_OBJ, expected_send_end_flag)do{\
     uint32_t init = auxOSShim->osMillis();\
@@ -27,7 +27,7 @@ bool send_end_flag;
 
 
 /// flag to check if the reception thread has finished
-bool reception_end_flag;
+volatile bool reception_end_flag;
 
 /**
  * @brief Function to run the reception thread
@@ -47,7 +47,7 @@ void receptionThreadFunction(DoCANCpp* doCanReception, bool expected_reception_e
 }
 
 /// flag to check if the reception thread has finished
-bool reception_end_flag_2;
+volatile bool reception_end_flag_2;
 
 /**
  * @brief Function to run the reception thread
@@ -102,7 +102,7 @@ void receptionThreadFunction_2(DoCANCpp* doCanReception, bool expected_reception
 
 /// Macro to create the N_USData_confirm callback. It will assert the metadata of the message, check if the callback was called (result set in a bool called N_USData_FF_indication_callback_called_##TEST_NAME) and after that you can run your custom code below. Dont forget to close the '}' at the end of your custom code
 #define N_USData_FF_indication_reception_cb_internal(TEST_NAME, EXPECTED_N_AI, EXPECTED_MESSAGE_LENGTH, EXPECTED_M_TYPE) \
-    bool N_USData_FF_indication_callback_called_##TEST_NAME = false; \
+    volatile bool N_USData_FF_indication_callback_called_##TEST_NAME = false; \
     void N_USData_FF_indication_reception_cb_##TEST_NAME (N_AI nAi, uint32_t messageLength, Mtype mtype) {      \
     N_USData_FF_indication_callback_called_##TEST_NAME = true;\
     N_AI expected_nai = EXPECTED_N_AI;\
