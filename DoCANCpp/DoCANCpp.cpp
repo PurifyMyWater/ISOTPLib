@@ -129,7 +129,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
     {
         self->lastRunTime = self->osShim->osMillis();
 
-        if(self->canShim->active())
+        if(self->canShim->active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
         {
             // Get the configuration used in this run_step.
             self->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
