@@ -1,4 +1,4 @@
-name: CMake Tests
+name: DoCANCppLib CI
 
 on:
   push:
