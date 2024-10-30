@@ -17,11 +17,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: Cache git
+      - name: Cache git submodules
         uses: actions/cache@v4
         with:
           key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
-          path: ".git/modules"
+          path: ".git"
           restore-keys: "${{ runner.os }}-git-"
 
       - name: "Checkout repository"
