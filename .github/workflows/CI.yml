@@ -2,10 +2,10 @@ name: CMake Tests
 
 on:
   push:
-    branches: 
+    branches:
       - main
   pull_request:
-    branches: 
+    branches:
       - main
 
 jobs:
@@ -17,17 +17,25 @@ jobs:
         shell: bash
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+      - name: Cache git
+        uses: actions/cache@v4
+        with:
+          key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
+          path: ".git"
+          restore-keys: "${{ runner.os }}-git-"
 
-    - name: Configure CMake
-      run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
 
-    - name: Build
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build .
+      - name: Configure CMake
+        run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
 
-    - name: Test
-      working-directory: ${{runner.workspace}}/build
-      run: ./Tests/Google_Tests_run
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        run: cmake --build .
+
+      - name: Test
+        working-directory: ${{runner.workspace}}/build
+        run: ./Tests/Google_Tests_run
