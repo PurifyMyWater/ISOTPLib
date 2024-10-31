@@ -1,21 +1,5 @@
 name: DoCANCppLib CI
 
-permissions:
-  actions: none
-  attestations: none
-  checks: none
-  contents: write
-  deployments: none
-  id-token: none
-  issues: none
-  discussions: none
-  packages: none
-  pages: none
-  pull-requests: write
-  repository-projects: none
-  security-events: none
-  statuses: none
-
 on:
   push:
   pull_request:
@@ -59,6 +43,10 @@ jobs:
       run:
         shell: bash
 
+    permissions:
+      contents: read|write
+      pull-requests: write
+
     steps:
       - name: Cache git submodules
         uses: actions/cache@v4
@@ -82,6 +70,7 @@ jobs:
           step-summary: true
           tidy-review: true
           format-review: true
+          files-changed-only: false
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
