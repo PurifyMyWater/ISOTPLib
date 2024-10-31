@@ -60,6 +60,9 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Configure CMake
+        run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
+
       - uses: cpp-linter/cpp-linter-action@v2
         id: linter
         env:
@@ -67,6 +70,7 @@ jobs:
         with:
           style: 'file'  # Use .clang-format config file
           tidy-checks: '' # Use .clang-tidy config file
+          database: '${{runner.workspace}}/build'
           step-summary: true
           tidy-review: true
           format-review: true
