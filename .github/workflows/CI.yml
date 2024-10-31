@@ -1,12 +1,24 @@
 name: DoCANCppLib CI
 
+permissions:
+  actions: none
+  attestations: none
+  checks: none
+  contents: write
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: write
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   Test:
@@ -39,3 +51,40 @@ jobs:
       - name: Test
         working-directory: ${{runner.workspace}}/build
         run: ./Tests/Google_Tests_run
+
+  Linter:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Cache git submodules
+        uses: actions/cache@v4
+        with:
+          key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
+          path: ".git"
+          restore-keys: "${{ runner.os }}-git-"
+          
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: 'file'  # Use .clang-format config file
+          tidy-checks: '.clang-tidy' # Use .clang-tidy config file
+          step-summary: true
+          tidy-review: true
+          format-review: true
+          # only 'update' a single comment in a pull request thread.
+          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+
+      - name: Fail fast?!
+        if: steps.linter.outputs.checks-failed > 0
+        run: exit 1
