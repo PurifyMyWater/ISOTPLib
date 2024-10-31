@@ -63,7 +63,15 @@ jobs:
       - name: Configure CMake
         run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
 
-      - uses: cpp-linter/cpp-linter-action@v2
+      - name: Setup env
+        run: |
+          export CC=$(readlink -f ${CC:-$(which cc)});
+          export CXX=$(readlink -f ${CXX:-$(which cxx)});
+          echo $CC;
+          echo $CXX
+      
+      - name: Linter
+        uses: cpp-linter/cpp-linter-action@v2
         id: linter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
