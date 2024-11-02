@@ -628,99 +628,99 @@ TEST(DoCANCpp, message_transmission_with_functional_N_TA_min_message)
 }
 // END TEST message_transmission_with_functional_N_TA_min_message
 
-// START TEST message_transmission_with_same_N_AI
+// START TEST message_multiple_transmission_with_same_N_AI
 
-const uint8_t message_message_transmission_with_same_N_AI_1[] = "1234567890"; // 7 bytes
-const uint8_t message_message_transmission_with_same_N_AI_2[] = "0987654321"; // 7 bytes
-const uint32_t messageLength_message_transmission_with_same_N_AI_1 = sizeof(message_message_transmission_with_same_N_AI_1);
-const uint32_t messageLength_message_transmission_with_same_N_AI_2 = sizeof(message_message_transmission_with_same_N_AI_2);
-typeof(N_AI::N_SA) N_SA_REC_message_transmission_with_same_N_AI = 210;
-typeof(N_AI::N_SA) N_SA_SEND_message_transmission_with_same_N_AI = 123;
-N_AI N_AI_message_transmission_with_same_N_AI = DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_transmission_with_same_N_AI, N_SA_SEND_message_transmission_with_same_N_AI);
+const uint8_t message_message_multiple_transmission_with_same_N_AI_1[] = "1234567890"; // 2 frames
+const uint8_t message_message_multiple_transmission_with_same_N_AI_2[] = "0987654321"; // 2 frames
+const uint32_t messageLength_message_multiple_transmission_with_same_N_AI_1 = sizeof(message_message_multiple_transmission_with_same_N_AI_1);
+const uint32_t messageLength_message_multiple_transmission_with_same_N_AI_2 = sizeof(message_message_multiple_transmission_with_same_N_AI_2);
+typeof(N_AI::N_SA) N_SA_REC_message_multiple_transmission_with_same_N_AI = 210;
+typeof(N_AI::N_SA) N_SA_SEND_message_multiple_transmission_with_same_N_AI = 123;
+N_AI N_AI_message_multiple_transmission_with_same_N_AI = DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_multiple_transmission_with_same_N_AI, N_SA_SEND_message_multiple_transmission_with_same_N_AI);
 
-void N_USData_indication_reception_cb_message_transmission_with_same_N_AI(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype)
+void N_USData_indication_reception_cb_message_multiple_transmission_with_same_N_AI(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype)
 {
     static bool first_message = true;
 
     reception_end_flag = true;
     ASSERT_EQ(nResult, N_Result::N_OK);
-    N_AI expected_nai = N_AI_message_transmission_with_same_N_AI;
+    N_AI expected_nai = N_AI_message_multiple_transmission_with_same_N_AI;
     ASSERT_EQ_N_AI(expected_nai, nAi);
     ASSERT_EQ(mtype, Mtype_Diagnostics);
     if(first_message)
     {
-        ASSERT_EQ(messageLength, messageLength_message_transmission_with_same_N_AI_1);
+        ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_same_N_AI_1);
         for(uint32_t i = 0; i < messageLength; i++)
         {
-            ASSERT_EQ(messageData[i], message_message_transmission_with_same_N_AI_1[i]);
+            ASSERT_EQ(messageData[i], message_message_multiple_transmission_with_same_N_AI_1[i]);
         }
         first_message = false;
     }
     else
     {
-        ASSERT_EQ(messageLength, messageLength_message_transmission_with_same_N_AI_2);
+        ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_same_N_AI_2);
         for(uint32_t i = 0; i < messageLength; i++)
         {
-            ASSERT_EQ(messageData[i], message_message_transmission_with_same_N_AI_2[i]);
+            ASSERT_EQ(messageData[i], message_message_multiple_transmission_with_same_N_AI_2[i]);
         }
     }
 }
 
-N_USData_confirm_cb(message_transmission_with_same_N_AI, N_AI_message_transmission_with_same_N_AI, N_Result::N_OK, Mtype_Diagnostics)
+N_USData_confirm_cb(message_multiple_transmission_with_same_N_AI, N_AI_message_multiple_transmission_with_same_N_AI, N_Result::N_OK, Mtype_Diagnostics)
 
 }
 
-volatile bool N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI = false;
-void N_USData_FF_indication_reception_cb_message_transmission_with_same_N_AI(N_AI nAi, uint32_t messageLength, Mtype mtype)
+volatile bool N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI = 0;
+void N_USData_FF_indication_reception_cb_message_multiple_transmission_with_same_N_AI(N_AI nAi, uint32_t messageLength, Mtype mtype)
 {
     static bool first_message = true;
-    N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI = true;
-    N_AI expected_nai = N_AI_message_transmission_with_same_N_AI;
+    N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI = true;
+    N_AI expected_nai = N_AI_message_multiple_transmission_with_same_N_AI;
     ASSERT_EQ_N_AI(expected_nai, nAi);
     ASSERT_EQ(mtype, Mtype_Diagnostics);
     if(first_message)
     {
-        ASSERT_EQ(messageLength, messageLength_message_transmission_with_same_N_AI_1);
+        ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_same_N_AI_1);
         first_message = false;
     }
     else
     {
-        ASSERT_EQ(messageLength, messageLength_message_transmission_with_same_N_AI_2);
+        ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_same_N_AI_2);
     }
 }
 
-TEST(DoCANCpp, message_transmission_with_same_N_AI)
+TEST(DoCANCpp, message_multiple_transmission_with_same_N_AI)
 {
-    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_transmission_with_same_N_AI)
+    INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_multiple_transmission_with_same_N_AI)
     CANShim* canShimReception = network.newCANShimConnection();
     ASSERT_NE(canShimReception, nullptr);
 
-    DoCANCpp doCan(N_SA_SEND_message_transmission_with_same_N_AI, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_transmission_with_same_N_AI, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShim);
-    DoCANCpp doCanReception(N_SA_REC_message_transmission_with_same_N_AI, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_transmission_with_same_N_AI, N_USData_FF_indication_reception_cb_message_transmission_with_same_N_AI, *osShim, *canShimReception);
+    DoCANCpp doCan(N_SA_SEND_message_multiple_transmission_with_same_N_AI, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_multiple_transmission_with_same_N_AI, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShim);
+    DoCANCpp doCanReception(N_SA_REC_message_multiple_transmission_with_same_N_AI, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_multiple_transmission_with_same_N_AI, N_USData_FF_indication_reception_cb_message_multiple_transmission_with_same_N_AI, *osShim, *canShimReception);
 
     std::thread receptionThread(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called
 
-    doCan.N_USData_request(N_SA_REC_message_transmission_with_same_N_AI, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_transmission_with_same_N_AI_1, messageLength_message_transmission_with_same_N_AI_1, Mtype_Diagnostics);
-    doCan.N_USData_request(N_SA_REC_message_transmission_with_same_N_AI, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_transmission_with_same_N_AI_2, messageLength_message_transmission_with_same_N_AI_2, Mtype_Diagnostics);
+    doCan.N_USData_request(N_SA_REC_message_multiple_transmission_with_same_N_AI, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_multiple_transmission_with_same_N_AI_1, messageLength_message_multiple_transmission_with_same_N_AI_1, Mtype_Diagnostics);
+    doCan.N_USData_request(N_SA_REC_message_multiple_transmission_with_same_N_AI, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_multiple_transmission_with_same_N_AI_2, messageLength_message_multiple_transmission_with_same_N_AI_2, Mtype_Diagnostics);
 
     DoCANCpp::run_step(&doCan); // send first frame of the first message
     auxOSShim->osSleep(DoCANCpp_RunPeriod_MS*5); // wait for the reception thread to start receiving the first message
 
-    if(! N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI)
+    if(! N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI)
     {
         receptionThread.join(); // Cleanup of the thread before failing the test
     }
-    ASSERT_TRUE(N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI); // expect the FF indication callback to be called with the arrival of the first frame of the first message
-    N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI = false; // reset the flag
+    ASSERT_TRUE(N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI); // expect the FF indication callback to be called with the arrival of the first frame of the first message
+    N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI = false; // reset the flag
 
     DoCANCpp::run_step(&doCan); // send the second frame of the first message
     auxOSShim->osSleep(DoCANCpp_RunPeriod_MS*5); // wait for the reception thread to start receiving the second frame of the first message
 
-    if(N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI)
+    if(N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI)
     {
         receptionThread.join(); // Cleanup of the thread before failing the test
     }
-    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI); // expect the FF indication callback not to be called
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI); // expect the FF indication callback not to be called
 
     receptionThread.join(); // wait for the reception thread to finish receiving the first message
 
@@ -729,30 +729,136 @@ TEST(DoCANCpp, message_transmission_with_same_N_AI)
     DoCANCpp::run_step(&doCan); // send first frame of the second message
     auxOSShim->osSleep(DoCANCpp_RunPeriod_MS*5); // wait for the reception thread to start receiving the second message
 
-    if(! N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI)
+    if(! N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI)
     {
         receptionThread2.join(); // Cleanup of the thread before failing the test
     }
-    ASSERT_TRUE(N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI); // expect the FF indication callback to be called with the arrival of the first frame of the first message
+    ASSERT_TRUE(N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI); // expect the FF indication callback to be called with the arrival of the first frame of the first message
 
-    N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI = false; // reset the flag
+    N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI = false; // reset the flag
 
     DoCANCpp::run_step(&doCan); // send the second frame of the second message
     auxOSShim->osSleep(DoCANCpp_RunPeriod_MS*5); // wait for the reception thread to start receiving the second frame of the second message
 
-    if(N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI)
+    if(N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI)
     {
         receptionThread2.join(); // Cleanup of the thread before failing the test
     }
-    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_transmission_with_same_N_AI); // expect the FF indication callback not to be called
+    ASSERT_FALSE(N_USData_FF_indication_callback_called_message_multiple_transmission_with_same_N_AI); // expect the FF indication callback not to be called
 
     receptionThread2.join(); // wait for the reception thread to finish receiving the second message
 }
-// END TEST message_transmission_with_same_N_AI
+// END TEST message_multiple_transmission_with_different_N_AI
+
+// START TEST message_multiple_transmission_with_different_N_AI
+
+const uint8_t message_message_multiple_transmission_with_different_N_AI_1[] = "1234567890"; // 2 frames
+const uint8_t message_message_multiple_transmission_with_different_N_AI_2[] = "0987654321"; // 2 frames
+const uint32_t messageLength_message_multiple_transmission_with_different_N_AI_1 = sizeof(message_message_multiple_transmission_with_different_N_AI_1);
+const uint32_t messageLength_message_multiple_transmission_with_different_N_AI_2 = sizeof(message_message_multiple_transmission_with_different_N_AI_2);
+typeof(N_AI::N_SA) N_SA_REC_message_multiple_transmission_with_different_N_AI = 210;
+typeof(N_AI::N_SA) N_SA_REC_message_multiple_transmission_with_different_N_AI_2 = 211;
+typeof(N_AI::N_SA) N_SA_SEND_message_multiple_transmission_with_different_N_AI = 123;
+N_AI N_AI_message_multiple_transmission_with_different_N_AI = DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_multiple_transmission_with_different_N_AI, N_SA_SEND_message_multiple_transmission_with_different_N_AI);
+N_AI N_AI_message_multiple_transmission_with_different_N_AI_2 = DoCANCpp_N_AI_CONFIG(N_TAtype::CAN_CLASSIC_29bit_Functional, N_SA_REC_message_multiple_transmission_with_different_N_AI_2, N_SA_SEND_message_multiple_transmission_with_different_N_AI);
+
+void N_USData_indication_reception_cb_message_multiple_transmission_with_different_N_AI(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype)
+{
+  static bool first_message = true;
+
+  reception_end_flag = true;
+  ASSERT_EQ(nResult, N_Result::N_OK);
+  ASSERT_EQ(mtype, Mtype_Diagnostics);
+  if(first_message)
+  {
+    N_AI expected_nai = N_AI_message_multiple_transmission_with_different_N_AI;
+    ASSERT_EQ_N_AI(nAi, expected_nai);
+    ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_different_N_AI_1);
+    for(uint32_t i = 0; i < messageLength; i++)
+    {
+      ASSERT_EQ(messageData[i], message_message_multiple_transmission_with_different_N_AI_1[i]);
+    }
+    first_message = false;
+  }
+  else
+  {
+    N_AI expected_nai = N_AI_message_multiple_transmission_with_different_N_AI_2;
+    ASSERT_EQ_N_AI(nAi, expected_nai);
+    ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_different_N_AI_2);
+    for(uint32_t i = 0; i < messageLength; i++)
+    {
+      ASSERT_EQ(messageData[i], message_message_multiple_transmission_with_different_N_AI_2[i]);
+    }
+  }
+}
+
+N_USData_confirm_cb(message_multiple_transmission_with_different_N_AI, N_AI_message_multiple_transmission_with_different_N_AI, N_Result::N_OK, Mtype_Diagnostics)
+
+}
+
+volatile uint8_t N_USData_FF_indication_callback_called_message_multiple_transmission_with_different_N_AI = 0;
+void N_USData_FF_indication_reception_cb_message_multiple_transmission_with_different_N_AI(N_AI nAi, uint32_t messageLength, Mtype mtype)
+{
+  static bool first_message = true;
+  N_USData_FF_indication_callback_called_message_multiple_transmission_with_different_N_AI+=1;
+  ASSERT_EQ(mtype, Mtype_Diagnostics);
+  if(first_message)
+  {
+    N_AI expected_nai = N_AI_message_multiple_transmission_with_different_N_AI;
+    ASSERT_EQ_N_AI(nAi, expected_nai);
+    ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_different_N_AI_1);
+    first_message = false;
+  }
+  else
+  {
+    N_AI expected_nai = N_AI_message_multiple_transmission_with_different_N_AI_2;
+    ASSERT_EQ_N_AI(nAi, expected_nai);
+    ASSERT_EQ(messageLength, messageLength_message_multiple_transmission_with_different_N_AI_2);
+  }
+}
+
+TEST(DoCANCpp, message_multiple_transmission_with_different_N_AI)
+{
+  INIT_DEFAULT_STRUCTURES(N_SA_SEND_message_multiple_transmission_with_different_N_AI)
+  CANShim* canShimReception = network.newCANShimConnection();
+  ASSERT_NE(canShimReception, nullptr);
+
+  DoCANCpp doCan(N_SA_SEND_message_multiple_transmission_with_different_N_AI, totalAvailableMemoryForRunners, N_USData_confirm_cb_message_multiple_transmission_with_different_N_AI, N_USData_indication_dummy_cb, N_USData_FF_indication_dummy_cb, *osShim, *canShim);
+  DoCANCpp doCanReception(N_SA_REC_message_multiple_transmission_with_different_N_AI, totalAvailableMemoryForRunners, N_USData_confirm_dummy_cb, N_USData_indication_reception_cb_message_multiple_transmission_with_different_N_AI, N_USData_FF_indication_reception_cb_message_multiple_transmission_with_different_N_AI, *osShim, *canShimReception);
+
+  std::thread receptionThread(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called
+
+  doCan.N_USData_request(N_SA_REC_message_multiple_transmission_with_different_N_AI, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_multiple_transmission_with_different_N_AI_1, messageLength_message_multiple_transmission_with_different_N_AI_1, Mtype_Diagnostics);
+  doCan.N_USData_request(N_SA_REC_message_multiple_transmission_with_different_N_AI_2, N_TAtype::CAN_CLASSIC_29bit_Functional, (uint8_t*)message_message_multiple_transmission_with_different_N_AI_2, messageLength_message_multiple_transmission_with_different_N_AI_2, Mtype_Diagnostics);
+
+  DoCANCpp::run_step(&doCan); // send first frame of the first message
+  auxOSShim->osSleep(DoCANCpp_RunPeriod_MS*5); // wait for the reception thread to start receiving the first and second message.
+
+  if(! N_USData_FF_indication_callback_called_message_multiple_transmission_with_different_N_AI)
+  {
+    receptionThread.join(); // Cleanup of the thread before failing the test
+  }
+  ASSERT_EQ(N_USData_FF_indication_callback_called_message_multiple_transmission_with_different_N_AI, 2); // expect the FF indication callback to be called with the arrival of the first frame of the first message
+
+  DoCANCpp::run_step(&doCan); // send the second frame of the first message
+  auxOSShim->osSleep(DoCANCpp_RunPeriod_MS*5); // wait for the reception thread to start receiving the second frame of the first message
+
+  if(N_USData_FF_indication_callback_called_message_multiple_transmission_with_different_N_AI != 2)
+  {
+    receptionThread.join(); // Cleanup of the thread before failing the test
+  }
+  ASSERT_EQ(N_USData_FF_indication_callback_called_message_multiple_transmission_with_different_N_AI, 2); // expect the FF indication callback not to be called
+
+  receptionThread.join(); // wait for the reception thread to finish receiving the first message
+
+  std::thread receptionThread2(receptionThreadFunction, &doCanReception, true); // expect the indication callback to be called to finish receiving the second message
+
+  receptionThread2.join(); // wait for the reception thread to finish receiving the second message
+}
+// END TEST message_multiple_transmission_with_different_N_AI
 
 /*
  * TODO test cases:
  * - multiple messages being transmitted & received at the same time (with the same and different N_TAtype)
- * - test that if 2 messages are transmitted at the same time to different N_TA, both are transmitted at the same time
  * - test that if the CAN bus is not active, messages running are not transmitted/received and immediately return N_ERROR
  */
