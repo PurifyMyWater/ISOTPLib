@@ -11,7 +11,7 @@ class LocalCANNetworkCANShim;
  * @brief A local CAN network that can be used to test CANShim implementations
  * To use it, call newCANShimConnection() to create a new CANShim connection to the network, and use the CANShim as you would use normally
  */
-class LocalCANNetwork
+class LocalCANNetwork // TODO add mutual exclusion to the internal data structures
 {
 public:
 

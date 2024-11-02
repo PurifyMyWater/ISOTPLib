@@ -166,7 +166,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             CANFrame frame;
             if(self->canShim->frameAvailable())
             {
-                self->canShim->readFrame(&frame);
+                self->canShim->readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
                 if((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
                 {
                     frameStatus = frameAvailable;
