@@ -1,0 +1,275 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.29"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "OSShim",
+					"jsonFile" : "directory-OSShim-Debug-5cb7959524948b32d6be.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.29"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "OSShim"
+				},
+				{
+					"build" : "CANShim",
+					"jsonFile" : "directory-CANShim-Debug-faf836397d756952df09.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.29"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "CANShim"
+				},
+				{
+					"build" : "DoCANCpp",
+					"jsonFile" : "directory-DoCANCpp-Debug-302fa7c1af3adc15d20b.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.29"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "DoCANCpp",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "Tests",
+					"childIndexes" : 
+					[
+						5
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-Tests-Debug-0bb2ec8d84e8c19149a9.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.29"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "Tests",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "Tests/googletest",
+					"childIndexes" : 
+					[
+						6
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-Tests.googletest-Debug-a763d8d0f473b2f8ea3b.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 2,
+					"source" : "Tests/googletest"
+				},
+				{
+					"build" : "Tests/googletest/googlemock",
+					"childIndexes" : 
+					[
+						7
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-Tests.googletest.googlemock-Debug-eafb4b3ada3e997783a9.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 3,
+					"source" : "Tests/googletest/googlemock",
+					"targetIndexes" : 
+					[
+						2,
+						3
+					]
+				},
+				{
+					"build" : "Tests/googletest/googletest",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-Tests.googletest.googletest-Debug-4187524fe5b07e45603f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 6,
+					"projectIndex" : 4,
+					"source" : "Tests/googletest/googletest",
+					"targetIndexes" : 
+					[
+						4,
+						5
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "DoCANCppLib",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						2
+					],
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "Google_tests",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						3
+					],
+					"directoryIndexes" : 
+					[
+						5
+					],
+					"name" : "googletest-distribution",
+					"parentIndex" : 1
+				},
+				{
+					"childIndexes" : 
+					[
+						4
+					],
+					"directoryIndexes" : 
+					[
+						6
+					],
+					"name" : "gmock",
+					"parentIndex" : 2,
+					"targetIndexes" : 
+					[
+						2,
+						3
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						7
+					],
+					"name" : "gtest",
+					"parentIndex" : 3,
+					"targetIndexes" : 
+					[
+						4,
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 3,
+					"id" : "DoCANCpp::@63eaa5db65176c7b1762",
+					"jsonFile" : "target-DoCANCpp-Debug-8f2e0c52e744c3bcf307.json",
+					"name" : "DoCANCpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Google_Tests_run::@3e3005ae7443f751ac85",
+					"jsonFile" : "target-Google_Tests_run-Debug-059f530c40afe8fdec48.json",
+					"name" : "Google_Tests_run",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "gmock::@81f846eea6505ef334dd",
+					"jsonFile" : "target-gmock-Debug-878c4899748aa46daa92.json",
+					"name" : "gmock",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "gmock_main::@81f846eea6505ef334dd",
+					"jsonFile" : "target-gmock_main-Debug-c855745eeb9c8a3e922e.json",
+					"name" : "gmock_main",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "gtest::@fdd2472573580e7faf7f",
+					"jsonFile" : "target-gtest-Debug-a9f822f160308d137bb2.json",
+					"name" : "gtest",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "gtest_main::@fdd2472573580e7faf7f",
+					"jsonFile" : "target-gtest_main-Debug-a1549b435cdd555befdc.json",
+					"name" : "gtest_main",
+					"projectIndex" : 4
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/victor/Documentos/GitHub/DoCANCppLib/cmake-build-debug",
+		"source" : "/home/victor/Documentos/GitHub/DoCANCppLib"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

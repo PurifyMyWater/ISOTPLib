@@ -1,0 +1,161 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "DoCANCpp/libDoCANCpp.a"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"target_include_directories",
+			"target_link_libraries",
+			"target_sources"
+		],
+		"files" : 
+		[
+			"DoCANCpp/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 1,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 6,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 8,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 5,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -std=gnu++20 -fdiagnostics-color=always"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 2,
+					"path" : "/home/victor/Documentos/GitHub/DoCANCppLib/DoCANCpp/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "/home/victor/Documentos/GitHub/DoCANCppLib/CANShim/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "/home/victor/Documentos/GitHub/DoCANCppLib/OSShim/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					1
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		}
+	],
+	"id" : "DoCANCpp::@63eaa5db65176c7b1762",
+	"name" : "DoCANCpp",
+	"nameOnDisk" : "libDoCANCpp.a",
+	"paths" : 
+	{
+		"build" : "DoCANCpp",
+		"source" : "DoCANCpp"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "DoCANCpp/DoCANCpp.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "DoCANCpp/DoCANCpp_Data_Structures.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "DoCANCpp/DoCANCpp_Utils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "DoCANCpp/N_USData_Indication_Runner.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "DoCANCpp/N_USData_Request_Runner.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "DoCANCpp/N_USData_Runner.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}
