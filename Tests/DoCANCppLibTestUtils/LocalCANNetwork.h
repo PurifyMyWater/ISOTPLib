@@ -2,6 +2,7 @@
 #define DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 
 #include "CANShim.h"
+#include "LinuxOSShim.h"
 #include <vector>
 #include <list>
 
@@ -11,7 +12,7 @@ class LocalCANNetworkCANShim;
  * @brief A local CAN network that can be used to test CANShim implementations
  * To use it, call newCANShimConnection() to create a new CANShim connection to the network, and use the CANShim as you would use normally
  */
-class LocalCANNetwork // TODO add mutual exclusion to the internal data structures
+class LocalCANNetwork
 {
 public:
 
@@ -59,10 +60,14 @@ public:
      */
     bool active();
 
+    void overrideActive(bool forceDisable);
+
 private:
     bool checkNodeID(uint32_t nodeID);
     std::vector<std::list<CANFrame>> network;
     uint32_t nextNodeID = 0;
+    bool allowActiveFlag = true;
+    OSShim_Mutex* accessMutex = LinuxOSShim().osCreateMutex();
 };
 
 /**
