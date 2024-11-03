@@ -21,55 +21,55 @@ public:
      * @brief Returns if the runner is awaiting a message.
      * @return True if the runner is awaiting a message, false otherwise.
      */
-    bool awaitingMessage() const;
+    [[nodiscard]] bool awaitingMessage() const;
 
     /**
      * @brief Returns the next timestamp the runner will run. The timestamp is derived from OsShim::millis().
      * @return The next timestamp the runner will run.
      */
-    uint32_t getNextRunTime() const;
+    [[nodiscard]] uint32_t getNextRunTime() const;
 
     /**
      * @brief Returns the N_AI of the runner.
      * @return The N_AI of the runner.
      */
-    N_AI getN_AI() const;
+    [[nodiscard]] N_AI getN_AI() const;
 
     /**
      * @brief Returns the message data of the runner.
      * @return The message data of the runner.
      */
-    uint8_t* getMessageData() const;
+    [[nodiscard]] uint8_t* getMessageData() const;
 
     /**
      * @brief Returns the message length of the runner.
      * @return The message length of the runner.
      */
-    uint32_t getMessageLength() const;
+    [[nodiscard]] uint32_t getMessageLength() const;
 
     /**
      * @brief Returns the result of the last run_step().
      * @return The result of the runner.
      */
-    N_Result getResult() const;
+    [[nodiscard]] N_Result getResult() const;
 
     /**
      * @brief Returns the Mtype of the runner.
      * @return The Mtype of the runner.
      */
-    Mtype getMtype() const;
+    [[nodiscard]] Mtype getMtype() const;
 
     /**
      * @brief Returns the minimum separation time between frames of the runner.
      * @return The minimum separation time between frames of the runner.
      */
-    uint32_t getSTmin_us() const;
+    [[nodiscard]] uint32_t getSTmin_us() const;
 
     /**
      * @brief Returns the block size of the runner.
      * @return The block size of the runner.
      */
-    uint32_t getBS() const;
+    [[nodiscard]] uint32_t getBS() const;
 
     /**
      * @brief Sets the minimum separation time between frames of the runner.
@@ -87,7 +87,7 @@ public:
      * @brief Returns the type of the runner.
      * @return The type of the runner.
      */
-    RunnerType getRunnerType() const;
+    [[nodiscard]] RunnerType getRunnerType() const;
 
     const char* TAG;
 

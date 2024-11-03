@@ -5,12 +5,10 @@
 #include <unordered_set>
 #include <list>
 
-#include "OSShim.h"
-#include "CANShim.h"
-#include "DoCANCpp_Data_Structures.h"
 #include "N_USData_Runner.h"
+#include "DoCANCpp_Data_Structures.h"
 
-#define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header=0b110, .N_NFA_Padding=0b00, .N_TAtype=_N_TAtype, .N_TA=_N_TA, .N_SA=_N_SA}
+#define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
 typedef enum SeparationTimeMinUnit {ms, us} STminUnit;
 typedef struct SeparationTimeMin {uint16_t value; STminUnit unit;} STmin;
@@ -57,8 +55,9 @@ public:
     static const char* TAG;
 
     /**
-     * This function is used to request a message to be sent.
+     * This function is used to queue a message to be sent to an N_TA from the current DoCANCpp object N_SA.
      * The message will be sent as soon as possible, but there is no guarantee on the timing.
+     * @note If the request is issued to an N_AI that is currently being processed, the message will be queued and processed once the conflicting message is processed.
      * @param nTa The N_TA to send the message to.
      * @param nTaType The N_TAtype of the N_TA.
      * @param messageData The message data to send.
@@ -155,7 +154,6 @@ private:
     N_USData_confirm_cb_t N_USData_confirm_cb;
     N_USData_indication_cb_t N_USData_indication_cb;
     N_USData_FF_indication_cb_t N_USData_FF_indication_cb;
-    uint32_t availableMemoryForRunners;
 
     // Internal configuration (mutable)
     volatile typeof(N_AI::N_SA) nSA;
@@ -164,6 +162,7 @@ private:
     STmin stMin{};
 
     // Internal data
+    uint32_t availableMemoryForRunners; // TODO revisar gestion de memoria para evitar memory leaks
     uint32_t lastRunTime;
     std::list<N_USData_Runner*> notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
