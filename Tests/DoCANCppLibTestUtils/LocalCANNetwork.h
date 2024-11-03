@@ -2,6 +2,7 @@
 #define DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 
 #include "CANShim.h"
+#include "LinuxOSShim.h"
 #include <vector>
 #include <list>
 
@@ -59,10 +60,14 @@ public:
      */
     bool active();
 
+    void overrideActive(bool forceDisable);
+
 private:
     bool checkNodeID(uint32_t nodeID);
     std::vector<std::list<CANFrame>> network;
     uint32_t nextNodeID = 0;
+    bool allowActiveFlag = true;
+    OSShim_Mutex* accessMutex = LinuxOSShim().osCreateMutex();
 };
 
 /**

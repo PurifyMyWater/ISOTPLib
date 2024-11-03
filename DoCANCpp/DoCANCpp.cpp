@@ -129,7 +129,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
     {
         self->lastRunTime = self->osShim->osMillis();
 
-        if(self->canShim->active())
+        if(self->canShim->active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
         {
             // Get the configuration used in this run_step.
             self->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
@@ -166,7 +166,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             CANFrame frame;
             if(self->canShim->frameAvailable())
             {
-                self->canShim->readFrame(&frame);
+                self->canShim->readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
                 if((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
                 {
                     frameStatus = frameAvailable;
