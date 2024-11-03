@@ -10,7 +10,7 @@
 #include "DoCANCpp_Data_Structures.h"
 #include "N_USData_Runner.h"
 
-#define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header=0b110, .N_NFA_Padding=0b00, .N_TAtype=(_N_TAtype), .N_TA=(_N_TA), .N_SA=(_N_SA)}
+#define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
 typedef enum SeparationTimeMinUnit {ms, us} STminUnit;
 typedef struct SeparationTimeMin {uint16_t value; STminUnit unit;} STmin;
