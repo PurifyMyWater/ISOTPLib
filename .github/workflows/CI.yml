@@ -72,7 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: 19
-          ignore: '${{runner.workspace}}/CANShim|${{runner.workspace}}/Tests/DoCANCppLibTests'
+          ignore: 'CANShim/|Tests/DoCANCppLibTests/'
           style: 'file'  # Use .clang-format config file
           tidy-checks: '' # Use .clang-tidy config file
           database: '${{runner.workspace}}/build'
