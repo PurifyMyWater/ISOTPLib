@@ -4,7 +4,11 @@ name: DoCANCppLib CI
 
 on:
   push:
+    branches-ignore:
+      - '*Test*'
   pull_request:
+    branches-ignore:
+      - '*Test*'
 
 jobs:
   Test:
