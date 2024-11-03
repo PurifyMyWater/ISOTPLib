@@ -7,9 +7,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(N_AI nAi, Mtype mType, uint8_t*
 }
 
 N_USData_Request_Runner::~N_USData_Request_Runner()
-{
-
-}
+= default;
 
 N_Result N_USData_Request_Runner::run_step(CANFrame* frame)
 {

@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    pthread_mutex_t mutex;
+    pthread_mutex_t mutex{};
 };
 
 uint32_t LinuxOSShim::osMillis()

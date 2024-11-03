@@ -6,9 +6,7 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, uint32_t* avail
 }
 
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
-{
-
-}
+= default;
 
 N_Result N_USData_Indication_Runner::run_step(CANFrame* frame)
 {
