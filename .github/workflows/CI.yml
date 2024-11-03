@@ -72,13 +72,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: 19
+          ignore: '${{runner.workspace}}/CANShim|${{runner.workspace}}/Tests/DoCANCppLibTests'
           style: 'file'  # Use .clang-format config file
           tidy-checks: '' # Use .clang-tidy config file
           database: '${{runner.workspace}}/build'
           step-summary: true
           tidy-review: true
           format-review: false # true
-          files-changed-only: diff # only Check the files present in the diff
+          lines-changed-only: false # Only Check the lines that have changed
+          files-changed-only: false # Only check the files that have changed
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
