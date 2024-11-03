@@ -73,7 +73,7 @@ jobs:
         with:
           version: 19
           ignore: 'CANShim/|Tests/DoCANCppLibTests/'
-          style: '' # 'file'  # Use .clang-format config file
+          style: 'file'  # Use .clang-format config file
           tidy-checks: '' # Use .clang-tidy config file
           database: '${{runner.workspace}}/build'
           step-summary: true
@@ -84,6 +84,10 @@ jobs:
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
-      - name: Fail fast?!
-        if: steps.linter.outputs.checks-failed > 0
+      - name: Clang Tidy Fail Check
+        if: steps.linter.outputs.clang-tidy-checks-failed > 0
         run: exit 1
+
+      - name: Clang Format Fail Check
+        if: steps.linter.outputs.clang-format-checks-failed > 0
+        run: exit 0 # To enable this check as an error, run exit 1
