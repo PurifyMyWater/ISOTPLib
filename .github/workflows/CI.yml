@@ -77,7 +77,7 @@ jobs:
           database: '${{runner.workspace}}/build'
           step-summary: true
           tidy-review: true
-          format-review: true
+          format-review: false # true
           files-changed-only: diff # only Check the files present in the diff
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
