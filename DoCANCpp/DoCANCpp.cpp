@@ -6,12 +6,12 @@
 
 const char* DoCANCpp::TAG = "DoCANCpp";
 
-DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, uint8_t blockSize, STmin stMin)
+DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, uint8_t blockSize, STmin stMin): availableMemoryForRunners(totalAvailableMemoryForRunners, osShim)
 {
     this->osShim = &osShim;
     this->canShim = &canShim;
     this->nSA = nSA;
-    this->availableMemoryForRunners = totalAvailableMemoryForRunners;
+    this->availableMemoryForRunners.set(totalAvailableMemoryForRunners);
     this->N_USData_confirm_cb = N_USData_confirm_cb;
     this->N_USData_indication_cb = N_USData_indication_cb;
     this->N_USData_FF_indication_cb = N_USData_FF_indication_cb;
@@ -113,13 +113,15 @@ bool DoCANCpp::setSTmin(STmin stM)
     return true;
 }
 
-void DoCANCpp::N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint8_t* messageData, uint32_t length, Mtype mtype)
+bool DoCANCpp::N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint8_t* messageData, uint32_t length, Mtype mtype)
 {
+    bool result;
     N_AI nAI = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
-    N_USData_Runner* runner = new N_USData_Request_Runner(nAI, mtype, messageData, length, osShim, canShim);
-    notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mtype, messageData, length, *osShim, *canShim);
+    result &= notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     notStartedRunners.push_front(runner);
     notStartedRunnersMutex->signal();
+    return result;
 }
 
 void DoCANCpp::run_step(DoCANCpp* self)
@@ -212,7 +214,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // The fifth part of the run_step is to check if a runner processed a message, and if no one did, start a new runner to handle it.
             if(frameStatus == frameAvailable)
             {
-                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, &self->availableMemoryForRunners, blockSize, stMin, self->osShim, self->canShim);
+                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin, *self->osShim, *self->canShim);
                 N_Result result = runner->run_step(&frame);
                 switch (result)
                 {
@@ -249,11 +251,6 @@ void DoCANCpp::run_step(DoCANCpp* self)
                     {
                         uint8_t* messageData = runner->getMessageData();
                         self->N_USData_indication_cb(runner->getN_AI(), messageData, runner->getMessageLength(), runner->getResult(), runner->getMtype());
-                        if(messageData != nullptr) // Automatically free the memory allocated to the message.
-                        {
-                            free(messageData);
-                            self->availableMemoryForRunners += runner->getMessageLength();
-                        }
                     }
                 }
 

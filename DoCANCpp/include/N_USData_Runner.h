@@ -2,15 +2,17 @@
 #define N_USDATA_RUNNER_H
 
 #include "CANShim.h"
-#include "OSShim.h"
 #include "DoCANCpp_Data_Structures.h"
+#include "OSShim.h"
+
+#include <Atomic_uint32_t.h>
 
 class N_USData_Runner
 {
 public:
     typedef enum {RunnerUnknownType, RunnerRequestType, RunnerIndicationType} RunnerType;
 
-    N_USData_Runner(N_AI nAi, OSShim* osShim, CANShim* canShim);
+    N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim);
 
     virtual ~N_USData_Runner() = default;
 
@@ -94,7 +96,7 @@ public:
 protected:
     bool awaitMsg;
     N_AI nAi;
-    Mtype mtype;
+    Mtype mType;
     uint8_t* messageData;
     uint32_t messageLength;
     uint32_t offset;

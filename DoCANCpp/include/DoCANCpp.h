@@ -63,8 +63,10 @@ public:
      * @param messageData The message data to send.
      * @param length The length of the message data.
      * @param mtype The Mtype of the message.
+     *
+     * @returns true if the request was queued successfully and false if it failed to enqueue the message.
      */
-    void N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint8_t* messageData, uint32_t length, Mtype mtype = Mtype_Diagnostics);
+    bool N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint8_t* messageData, uint32_t length, Mtype mtype = Mtype_Diagnostics);
 
     /**
      * This function is used to run the DoCAN service.
@@ -162,7 +164,7 @@ private:
     STmin stMin{};
 
     // Internal data
-    uint32_t availableMemoryForRunners; // TODO revisar gestion de memoria para evitar memory leaks
+    Atomic_uint32_t availableMemoryForRunners;
     uint32_t lastRunTime;
     std::list<N_USData_Runner*> notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;

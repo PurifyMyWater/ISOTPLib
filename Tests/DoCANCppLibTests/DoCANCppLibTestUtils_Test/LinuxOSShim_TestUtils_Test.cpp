@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "LinuxOSShim.h"
 
-LinuxOSShim linuxOSShim;
+static LinuxOSShim linuxOSShim;
 
 TEST(LinuxOSShim, timeTest)
 {

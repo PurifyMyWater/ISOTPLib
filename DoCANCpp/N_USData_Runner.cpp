@@ -1,10 +1,10 @@
 #include "N_USData_Runner.h"
 
-N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim* osShim, CANShim* canShim)
+N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim)
 {
     this->awaitMsg = false;
     this->nAi = nAi;
-    this->mtype = Mtype::Mtype_Unknown;
+    this->mType = Mtype::Mtype_Unknown;
     this->messageData = nullptr;
     this->messageLength = 0;
     this->offset = 0;
@@ -13,8 +13,8 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim* osShim, CANShim* canShim)
     this->stMin_us = 0;
     this->bs = 0;
     this->runnerType = RunnerUnknownType;
-    this->osShim = osShim;
-    this->canShim = canShim;
+    this->osShim = &osShim;
+    this->canShim = &canShim;
 
     this->TAG = nullptr;
 }
@@ -51,7 +51,7 @@ N_Result N_USData_Runner::getResult() const
 
 Mtype N_USData_Runner::getMtype() const
 {
-    return mtype;
+    return mType;
 }
 
 uint32_t N_USData_Runner::getSTmin_us() const
