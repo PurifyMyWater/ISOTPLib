@@ -8,6 +8,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
 {
     this->runnerType = RunnerRequestType;
     uint32_t availableMemory;
+    this->messageData = nullptr;
     if (availableMemoryForRunners.get(&availableMemory) && availableMemory > messageLength && messageData != nullptr)
     {
         this->messageData = reinterpret_cast<uint8_t*>(osShim.osMalloc(messageLength * sizeof(uint8_t)));
@@ -26,6 +27,11 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
 
 N_USData_Request_Runner::~N_USData_Request_Runner()
 {
+    if(this->messageData == nullptr)
+    {
+        return;
+    }
+
     osShim->osFree(this->messageData);
     availableMemoryForRunners->add(messageLength);
 }
