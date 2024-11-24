@@ -22,7 +22,7 @@ public:
 private:
     Atomic_int64_t* availableMemoryForRunners;
     uint8_t blockSize;
-    STmin stMin;
+    STmin stMin{};
 };
 
 #endif //N_USDATA_INDICATION_RUNNER_H
