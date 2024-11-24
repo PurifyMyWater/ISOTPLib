@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "LinuxOSShim.h"
+#include "gtest/gtest.h"
 
 static LinuxOSShim linuxOSShim;
 
@@ -53,13 +53,13 @@ TEST(LinuxOSShim, mutexTestNormal)
     volatile bool secondThreadLocked = false;
 
     // Create a second thread that tries to lock the mutex
-    std::thread t([&]()
-    {
-        EXPECT_TRUE(mutex->wait(100000));
-        secondThreadLocked = true;
-        mutex->signal();
-
-    });
+    std::thread t(
+            [&]
+            {
+                EXPECT_TRUE(mutex->wait(100000));
+                secondThreadLocked = true;
+                mutex->signal();
+            });
 
     // Sleep for a short time to ensure the second thread attempts to lock the mutex
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -88,17 +88,17 @@ TEST(LinuxOSShim, mutexTestTimeout)
     volatile bool secondThreadLocked = false;
 
     // Create a second thread that tries to lock the mutex
-    std::thread t([&]()
-                  {
-                      auto res = mutex->wait(50);
-                      EXPECT_FALSE(res);
-                      if(res)
-                      {
-                        secondThreadLocked = true;
-                        mutex->signal();
-                      }
-
-                  });
+    std::thread t(
+            [&]
+            {
+                auto res = mutex->wait(50);
+                EXPECT_FALSE(res);
+                if (res)
+                {
+                    secondThreadLocked = true;
+                    mutex->signal();
+                }
+            });
 
     // Sleep for a short time to ensure the second thread attempts to lock the mutex
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -131,7 +131,7 @@ TEST(LinuxOSShim, osMallocZeroAlloc)
 
 TEST(LinuxOSShim, osMallocLargeAlloc)
 {
-    void* ptr = linuxOSShim.osMalloc(1024*1024*6);
+    void* ptr = linuxOSShim.osMalloc(1024 * 1024 * 6);
     ASSERT_NE(ptr, nullptr);
     linuxOSShim.osFree(ptr);
 }

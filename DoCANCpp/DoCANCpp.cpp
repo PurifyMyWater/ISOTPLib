@@ -1,12 +1,14 @@
 #include "cassert"
 
 #include "DoCANCpp.h"
-#include "N_USData_Request_Runner.h"
 #include "N_USData_Indication_Runner.h"
+#include "N_USData_Request_Runner.h"
 
 const char* DoCANCpp::TAG = "DoCANCpp";
 
-DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, uint8_t blockSize, STmin stMin): availableMemoryForRunners(totalAvailableMemoryForRunners, osShim)
+DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners, const N_USData_confirm_cb_t N_USData_confirm_cb, const N_USData_indication_cb_t N_USData_indication_cb,
+                   const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, const uint8_t blockSize, const STmin stMin) :
+    availableMemoryForRunners(totalAvailableMemoryForRunners, osShim)
 {
     this->osShim = &osShim;
     this->canShim = &canShim;
@@ -25,15 +27,15 @@ DoCANCpp::DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunne
 
     assert(setSTmin(stMin) && "STmin is invalid");
 
-    if(this->N_USData_confirm_cb == nullptr)
+    if (this->N_USData_confirm_cb == nullptr)
     {
         OSShimWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
     }
-    if(this->N_USData_indication_cb == nullptr)
+    if (this->N_USData_indication_cb == nullptr)
     {
         OSShimWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
     }
-    if(this->N_USData_FF_indication_cb == nullptr)
+    if (this->N_USData_FF_indication_cb == nullptr)
     {
         OSShimWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
     }
@@ -47,21 +49,21 @@ typeof(N_AI::N_SA) DoCANCpp::getN_SA() const
     return NSA;
 }
 
-void DoCANCpp::setN_SA(typeof(N_AI::N_SA) NSA)
+void DoCANCpp::setN_SA(const typeof(N_AI::N_SA) nSA)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->nSA = NSA;
+    this->nSA = nSA;
     configMutex->signal();
 }
 
-void DoCANCpp::addAcceptedFunctionalN_TA(typeof(N_AI::N_TA) nTA)
+void DoCANCpp::addAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     this->acceptedFunctionalN_TAs.insert(nTA);
     configMutex->signal();
 }
 
-bool DoCANCpp::removeAcceptedFunctionalN_TA(typeof(N_AI::N_TA) nTA)
+bool DoCANCpp::removeAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     bool res = this->acceptedFunctionalN_TAs.erase(nTA) == 1;
@@ -69,7 +71,7 @@ bool DoCANCpp::removeAcceptedFunctionalN_TA(typeof(N_AI::N_TA) nTA)
     return res;
 }
 
-bool DoCANCpp::hasAcceptedFunctionalN_TA(typeof(N_AI::N_TA) nTA)
+bool DoCANCpp::hasAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     bool res = this->acceptedFunctionalN_TAs.contains(nTA);
@@ -85,10 +87,10 @@ uint8_t DoCANCpp::getBlockSize() const
     return bs;
 }
 
-void DoCANCpp::setBlockSize(uint8_t bs)
+void DoCANCpp::setBlockSize(const uint8_t blockSize)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->blockSize = bs;
+    this->blockSize = blockSize;
     configMutex->signal();
 }
 
@@ -100,24 +102,24 @@ STmin DoCANCpp::getSTmin() const
     return stM;
 }
 
-bool DoCANCpp::setSTmin(STmin stM)
+bool DoCANCpp::setSTmin(const STmin stMin)
 {
-    if((stM.unit == ms && stM.value > 127) || (stM.unit == us && (stM.value < 100 || stM.value > 900)))
+    if ((stMin.unit == ms && stMin.value > 127) || (stMin.unit == us && (stMin.value < 100 || stMin.value > 900)))
     {
         return false;
     }
 
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->stMin = stM;
+    this->stMin = stMin;
     configMutex->signal();
     return true;
 }
 
-bool DoCANCpp::N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint8_t* messageData, uint32_t length, Mtype mtype)
+bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t nTaType, const uint8_t* messageData, const uint32_t length, const Mtype mType)
 {
     bool result;
     N_AI nAI = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
-    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mtype, messageData, length, *osShim, *canShim);
+    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData, length, *osShim, *canShim);
     result &= notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     notStartedRunners.push_front(runner);
     notStartedRunnersMutex->signal();
@@ -127,11 +129,11 @@ bool DoCANCpp::N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint
 void DoCANCpp::run_step(DoCANCpp* self)
 {
     // The first part of the run_step is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed since the last run.
-    if(self->osShim->osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
+    if (self->osShim->osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
     {
         self->lastRunTime = self->osShim->osMillis();
 
-        if(self->canShim->active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
+        if (self->canShim->active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
         {
             // Get the configuration used in this run_step.
             self->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
@@ -149,9 +151,9 @@ void DoCANCpp::run_step(DoCANCpp* self)
             auto it = self->notStartedRunners.begin();
             while (it != self->notStartedRunners.end())
             {
-                if(! self->activeRunners.contains((*it)->getN_AI().N_AI))
+                if (!self->activeRunners.contains((*it)->getN_AI().N_AI))
                 {
-                    self->activeRunners.insert(std::make_pair((*it)->getN_AI().N_AI, (*it)));
+                    self->activeRunners.insert(std::make_pair((*it)->getN_AI().N_AI, *it));
                     it = self->notStartedRunners.erase(it); // Returns the next iterator if the current one is erased.
                 }
                 else
@@ -163,15 +165,21 @@ void DoCANCpp::run_step(DoCANCpp* self)
             self->notStartedRunnersMutex->signal();
 
             // The third part of the run_step is to check if a message is available, read it and check if this DoCANCpp object is interested in it.
-            enum FrameStatus {frameNotAvailable = 0, frameAvailable, frameProcessed};
+            enum FrameStatus
+            {
+                frameNotAvailable = 0,
+                frameAvailable,
+                frameProcessed
+            };
             FrameStatus frameStatus = frameNotAvailable;
             CANFrame frame;
-            if(self->canShim->frameAvailable())
+            if (self->canShim->frameAvailable())
             {
                 self->canShim->readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
                 if (frame.extd == 1 && frame.data_length_code > 0 && frame.data_length_code <= CAN_FRAME_MAX_DLC)
                 {
-                    if ((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
+                    if ((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) ||
+                        (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
                     {
                         frameStatus = frameAvailable;
                     }
@@ -180,16 +188,16 @@ void DoCANCpp::run_step(DoCANCpp* self)
 
             // The fourth part of the run_step is to walk through all activeRunners checking if they need to run. If
             // they do, run them passing them the frame if it applies.
-            for(auto runnerPair : self->activeRunners)
+            for (auto runnerPair: self->activeRunners)
             {
                 auto runner = runnerPair.second;
                 assert(runner != nullptr);
                 // If the runner has pending actions to run
-                if(self->lastRunTime - runner->getNextRunTime() > 0) // TODO run a runner if it is waiting for a message, without waiting for nextRunTime?
+                if (self->lastRunTime - runner->getNextRunTime() > 0) // TODO run a runner if it is waiting for a message, without waiting for nextRunTime?
                 {
                     N_Result result;
                     // If a message is available, and the runner is waiting for it.
-                    if(frameStatus == frameAvailable && runner->awaitingMessage() && runner->getN_AI().N_AI == frame.identifier.N_AI)
+                    if (frameStatus == frameAvailable && runner->awaitingMessage() && runner->getN_AI().N_AI == frame.identifier.N_AI)
                     {
                         // Run the runner with the frame.
                         result = runner->run_step(&frame);
@@ -204,9 +212,9 @@ void DoCANCpp::run_step(DoCANCpp* self)
                     // Check if the runner has finished
                     switch (result)
                     {
-                        case N_Result::IN_PROGRESS_FF:
+                        case IN_PROGRESS_FF:
                             assert(false && "N_Result::IN_PROGRESS_FF should not happen, as the runner has already received at least one frame (if it is an indication runner)");
-                        case N_Result::IN_PROGRESS:
+                        case IN_PROGRESS:
                             break;
                         default:
                             self->finishedRunners.push_front(runner);
@@ -216,16 +224,15 @@ void DoCANCpp::run_step(DoCANCpp* self)
             }
 
             // The fifth part of the run_step is to check if a runner processed a message, and if no one did, start a new runner to handle it.
-            if(frameStatus == frameAvailable)
+            if (frameStatus == frameAvailable)
             {
                 N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin, *self->osShim, *self->canShim);
-                N_Result result = runner->run_step(&frame);
-                switch (result)
+                switch (runner->run_step(&frame))
                 {
-                    case N_Result::IN_PROGRESS:
+                    case IN_PROGRESS:
                         assert(false && "N_Result::IN_PROGRESS should not happen, as the runner was just created");
-                    case N_Result::IN_PROGRESS_FF:
-                        if(self->N_USData_FF_indication_cb != nullptr)
+                    case IN_PROGRESS_FF:
+                        if (self->N_USData_FF_indication_cb != nullptr)
                         {
                             self->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
                         }
@@ -238,22 +245,22 @@ void DoCANCpp::run_step(DoCANCpp* self)
             }
 
             // The sixth part of the run_step is to run the callbacks for the finished runners and remove them from activeRunners and finishedRunners.
-            for(auto runner : self->finishedRunners)
+            for (const auto runner: self->finishedRunners)
             {
                 assert(runner->getRunnerType() != N_USData_Runner::RunnerUnknownType);
                 // Call the callbacks.
-                if(runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
+                if (runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
                 {
-                    if(self->N_USData_confirm_cb != nullptr)
+                    if (self->N_USData_confirm_cb != nullptr)
                     {
                         self->N_USData_confirm_cb(runner->getN_AI(), runner->getResult(), runner->getMtype());
                     }
                 }
-                else if(runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
+                else if (runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
                 {
-                    if(self->N_USData_indication_cb != nullptr)
+                    if (self->N_USData_indication_cb != nullptr)
                     {
-                        uint8_t* messageData = runner->getMessageData();
+                        const uint8_t* messageData = runner->getMessageData();
                         self->N_USData_indication_cb(runner->getN_AI(), messageData, runner->getMessageLength(), runner->getResult(), runner->getMtype());
                     }
                 }

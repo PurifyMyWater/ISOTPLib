@@ -1,10 +1,10 @@
 #ifndef DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 #define DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 
+#include <list>
+#include <vector>
 #include "CANShim.h"
 #include "LinuxOSShim.h"
-#include <vector>
-#include <list>
 
 class LocalCANNetworkCANShim;
 
@@ -15,7 +15,6 @@ class LocalCANNetworkCANShim;
 class LocalCANNetwork
 {
 public:
-
     /**
      * @brief Create a new CANShim instance connected to the network
      * @return A new CANShim instance connected to the network
@@ -84,9 +83,10 @@ public:
     [[nodiscard]] uint32_t getNodeID() const;
 
     LocalCANNetworkCANShim(LocalCANNetwork* network, uint32_t nodeID);
+
 private:
     LocalCANNetwork* network;
     uint32_t nodeID;
 };
 
-#endif //DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
+#endif // DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
