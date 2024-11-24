@@ -10,7 +10,7 @@ TEST(N_USDATA_RUNNER, constructor_argument_availableMemoryTest)
 {
     LocalCANNetwork can_network;
     uint32_t availableMemoryConst = 100;
-    Atomic_uint32_t availableMemoryMock(availableMemoryConst, linuxOSShim);
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
     const char* testMessageString = "Message";
     int messageLen = strlen(testMessageString);
@@ -19,7 +19,7 @@ TEST(N_USDATA_RUNNER, constructor_argument_availableMemoryTest)
 
     N_USData_Request_Runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, *can_network.newCANShimConnection());
 
-    uint32_t actualMemory;
+    int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
     ASSERT_EQ(availableMemoryConst, actualMemory + messageLen);
     ASSERT_TRUE(result);

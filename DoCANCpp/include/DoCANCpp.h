@@ -7,6 +7,7 @@
 
 #include "N_USData_Runner.h"
 #include "DoCANCpp_Data_Structures.h"
+#include "Atomic_int64_t.h"
 
 #define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
@@ -164,7 +165,7 @@ private:
     STmin stMin{};
 
     // Internal data
-    Atomic_uint32_t availableMemoryForRunners;
+    Atomic_int64_t availableMemoryForRunners;
     uint32_t lastRunTime;
     std::list<N_USData_Runner*> notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;

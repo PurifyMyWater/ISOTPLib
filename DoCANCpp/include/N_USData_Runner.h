@@ -5,7 +5,6 @@
 #include "DoCANCpp_Data_Structures.h"
 #include "OSShim.h"
 
-#include <Atomic_uint32_t.h>
 
 class N_USData_Runner
 {

@@ -1,13 +1,13 @@
 #include "N_USData_Request_Runner.h"
-#include "Atomic_uint32_t.h"
+#include "Atomic_int64_t.h"
 
 #include <cstring>
 
 
-N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_uint32_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim, CANShim& canShim) : N_USData_Runner(nAi, osShim, canShim)
+N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim, CANShim& canShim) : N_USData_Runner(nAi, osShim, canShim)
 {
     this->runnerType = RunnerRequestType;
-    uint32_t availableMemory;
+    int64_t availableMemory;
     this->messageData = nullptr;
     if (availableMemoryForRunners.get(&availableMemory) && availableMemory > messageLength && messageData != nullptr)
     {
