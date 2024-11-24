@@ -169,19 +169,23 @@ void DoCANCpp::run_step(DoCANCpp* self)
             if(self->canShim->frameAvailable())
             {
                 self->canShim->readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
-                if((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
+                if (frame.extd == 1 && frame.data_length_code > 0 && frame.data_length_code <= CAN_FRAME_MAX_DLC)
                 {
-                    frameStatus = frameAvailable;
+                    if ((frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) || (frame.identifier.N_TAtype == CAN_CLASSIC_29bit_Functional && self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
+                    {
+                        frameStatus = frameAvailable;
+                    }
                 }
             }
 
-            // The fourth part of the run_step is to walk through all activeRunners checking if they need to run. If they do, run them passing them the frame if it applies.
+            // The fourth part of the run_step is to walk through all activeRunners checking if they need to run. If
+            // they do, run them passing them the frame if it applies.
             for(auto runnerPair : self->activeRunners)
             {
                 auto runner = runnerPair.second;
                 assert(runner != nullptr);
                 // If the runner has pending actions to run
-                if(self->lastRunTime - runner->getNextRunTime() > 0)
+                if(self->lastRunTime - runner->getNextRunTime() > 0) // TODO run a runner if it is waiting for a message, without waiting for nextRunTime?
                 {
                     N_Result result;
                     // If a message is available, and the runner is waiting for it.
