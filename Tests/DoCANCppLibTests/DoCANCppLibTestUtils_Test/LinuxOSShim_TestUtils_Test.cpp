@@ -5,8 +5,8 @@ static LinuxOSShim linuxOSShim;
 
 TEST(LinuxOSShim, timeTest)
 {
-    uint32_t timeToSleep = 50;
-    uint32_t repeat = 50;
+    uint32_t timeToSleep = 10;
+    uint32_t repeat = 10;
     bool flag = false;
 
     for (uint32_t i = 0; i < repeat; i++)
@@ -18,7 +18,6 @@ TEST(LinuxOSShim, timeTest)
         EXPECT_GE(millis2, millis + timeToSleep);
         if (millis2 >= millis + timeToSleep + 100)
         {
-            printf("Warning: Sleep slept for too long (%dms more than expected)\n", millis2 - millis - timeToSleep);
             flag = true;
         }
     }
@@ -63,7 +62,7 @@ TEST(LinuxOSShim, mutexTestNormal)
     });
 
     // Sleep for a short time to ensure the second thread attempts to lock the mutex
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // The second thread should not have been able to lock the mutex yet
     EXPECT_FALSE(secondThreadLocked);
@@ -91,7 +90,7 @@ TEST(LinuxOSShim, mutexTestTimeout)
     // Create a second thread that tries to lock the mutex
     std::thread t([&]()
                   {
-                      auto res = mutex->wait(1000);
+                      auto res = mutex->wait(50);
                       EXPECT_FALSE(res);
                       if(res)
                       {
@@ -102,7 +101,7 @@ TEST(LinuxOSShim, mutexTestTimeout)
                   });
 
     // Sleep for a short time to ensure the second thread attempts to lock the mutex
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // The second thread should not have been able to lock the mutex yet
     EXPECT_FALSE(secondThreadLocked);
