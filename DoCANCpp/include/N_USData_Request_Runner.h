@@ -12,7 +12,11 @@ public:
 
     ~N_USData_Request_Runner() override;
 
-    N_Result run_step(CANFrame* frame) override;
+    N_Result run_step(CANFrame* receivedFrame) override;
+
+    [[nodiscard]] bool awaitingMessage() const override;
+
+    [[nodiscard]] uint32_t getNextRunTime() const override;
 private:
     Atomic_int64_t* availableMemoryForRunners; // TODO USE 64 bit int
 };

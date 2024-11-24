@@ -5,30 +5,34 @@
 #include "DoCANCpp_Data_Structures.h"
 #include "OSShim.h"
 
+#define NewCANFrameDoCANCpp() {.extd=1, .rtr=0, .ss=0, .self=0, .dlc_non_comp=0, .reserved=0, .identifier={.N_AI=0}, .data_length_code=0, .data={0}}
 
 class N_USData_Runner
 {
 public:
-    typedef enum {RunnerUnknownType, RunnerRequestType, RunnerIndicationType} RunnerType;
+    using RunnerType = enum { RunnerUnknownType, RunnerRequestType, RunnerIndicationType };
+    using FrameCode = enum { SF_CODE = 0b0000 };
+
+    constexpr static uint8_t MAX_SF_MESSAGE_LENGTH = 7;
 
     N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim);
 
     virtual ~N_USData_Runner() = default;
 
     // If no frame is received, the runner will only execute if it is not awaiting a message, otherwise it will return an error.
-    virtual N_Result run_step(CANFrame* frame) = 0;
+    virtual N_Result run_step(CANFrame* receivedFrame) = 0;
 
     /**
      * @brief Returns if the runner is awaiting a message.
      * @return True if the runner is awaiting a message, false otherwise.
      */
-    [[nodiscard]] bool awaitingMessage() const;
+    [[nodiscard]] virtual bool awaitingMessage() const = 0;
 
     /**
      * @brief Returns the next timestamp the runner will run. The timestamp is derived from OsShim::millis().
      * @return The next timestamp the runner will run.
      */
-    [[nodiscard]] uint32_t getNextRunTime() const;
+    [[nodiscard]] virtual uint32_t getNextRunTime() const = 0;
 
     /**
      * @brief Returns the N_AI of the runner.
@@ -61,30 +65,6 @@ public:
     [[nodiscard]] Mtype getMtype() const;
 
     /**
-     * @brief Returns the minimum separation time between frames of the runner.
-     * @return The minimum separation time between frames of the runner.
-     */
-    [[nodiscard]] uint32_t getSTmin_us() const;
-
-    /**
-     * @brief Returns the block size of the runner.
-     * @return The block size of the runner.
-     */
-    [[nodiscard]] uint32_t getBS() const;
-
-    /**
-     * @brief Sets the minimum separation time between frames of the runner.
-     * @param stMin The minimum separation time between frames of the runner.
-     */
-    void setSTmin_us(uint32_t stMin);
-
-    /**
-     * @brief Sets the block size of the runner.
-     * @param blockSize The block size of the runner.
-     */
-    void setBS(uint32_t blockSize);
-
-    /**
      * @brief Returns the type of the runner.
      * @return The type of the runner.
      */
@@ -93,16 +73,11 @@ public:
     const char* TAG;
 
 protected:
-    bool awaitMsg;
     N_AI nAi;
     Mtype mType;
     uint8_t* messageData;
-    uint32_t messageLength;
-    uint32_t offset;
+    int64_t messageLength;
     N_Result result;
-    uint32_t nextRunTime;
-    uint32_t stMin_us;
-    uint32_t bs;
     RunnerType runnerType;
     OSShim* osShim;
     CANShim* canShim;

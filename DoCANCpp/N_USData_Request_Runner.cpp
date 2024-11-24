@@ -7,13 +7,12 @@
 N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim, CANShim& canShim) : N_USData_Runner(nAi, osShim, canShim)
 {
     this->runnerType = RunnerRequestType;
-    int64_t availableMemory;
     this->messageData = nullptr;
-    if (availableMemoryForRunners.get(&availableMemory) && availableMemory > messageLength && messageData != nullptr)
+    this->messageLength = messageLength;
+    if (availableMemoryForRunners.subIfResIsGreaterThanZero(this->messageLength) && messageData != nullptr)
     {
-        this->messageData = reinterpret_cast<uint8_t*>(osShim.osMalloc(messageLength * sizeof(uint8_t)));
-        memcpy(this->messageData, messageData, messageLength);
-        availableMemoryForRunners.sub(messageLength);
+        this->messageData = static_cast<uint8_t*>(osShim.osMalloc(this->messageLength * sizeof(uint8_t)));
+        memcpy(this->messageData, messageData, this->messageLength);
         this->mType = mType;
         this->nAi = nAi;
         this->availableMemoryForRunners = &availableMemoryForRunners;
@@ -33,10 +32,46 @@ N_USData_Request_Runner::~N_USData_Request_Runner()
     }
 
     osShim->osFree(this->messageData);
-    availableMemoryForRunners->add(messageLength);
+    availableMemoryForRunners->add(this->messageLength);
 }
 
-N_Result N_USData_Request_Runner::run_step(CANFrame* frame)
+N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
 {
-    return N_ERROR;
+    if (receivedFrame != nullptr)
+    {
+        return N_ERROR;
+    }
+    else
+    {
+        if (messageLength <= MAX_SF_MESSAGE_LENGTH)
+        {
+            CANFrame sfFrame = NewCANFrameDoCANCpp();
+            sfFrame.identifier = nAi;
+
+            sfFrame.data[0] = messageLength; // N_PCI_SF (0b0000xxxx) | messageLength (0bxxxxllll)
+            memcpy(&sfFrame.data[1], messageData, messageLength); // Payload data
+
+            sfFrame.data_length_code = messageLength + 1; // 1 byte for N_PCI_SF
+
+            if (canShim->writeFrame(&sfFrame))
+            {
+                return N_OK;
+            }
+            return N_ERROR;
+        }
+        else
+        {
+            return N_ERROR; // Unexpected data length
+        }
+    }
+}
+
+bool N_USData_Request_Runner::awaitingMessage() const
+{
+    return false; // TODO NOT IMPLEMENTED
+}
+
+uint32_t N_USData_Request_Runner::getNextRunTime() const
+{
+    return 0; // TODO NOT IMPLEMENTED
 }

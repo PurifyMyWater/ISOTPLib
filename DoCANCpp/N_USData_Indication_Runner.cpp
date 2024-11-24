@@ -8,9 +8,24 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
 }
 
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
-= default;
+{
+    if (this->messageData != nullptr)
+    {
+        this->osShim->osFree(messageData);
+        this->availableMemoryForRunners->add(messageLength);
+    }
+}
 
 N_Result N_USData_Indication_Runner::run_step(CANFrame* frame)
 {
-    return N_ERROR;
+}
+
+bool N_USData_Indication_Runner::awaitingMessage() const
+{
+    return true; // TODO NOT IMPLEMENTED
+}
+
+uint32_t N_USData_Indication_Runner::getNextRunTime() const
+{
+    return 0; // TODO NOT IMPLEMENTED
 }

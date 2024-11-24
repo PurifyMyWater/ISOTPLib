@@ -15,8 +15,14 @@ public:
     ~N_USData_Indication_Runner() override;
 
     N_Result run_step(CANFrame* frame) override;
+
+    [[nodiscard]] bool awaitingMessage() const override;
+
+    [[nodiscard]] uint32_t getNextRunTime() const override;
 private:
     Atomic_int64_t* availableMemoryForRunners;
+    uint8_t blockSize;
+    STmin stMin;
 };
 
 #endif //N_USDATA_INDICATION_RUNNER_H
