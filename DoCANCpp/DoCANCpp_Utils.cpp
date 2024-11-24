@@ -3,7 +3,7 @@
 template<typename T>
 DoCANCpp_CircularBuffer<T>::DoCANCpp_CircularBuffer(int32_t maxElems)
 {
-    buffer = (struct BufferElement *)operator new(maxElems * sizeof(struct BufferElement)); // thx to Jerry Coffin (https://stackoverflow.com/questions/63310723/circular-queue-using-stl-queue)
+    buffer = static_cast<BufferElement*>(operator new(maxElems * sizeof(BufferElement))); // thx to Jerry Coffin (https://stackoverflow.com/questions/63310723/circular-queue-using-stl-queue)
     readPos = 0;
     writePos = 0;
     bufferElems = maxElems;
@@ -22,12 +22,12 @@ DoCANCpp_CircularBuffer<T>::~DoCANCpp_CircularBuffer()
 template<typename T>
 void DoCANCpp_CircularBuffer<T>::push(T item)
 {
-    if(readPos == writePos && !empty)
+    if (readPos == writePos && !empty)
     {
         advanceReadPos();
     }
 
-    new(&buffer[writePos]) BufferElement{T(item), true}; // Copy constructor the item into the buffer
+    new (&buffer[writePos]) BufferElement{T(item), true}; // Copy constructor the item into the buffer
     empty = false;
 
     writePos++;
@@ -37,7 +37,7 @@ void DoCANCpp_CircularBuffer<T>::push(T item)
 template<typename T>
 std::optional<T> DoCANCpp_CircularBuffer<T>::peek()
 {
-    if(empty)
+    if (empty)
     {
         return std::nullopt;
     }
@@ -52,14 +52,14 @@ template<typename T>
 bool DoCANCpp_CircularBuffer<T>::advanceReadPos()
 {
     bool res = true;
-    if(!empty)
+    if (!empty)
     {
         int32_t tmp = readPos;
 
         readPos++;
         readPos %= bufferElems;
 
-        if(readPos == writePos)
+        if (readPos == writePos)
         {
             empty = true;
         }
@@ -76,7 +76,8 @@ bool DoCANCpp_CircularBuffer<T>::advanceReadPos()
 template<typename T>
 void DoCANCpp_CircularBuffer<T>::pop()
 {
-    while (!advanceReadPos());
+    while (!advanceReadPos())
+        ;
 }
 
 template<typename T>

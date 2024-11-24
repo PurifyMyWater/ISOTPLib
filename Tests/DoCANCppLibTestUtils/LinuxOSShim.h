@@ -12,7 +12,6 @@ public:
 
     void* osMalloc(uint32_t size) override;
     void osFree(void* ptr) override;
-
 };
 
-#endif //DOCANCPPLIBTEST_OSLINUXSHIM_H
+#endif // DOCANCPPLIBTEST_OSLINUXSHIM_H

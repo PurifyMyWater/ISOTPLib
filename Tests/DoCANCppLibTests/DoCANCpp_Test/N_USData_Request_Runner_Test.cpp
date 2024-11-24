@@ -1,9 +1,9 @@
-#include "gtest/gtest.h"
-#include "ASSERT_MACROS.h"
 #include "N_USData_Request_Runner.h"
+#include "ASSERT_MACROS.h"
 #include "DoCANCpp.h"
 #include "LinuxOSShim.h"
 #include "LocalCANNetwork.h"
+#include "gtest/gtest.h"
 
 static LinuxOSShim linuxOSShim;
 
@@ -39,8 +39,7 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTes
     bool result;
 
     {
-        N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen,
-                                      linuxOSShim, *can_network.newCANShimConnection());
+        N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, *can_network.newCANShimConnection());
 
         int64_t actualMemory;
         ASSERT_TRUE(availableMemoryMock.get(&actualMemory));

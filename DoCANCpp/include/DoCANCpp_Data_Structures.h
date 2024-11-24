@@ -1,19 +1,9 @@
 #ifndef DOCANCPP_DATA_STRUCTURES_H
 #define DOCANCPP_DATA_STRUCTURES_H
 
-#include <cstdint>
-#include <optional>
-#include <iterator>
-#include "CANShim.h"
+using Mtype = enum Mtype { Mtype_Diagnostics, Mtype_Unknown };
 
-typedef enum Mtype
-{
-    Mtype_Diagnostics,
-    Mtype_Unknown
-} Mtype;
-
-typedef enum N_Result
-{
+using N_Result = enum N_Result {
     NOT_STARTED = 0,
     IN_PROGRESS_FF, // Only used by N_USData_Indication_Runner to indicate that the FF was received in this step.
     IN_PROGRESS,
@@ -27,8 +17,8 @@ typedef enum N_Result
     N_WFT_OVRN,
     N_BUFFER_OVFLW,
     N_ERROR
-} N_Result;
+};
 
 const char* N_Result_to_string(N_Result result);
 
-#endif //DOCANCPP_DATA_STRUCTURES_H
+#endif // DOCANCPP_DATA_STRUCTURES_H

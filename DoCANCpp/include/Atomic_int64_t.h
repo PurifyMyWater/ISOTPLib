@@ -15,10 +15,11 @@ public:
     bool add(int64_t amount, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);
     bool sub(int64_t amount, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);
     bool subIfResIsGreaterThanZero(int64_t amount, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);
+
 private:
     int64_t internalValue;
     OSShim* osShim;
     OSShim_Mutex* mutex;
 };
 
-#endif //ATOMIC_UINT32_H
+#endif // ATOMIC_UINT32_H

@@ -2,7 +2,8 @@
 
 #include <cstring>
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANShim& canShim): N_USData_Runner(nAi, osShim, canShim)
+N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANShim& canShim) :
+    N_USData_Runner(nAi, osShim, canShim)
 {
     this->runnerType = RunnerIndicationType;
     this->nAi = nAi;

@@ -3,7 +3,7 @@
 N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim)
 {
     this->nAi = nAi;
-    this->mType = Mtype::Mtype_Unknown;
+    this->mType = Mtype_Unknown;
     this->messageData = nullptr;
     this->messageLength = 0;
     this->result = NOT_STARTED;
@@ -14,32 +14,14 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim)
     this->TAG = nullptr;
 }
 
-N_AI N_USData_Runner::getN_AI() const
-{
-    return nAi;
-}
+N_AI N_USData_Runner::getN_AI() const { return nAi; }
 
-uint8_t* N_USData_Runner::getMessageData() const
-{
-    return messageData;
-}
+uint8_t* N_USData_Runner::getMessageData() const { return messageData; }
 
-uint32_t N_USData_Runner::getMessageLength() const
-{
-    return messageLength;
-}
+uint32_t N_USData_Runner::getMessageLength() const { return messageLength; }
 
-N_Result N_USData_Runner::getResult() const
-{
-    return result;
-}
+N_Result N_USData_Runner::getResult() const { return result; }
 
-Mtype N_USData_Runner::getMtype() const
-{
-    return mType;
-}
+Mtype N_USData_Runner::getMtype() const { return mType; }
 
-N_USData_Runner::RunnerType N_USData_Runner::getRunnerType() const
-{
-    return this->runnerType;
-}
+N_USData_Runner::RunnerType N_USData_Runner::getRunnerType() const { return this->runnerType; }

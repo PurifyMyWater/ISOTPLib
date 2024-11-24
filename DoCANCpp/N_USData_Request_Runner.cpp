@@ -4,7 +4,8 @@
 #include <cstring>
 
 
-N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim, CANShim& canShim) : N_USData_Runner(nAi, osShim, canShim)
+N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
+                                                 CANShim& canShim) : N_USData_Runner(nAi, osShim, canShim)
 {
     this->runnerType = RunnerRequestType;
     this->messageData = nullptr;
@@ -26,7 +27,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
 
 N_USData_Request_Runner::~N_USData_Request_Runner()
 {
-    if(this->messageData == nullptr)
+    if (this->messageData == nullptr)
     {
         return;
     }

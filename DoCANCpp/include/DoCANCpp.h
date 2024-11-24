@@ -1,18 +1,22 @@
 #ifndef DoCANCpp_H
 #define DoCANCpp_H
 
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
-#include <list>
 
-#include "N_USData_Runner.h"
-#include "DoCANCpp_Data_Structures.h"
 #include "Atomic_int64_t.h"
+#include "DoCANCpp_Data_Structures.h"
+#include "N_USData_Runner.h"
 
 #define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
-typedef enum SeparationTimeMinUnit {ms, us} STminUnit;
-typedef struct SeparationTimeMin {uint16_t value; STminUnit unit;} STmin;
+using STminUnit = enum SeparationTimeMinUnit { ms, us };
+using STmin = struct SeparationTimeMin
+{
+    uint16_t value;
+    STminUnit unit;
+};
 
 constexpr uint32_t DoCANCpp_RunPeriod_MS = 100;
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
@@ -25,7 +29,7 @@ constexpr uint8_t DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sen
  * @param nResult The result of the reception.
  * @param mtype The Mtype of the message.
  */
-typedef void (*N_USData_confirm_cb_t)(N_AI nAi, N_Result nResult, Mtype mtype);
+using N_USData_confirm_cb_t = void (*)(N_AI nAi, N_Result nResult, Mtype mtype);
 
 /**
  * This function is used to indicate the reception of a message.
@@ -36,7 +40,7 @@ typedef void (*N_USData_confirm_cb_t)(N_AI nAi, N_Result nResult, Mtype mtype);
  * @param nResult The result of the reception.
  * @param mtype The Mtype of the message.
  */
-typedef void (*N_USData_indication_cb_t)(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype);
+using N_USData_indication_cb_t = void (*)(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype);
 
 /**
  * This function is used to indicate the reception of the first frame of a multi-frame message.
@@ -44,7 +48,7 @@ typedef void (*N_USData_indication_cb_t)(N_AI nAi, const uint8_t* messageData, u
  * @param messageLength The expected length of the message.
  * @param mtype The Mtype of the message.
  */
-typedef void (*N_USData_FF_indication_cb_t)(N_AI nAi, uint32_t messageLength, Mtype mtype);
+using N_USData_FF_indication_cb_t = void (*)(N_AI nAi, uint32_t messageLength, Mtype mtype);
 
 /**
  * This class provides a C++ implementation of the DoCAN protocol aka ISO-TP, it currently only supports N_TAtype #5 & #6
@@ -63,11 +67,11 @@ public:
      * @param nTaType The N_TAtype of the N_TA.
      * @param messageData The message data to send.
      * @param length The length of the message data.
-     * @param mtype The Mtype of the message.
+     * @param mType The Mtype of the message.
      *
      * @returns true if the request was queued successfully and false if it failed to enqueue the message.
      */
-    bool N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, uint8_t* messageData, uint32_t length, Mtype mtype = Mtype_Diagnostics);
+    bool N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, const uint8_t* messageData, uint32_t length, Mtype mType = Mtype_Diagnostics);
 
     /**
      * This function is used to run the DoCAN service.
@@ -142,9 +146,10 @@ public:
      */
     bool setSTmin(STmin stMin);
 
-    DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, uint8_t blockSize = DoCANCpp_DefaultBlockSize, STmin stMin = DoCANCpp_DefaultSTmin);
-private:
+    DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb,
+             N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, uint8_t blockSize = DoCANCpp_DefaultBlockSize, STmin stMin = DoCANCpp_DefaultSTmin);
 
+private:
     // Shims
     OSShim* osShim;
     CANShim* canShim;

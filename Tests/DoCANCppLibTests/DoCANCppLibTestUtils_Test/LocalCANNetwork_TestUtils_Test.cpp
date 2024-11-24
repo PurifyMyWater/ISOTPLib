@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
 #include "ASSERT_MACROS.h"
 #include "LocalCANNetwork.h"
+#include "gtest/gtest.h"
 
 TEST(LocalCANNetwork, network_newCANShimConnection_test)
 {
@@ -91,7 +91,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_to_N_node)
     ASSERT_EQ(network.active(), false);
 
     std::list<LocalCANNetworkCANShim*> rcan;
-    for(int i = 1; i<N; i++)
+    for (int i = 1; i < N; i++)
     {
         rcan.push_front(network.newCANShimConnection());
         ASSERT_NE(rcan.front(), nullptr);
@@ -111,7 +111,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_to_N_node)
     ASSERT_EQ(network.readFrame(writterId, &fr), false);
     ASSERT_EQ(network.peekFrame(writterId, &fr), false);
 
-    for(auto can : rcan)
+    for (auto can: rcan)
     {
         uint32_t id = can->getNodeID();
         ASSERT_EQ(network.frameAvailable(id), 2);
@@ -160,7 +160,7 @@ TEST(LocalCANNetwork, network_active_test_N_nodes)
     for (uint32_t i = 0; i < N; i++)
     {
         CANShim* can = network.newCANShimConnection();
-        if(i < 1)
+        if (i < 1)
         {
             ASSERT_EQ(network.active(), false);
         }
@@ -240,7 +240,7 @@ TEST(LocalCANNetwork, CANShim_read_write_peek_available_1_to_N_node)
     ASSERT_EQ(wcan->active(), false);
 
     std::list<LocalCANNetworkCANShim*> rcan;
-    for(int i = 1; i<N; i++)
+    for (int i = 1; i < N; i++)
     {
         rcan.push_front(network.newCANShimConnection());
         ASSERT_NE(rcan.front(), nullptr);
@@ -258,7 +258,7 @@ TEST(LocalCANNetwork, CANShim_read_write_peek_available_1_to_N_node)
 
     ASSERT_EQ(wcan->readFrame(&fr), false);
 
-    for(auto can : rcan)
+    for (auto can: rcan)
     {
         uint32_t id = can->getNodeID();
         ASSERT_EQ(can->frameAvailable(), 2);

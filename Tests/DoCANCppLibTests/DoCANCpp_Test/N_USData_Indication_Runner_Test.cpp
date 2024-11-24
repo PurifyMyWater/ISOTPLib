@@ -1,8 +1,8 @@
 #include <DoCANCpp.h>
 #include <LocalCANNetwork.h>
 #include <N_USData_Indication_Runner.h>
-#include "gtest/gtest.h"
 #include "ASSERT_MACROS.h"
+#include "gtest/gtest.h"
 
 // TODO Test run_step with a valid SF message, big sf, and empty sf, also test the destructor
 
@@ -18,7 +18,7 @@ TEST(N_USData_Indication_Runner, constructor_getters)
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
-    STmin stMin = { 10, ms};
+    STmin stMin = {10, ms};
 
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, *can_network.newCANShimConnection());
 
@@ -40,7 +40,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid)
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
-    STmin stMin = { 10, ms };
+    STmin stMin = {10, ms};
 
     const char* testMessageString = "1234567"; // strlen = 7
     size_t messageLen = strlen(testMessageString);
@@ -71,7 +71,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
-    STmin stMin = { 10, ms };
+    STmin stMin = {10, ms};
 
     const char* testMessageString = ""; // strlen = 0
     size_t messageLen = strlen(testMessageString);

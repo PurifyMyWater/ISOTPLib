@@ -1,8 +1,8 @@
 #ifndef N_USDATA_REQUEST_RUNNER_H
 #define N_USDATA_REQUEST_RUNNER_H
 
-#include "N_USData_Runner.h"
 #include "Atomic_int64_t.h"
+#include "N_USData_Runner.h"
 
 // Class that handles the request aka transmission of a message
 class N_USData_Request_Runner : public N_USData_Runner
@@ -17,8 +17,9 @@ public:
     [[nodiscard]] bool awaitingMessage() const override;
 
     [[nodiscard]] uint32_t getNextRunTime() const override;
+
 private:
-    Atomic_int64_t* availableMemoryForRunners; // TODO USE 64 bit int
+    Atomic_int64_t* availableMemoryForRunners;
 };
 
-#endif //N_USDATA_REQUEST_RUNNER_H
+#endif // N_USDATA_REQUEST_RUNNER_H

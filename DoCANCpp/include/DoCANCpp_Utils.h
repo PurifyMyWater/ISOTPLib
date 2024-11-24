@@ -1,19 +1,21 @@
 #ifndef DOCANCPP_UTILS_H
 #define DOCANCPP_UTILS_H
 
+#include <optional>
 #include "DoCANCpp.h"
 
-template <typename T>
+template<typename T>
 class DoCANCpp_CircularBuffer
 {
-    public:
+public:
     struct BufferElement
     {
         T data;
         bool valid;
     };
-    private:
-    struct BufferElement* buffer;
+
+private:
+    BufferElement* buffer;
     int32_t readPos;
     int32_t writePos;
     int32_t bufferElems;
@@ -21,7 +23,7 @@ class DoCANCpp_CircularBuffer
 
     bool advanceReadPos();
 
-    public:
+public:
     explicit DoCANCpp_CircularBuffer(int32_t maxElems);
     ~DoCANCpp_CircularBuffer();
 
@@ -33,14 +35,15 @@ class DoCANCpp_CircularBuffer
     struct Iterator
     {
         using iterator_category = std::forward_iterator_tag;
-        using difference_type   = struct BufferElement;
-        using raw_type          = struct BufferElement;
-        using value_type        = T;
-        using pointer           = value_type*;
-        using raw_pointer       = raw_type*;
-        using reference         = value_type&;
+        using difference_type = BufferElement;
+        using raw_type = BufferElement;
+        using value_type = T;
+        using pointer = value_type*;
+        using raw_pointer = raw_type*;
+        using reference = value_type&;
 
-        Iterator(int32_t currentPos, int32_t lastPos, int32_t module, raw_pointer baseAddr, bool isEmpty) : module(module), currentPos(currentPos), lastPos(lastPos), baseAddr(baseAddr)
+        Iterator(const int32_t currentPos, const int32_t lastPos, const int32_t module, raw_pointer baseAddr, bool isEmpty) :
+            module(module), currentPos(currentPos), lastPos(lastPos), baseAddr(baseAddr)
         {
             m_ptr = isEmpty ? nullptr : baseAddr + (currentPos % module);
             while (m_ptr != nullptr && m_ptr->valid == false)
@@ -49,21 +52,15 @@ class DoCANCpp_CircularBuffer
             }
         }
 
-        reference operator*() const
-        {
-            return m_ptr->data;
-        }
+        reference operator*() const { return m_ptr->data; }
 
-        pointer operator->()
-        {
-            return m_ptr == nullptr ? nullptr : &m_ptr->data;
-        }
+        pointer operator->() { return m_ptr == nullptr ? nullptr : &m_ptr->data; }
 
         // Prefix increment
         Iterator& operator++()
         {
             currentPos = (currentPos + 1) % module;
-            if(currentPos == lastPos)
+            if (currentPos == lastPos)
             {
                 m_ptr = nullptr;
             }
@@ -86,22 +83,13 @@ class DoCANCpp_CircularBuffer
             return tmp;
         }
 
-        friend bool operator== (const Iterator& a, const Iterator& b)
-        {
-            return a.m_ptr == b.m_ptr;
-        };
+        friend bool operator==(const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; }
 
-        friend bool operator!= (const Iterator& a, const Iterator& b)
-        {
-            return a.m_ptr != b.m_ptr;
-        };
+        friend bool operator!=(const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; }
 
-        int32_t getCurrentPos()
-        {
-            return currentPos;
-        };
+        [[nodiscard]] int32_t getCurrentPos() const { return currentPos; }
 
-        private:
+    private:
         raw_pointer m_ptr;
         int32_t module;
         int32_t currentPos;
@@ -111,13 +99,10 @@ class DoCANCpp_CircularBuffer
 
     Iterator begin()
     {
-        auto it = Iterator(readPos, (writePos)%bufferElems, bufferElems, buffer, empty);
+        auto it = Iterator(readPos, writePos % bufferElems, bufferElems, buffer, empty);
         return it;
     }
-    Iterator end()
-    {
-        return Iterator(readPos, readPos, bufferElems, buffer, true);
-    }
+    Iterator end() { return Iterator(readPos, readPos, bufferElems, buffer, true); }
 };
 
-#endif //DOCANCPP_UTILS_H
+#endif // DOCANCPP_UTILS_H
