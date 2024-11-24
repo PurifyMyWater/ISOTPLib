@@ -10,7 +10,7 @@
     ASSERT_EQ((REAL_N_AI).N_AI, (EXPECTED_N_AI).N_AI); } while(0)
 
 #define ASSERT_EQ_ARRAY(EXPECTED_ARRAY, REAL_ARRAY, ARRAY_SIZE) do{ \
-    for (uint32_t i = 0; i < ARRAY_SIZE; i++) \
+    for (uint32_t i = 0; i < (ARRAY_SIZE); i++) \
     { \
         ASSERT_EQ((REAL_ARRAY)[i], (EXPECTED_ARRAY)[i]); \
     } } while(0)
