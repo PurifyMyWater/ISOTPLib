@@ -5,11 +5,9 @@
 #include "LinuxOSShim.h"
 #include "LocalCANNetwork.h"
 
-// TODO Test setters
-
 static LinuxOSShim linuxOSShim;
 
-TEST(N_USDATA_REQUEST_RUNNER, constructor_arguments_set)
+TEST(N_USData_Request_Runner, constructor_arguments_set)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 100;
@@ -29,7 +27,7 @@ TEST(N_USDATA_REQUEST_RUNNER, constructor_arguments_set)
     ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), messageLen);
 }
 
-TEST(N_USDATA_REQUEST_RUNNER, constructor_destructor_argument_availableMemoryTest)
+TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTest)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 100;
@@ -54,7 +52,7 @@ TEST(N_USDATA_REQUEST_RUNNER, constructor_destructor_argument_availableMemoryTes
     ASSERT_EQ(availableMemoryConst, actualMemory);
 }
 
-TEST(N_USDATA_REQUEST_RUNNER, constructor_destructor_argument_notAvailableMemoryTest)
+TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemoryTest)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 2;
@@ -80,7 +78,7 @@ TEST(N_USDATA_REQUEST_RUNNER, constructor_destructor_argument_notAvailableMemory
     ASSERT_EQ(availableMemoryConst, actualMemory);
 }
 
-TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_valid)
+TEST(N_USData_Request_Runner, run_step_SF_valid)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 100;
@@ -95,6 +93,7 @@ TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_valid)
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, *can_network.newCANShimConnection());
 
     ASSERT_EQ(N_OK, runner.run_step(nullptr));
+    ASSERT_EQ(N_OK, runner.getResult());
 
     CANFrame receivedFrame;
     ASSERT_TRUE(canShim->readFrame(&receivedFrame));
@@ -108,7 +107,7 @@ TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_valid)
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[1], messageLen));
 }
 
-TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_invalid_big)
+TEST(N_USData_Request_Runner, run_step_SF_invalid_big)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 100;
@@ -123,12 +122,13 @@ TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_invalid_big)
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, *can_network.newCANShimConnection());
 
     ASSERT_EQ(N_ERROR, runner.run_step(nullptr));
+    ASSERT_EQ(N_ERROR, runner.getResult());
 
     CANFrame receivedFrame;
     ASSERT_FALSE(canShim->readFrame(&receivedFrame));
 }
 
-TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_valid_empty)
+TEST(N_USData_Request_Runner, run_step_SF_valid_empty)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 100;
@@ -143,6 +143,7 @@ TEST(N_USDATA_REQUEST_RUNNER, run_step_SF_valid_empty)
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, *can_network.newCANShimConnection());
 
     ASSERT_EQ(N_OK, runner.run_step(nullptr));
+    ASSERT_EQ(N_OK, runner.getResult());
 
     CANFrame receivedFrame;
     ASSERT_TRUE(canShim->readFrame(&receivedFrame));

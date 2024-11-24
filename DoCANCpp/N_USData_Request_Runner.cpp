@@ -39,7 +39,8 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
 {
     if (receivedFrame != nullptr)
     {
-        return N_ERROR;
+        result = N_ERROR;
+        return result;
     }
     else
     {
@@ -55,13 +56,16 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
 
             if (canShim->writeFrame(&sfFrame))
             {
-                return N_OK;
+                result = N_OK;
+                return result;
             }
-            return N_ERROR;
+            result = N_ERROR;
+            return result;
         }
         else
         {
-            return N_ERROR; // Unexpected data length
+            result = N_ERROR;
+            return result; // Unexpected data length
         }
     }
 }
