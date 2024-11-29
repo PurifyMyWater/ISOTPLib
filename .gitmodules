@@ -4,3 +4,6 @@
 [submodule "OSShim"]
 	path = OSShim
 	url = git@github.com:vacmg/PMW-OSShim.git
+[submodule "Tests/LinuxOSShim"]
+	path = Tests/LinuxOSShim
+	url = git@github.com:vacmg/PMW-LinuxOSShim.git
