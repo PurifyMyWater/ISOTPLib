@@ -1,3 +1,5 @@
+if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
+
 project(Google_tests)
 add_subdirectory(googletest)
 include_directories("${gtest_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTestUtils")
@@ -13,3 +15,4 @@ target_include_directories(Google_Tests_run PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
 target_link_libraries(Google_Tests_run DoCANCppLib)
 
 target_link_libraries(Google_Tests_run gtest gtest_main)
+endif ()
