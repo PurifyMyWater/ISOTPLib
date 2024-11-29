@@ -41,7 +41,7 @@ jobs:
 
             -   name: Test
                 working-directory: ${{runner.workspace}}/build
-                run: ./Tests/Google_Tests_run
+                run: ./Tests/DoCANCppLib_GoogleTestsExe
 
     Linter:
         runs-on: ubuntu-latest
