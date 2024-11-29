@@ -26,11 +26,11 @@ jobs:
                     path: ".git"
                     restore-keys: "${{ runner.os }}-git-"
 
-	    -   name: "Checkout repository"
-		uses: actions/checkout@v4
-		with:
-		    submodules: 'recursive'
-		    token: ${{ secrets.SubmoduleToken }}
+            -   name: "Checkout repository"
+                uses: actions/checkout@v4
+                with:
+                    submodules: 'recursive'
+                    token: ${{ secrets.SubmoduleToken }}
 
             -   name: Configure CMake
                 run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
@@ -43,62 +43,62 @@ jobs:
                 working-directory: ${{runner.workspace}}/build
                 run: ./Tests/Google_Tests_run
 
-    Linter:
-        runs-on: ubuntu-latest
+        Linter:
+            runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                shell: bash
+            defaults:
+                run:
+                    shell: bash
 
-        permissions:
-            contents: write
-            pull-requests: write
+            permissions:
+                contents: write
+                pull-requests: write
 
-        steps:
-            -   name: Cache git submodules
-                uses: actions/cache@v4
-                with:
-                    key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
-                    path: ".git"
-                    restore-keys: "${{ runner.os }}-git-"
-		  
-	    -   name: "Checkout repository"
-		uses: actions/checkout@v4
-		with:
-		    submodules: 'recursive'
-		    token: ${{ secrets.SubmoduleToken }}
+            steps:
+                -   name: Cache git submodules
+                    uses: actions/cache@v4
+                    with:
+                        key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
+                        path: ".git"
+                        restore-keys: "${{ runner.os }}-git-"
 
-            -   name: "Checkout repository"
-                uses: actions/checkout@v4
-                with:
-                    submodules: 'recursive'
+                -   name: "Checkout repository"
+                    uses: actions/checkout@v4
+                    with:
+                        submodules: 'recursive'
+                        token: ${{ secrets.SubmoduleToken }}
 
-            -   name: Configure CMake
-                run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
+                -   name: "Checkout repository"
+                    uses: actions/checkout@v4
+                    with:
+                        submodules: 'recursive'
 
-            -   name: Linter
-                uses: cpp-linter/cpp-linter-action@v2
-                id: linter
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                with:
-                    version: 19
-                    ignore: 'CANShim/|Tests/DoCANCppLibTests/'
-                    style: 'file'  # Use .clang-format config file
-                    tidy-checks: '' # Use .clang-tidy config file
-                    database: '${{runner.workspace}}/build'
-                    step-summary: true
-                    tidy-review: true
-                    format-review: true
-                    lines-changed-only: true # Only Check the lines that have changed
-                    files-changed-only: true # Only check the files that have changed
-                    # only 'update' a single comment in a pull request thread.
-                    thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+                -   name: Configure CMake
+                    run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
 
-            -   name: Clang Tidy Fail Check
-                if: steps.linter.outputs.clang-tidy-checks-failed > 0
-                run: exit 1 # To enable or disable this check as an error, run exit 1 / exit 0.
+                -   name: Linter
+                    uses: cpp-linter/cpp-linter-action@v2
+                    id: linter
+                    env:
+                        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    with:
+                        version: 19
+                        ignore: 'CANShim/|Tests/DoCANCppLibTests/'
+                        style: 'file'  # Use .clang-format config file
+                        tidy-checks: '' # Use .clang-tidy config file
+                        database: '${{runner.workspace}}/build'
+                        step-summary: true
+                        tidy-review: true
+                        format-review: true
+                        lines-changed-only: true # Only Check the lines that have changed
+                        files-changed-only: true # Only check the files that have changed
+                        # only 'update' a single comment in a pull request thread.
+                        thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
-            -   name: Clang Format Fail Check
-                if: steps.linter.outputs.clang-format-checks-failed > 0
-                run: exit 1 # To enable or disable this check as an error, run exit 1 / exit 0.
+                -   name: Clang Tidy Fail Check
+                    if: steps.linter.outputs.clang-tidy-checks-failed > 0
+                    run: exit 1 # To enable or disable this check as an error, run exit 1 / exit 0.
+
+                -   name: Clang Format Fail Check
+                    if: steps.linter.outputs.clang-format-checks-failed > 0
+                    run: exit 1 # To enable or disable this check as an error, run exit 1 / exit 0.
