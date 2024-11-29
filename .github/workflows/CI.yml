@@ -26,10 +26,11 @@ jobs:
                     path: ".git"
                     restore-keys: "${{ runner.os }}-git-"
 
-            -   name: "Checkout repository"
-                uses: actions/checkout@v4
-                with:
-                    submodules: 'recursive'
+	    -   name: "Checkout repository"
+		uses: actions/checkout@v4
+		with:
+		    submodules: 'recursive'
+		    token: ${{ secrets.SubmoduleToken }}
 
             -   name: Configure CMake
                 run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
@@ -60,6 +61,12 @@ jobs:
                     key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
                     path: ".git"
                     restore-keys: "${{ runner.os }}-git-"
+		  
+	    -   name: "Checkout repository"
+		uses: actions/checkout@v4
+		with:
+		    submodules: 'recursive'
+		    token: ${{ secrets.SubmoduleToken }}
 
             -   name: "Checkout repository"
                 uses: actions/checkout@v4
