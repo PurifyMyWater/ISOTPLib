@@ -19,7 +19,14 @@ public:
     [[nodiscard]] uint32_t getNextRunTime() const override;
 
 private:
+    N_Result run_step_SF(const CANFrame* receivedFrame);
+    N_Result run_step_FF(const CANFrame* receivedFrame);
+
+    using InternalStatus_t = enum { NOT_RUNNING_SF, NOT_RUNNING_FF, AWAITING_FC, INVALID };
+
     Atomic_int64_t* availableMemoryForRunners;
+    uint32_t messageOffset;
+    InternalStatus_t internalStatus;
 };
 
 #endif // N_USDATA_REQUEST_RUNNER_H
