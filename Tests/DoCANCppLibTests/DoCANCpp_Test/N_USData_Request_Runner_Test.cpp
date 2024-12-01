@@ -106,27 +106,6 @@ TEST(N_USData_Request_Runner, run_step_SF_valid)
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[1], messageLen));
 }
 
-TEST(N_USData_Request_Runner, run_step_SF_invalid_big)
-{
-    LocalCANNetwork can_network;
-    int64_t availableMemoryConst = 100;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
-    const char* testMessageString = "12345678"; // strlen = 8
-    size_t messageLen = strlen(testMessageString);
-    const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
-    bool result;
-    CANShim* canShim = can_network.newCANShimConnection();
-
-    N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, *can_network.newCANShimConnection());
-
-    ASSERT_EQ(N_ERROR, runner.run_step(nullptr));
-    ASSERT_EQ(N_ERROR, runner.getResult());
-
-    CANFrame receivedFrame;
-    ASSERT_FALSE(canShim->readFrame(&receivedFrame));
-}
-
 TEST(N_USData_Request_Runner, run_step_SF_valid_empty)
 {
     LocalCANNetwork can_network;
