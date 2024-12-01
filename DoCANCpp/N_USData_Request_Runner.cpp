@@ -58,7 +58,6 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
             return run_step_FF(receivedFrame);
         case AWAITING_FC: // We got the message or timeout.
         {
-
         }
         default:
             result = N_ERROR;
@@ -137,10 +136,7 @@ N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
 }
 
 
-bool N_USData_Request_Runner::awaitingMessage() const
-{
-    return internalStatus == AWAITING_FC;
-}
+bool N_USData_Request_Runner::awaitingMessage() const { return internalStatus == AWAITING_FC; }
 
 uint32_t N_USData_Request_Runner::getNextRunTime() const
 {
