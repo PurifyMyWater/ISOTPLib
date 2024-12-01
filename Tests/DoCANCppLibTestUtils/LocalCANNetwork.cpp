@@ -16,6 +16,8 @@ bool LocalCANNetworkCANShim::writeFrame(CANFrame* frame) { return network->write
 
 bool LocalCANNetworkCANShim::active() { return network->active(); }
 
+CANShim::ACKResult LocalCANNetworkCANShim::getWriteFrameACK() { return network->getWriteFrameACK(); }
+
 uint32_t LocalCANNetworkCANShim::getNodeID() const { return nodeID; }
 
 
@@ -43,6 +45,7 @@ bool LocalCANNetwork::writeFrame(uint32_t emitterID, CANFrame* frame)
                     frames.push_back(*frame);
                 }
             }
+            lastACK = CANShim::ACK_SUCCESS;
             accessMutex->signal();
             return true;
         }
@@ -74,11 +77,6 @@ bool LocalCANNetwork::readFrame(uint32_t receiverID, CANFrame* frame)
         accessMutex->signal();
         return true;
     }
-    if (peekFrame(receiverID, frame))
-    {
-        network[receiverID].pop_front();
-        return true;
-    }
     return false;
 }
 
@@ -102,6 +100,18 @@ bool LocalCANNetwork::active()
     if (accessMutex->wait(maxSyncTimeMS))
     {
         res = allowActiveFlag && network.size() > 1;
+        accessMutex->signal();
+    }
+    return res;
+}
+
+CANShim::ACKResult LocalCANNetwork::getWriteFrameACK()
+{
+    CANShim::ACKResult res = CANShim::ACK_NONE;
+    if (accessMutex->wait(maxSyncTimeMS))
+    {
+        res = lastACK;
+        lastACK = CANShim::ACK_NONE;
         accessMutex->signal();
     }
     return res;

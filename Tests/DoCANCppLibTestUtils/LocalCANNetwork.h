@@ -59,9 +59,16 @@ public:
      */
     bool active();
 
+    /**
+     * @brief Get the ACK result of the last message sent (Internal use only)
+     * @return The result of the last ACK or ACK_NONE if no message was transmitted since the last call to this function.
+     */
+    CANShim::ACKResult getWriteFrameACK();
+
     void overrideActive(bool forceDisable);
 
 private:
+    CANShim::ACKResult lastACK = CANShim::ACK_NONE;
     bool checkNodeID(uint32_t nodeID);
     std::vector<std::list<CANFrame>> network;
     uint32_t nextNodeID = 0;
@@ -79,6 +86,8 @@ public:
     bool readFrame(CANFrame* frame) override;
     bool writeFrame(CANFrame* frame) override;
     bool active() override;
+
+    ACKResult getWriteFrameACK() override;
 
     [[nodiscard]] uint32_t getNodeID() const;
 
