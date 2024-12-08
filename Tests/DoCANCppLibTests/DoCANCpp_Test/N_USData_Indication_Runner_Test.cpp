@@ -15,12 +15,15 @@ TEST(N_USData_Indication_Runner, constructor_getters)
     int64_t availableMemoryConst = 100;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
 
+    CANShim* canShim = can_network.newCANShimConnection();
+    CANMessageACKQueue canMessageACKQueue(*canShim);
+
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
 
-    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, *can_network.newCANShimConnection());
+    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, canMessageACKQueue);
 
     ASSERT_EQ(N_USData_Runner::RunnerIndicationType, runner.getRunnerType());
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
@@ -37,6 +40,9 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid)
     int64_t availableMemoryConst = 100;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
 
+    CANShim* canShim = can_network.newCANShimConnection();
+    CANMessageACKQueue canMessageACKQueue(*canShim);
+
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
@@ -46,7 +52,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid)
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
 
-    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, *can_network.newCANShimConnection());
+    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
     sentFrame.data[0] = (N_USData_Runner::SF_CODE << 4) | messageLen;
@@ -68,6 +74,9 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
     int64_t availableMemoryConst = 100;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
 
+    CANShim* canShim = can_network.newCANShimConnection();
+    CANMessageACKQueue canMessageACKQueue(*canShim);
+
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
@@ -77,7 +86,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
 
-    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, *can_network.newCANShimConnection());
+    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
     sentFrame.data[0] = (N_USData_Runner::SF_CODE << 4) | messageLen;

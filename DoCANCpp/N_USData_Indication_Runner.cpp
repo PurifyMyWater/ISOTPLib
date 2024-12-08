@@ -2,8 +2,8 @@
 
 #include <cstring>
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANShim& canShim) :
-    N_USData_Runner(nAi, osShim, canShim)
+N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANMessageACKQueue& canMessageACKQueue) :
+    N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->runnerType = RunnerIndicationType;
     this->nAi = nAi;
@@ -11,7 +11,6 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
     this->stMin = stMin;
     this->availableMemoryForRunners = &availableMemoryForRunners;
     this->osShim = &osShim;
-    this->canShim = &canShim;
     this->messageData = nullptr;
 }
 
@@ -58,4 +57,8 @@ bool N_USData_Indication_Runner::awaitingMessage() const
 uint32_t N_USData_Indication_Runner::getNextRunTime() const
 {
     return 0; // TODO NOT IMPLEMENTED
+}
+void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
+{
+    // TODO NOT IMPLEMENTED
 }

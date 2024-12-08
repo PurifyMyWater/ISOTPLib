@@ -8,7 +8,8 @@
 class N_USData_Request_Runner : public N_USData_Runner
 {
 public:
-    N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim, CANShim& canShim);
+    N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
+                            CANMessageACKQueue& canMessageACKQueue);
 
     ~N_USData_Request_Runner() override;
 
@@ -17,6 +18,8 @@ public:
     [[nodiscard]] bool awaitingMessage() const override;
 
     [[nodiscard]] uint32_t getNextRunTime() const override;
+
+    void messageACKReceivedCallback(CANShim::ACKResult success) override;
 
 private:
     N_Result run_step_SF(const CANFrame* receivedFrame);
