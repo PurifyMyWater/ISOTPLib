@@ -1,11 +1,12 @@
 #include "N_USData_Request_Runner.h"
 #include "Atomic_int64_t.h"
+#include "CANMessageACKQueue.h"
 
 #include <cstring>
 
 
 N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
-                                                 CANShim& canShim) : N_USData_Runner(nAi, osShim, canShim)
+                                                 CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->internalStatus = INVALID;
     this->messageOffset = 0;
@@ -97,7 +98,7 @@ N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
 
         ffFrame.data_length_code = 8;
 
-        if (canShim->writeFrame(&ffFrame))
+        if (CANmessageACKQueue->writeFrame(*this, ffFrame))
         {
             internalStatus = AWAITING_FC;
             result = IN_PROGRESS;
@@ -126,7 +127,7 @@ N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
 
     sfFrame.data_length_code = messageLength + 1; // 1 byte for N_PCI_SF
 
-    if (canShim->writeFrame(&sfFrame))
+    if (CANmessageACKQueue->writeFrame(*this, sfFrame))
     {
         result = N_OK;
         return result;
@@ -141,4 +142,8 @@ bool N_USData_Request_Runner::awaitingMessage() const { return internalStatus ==
 uint32_t N_USData_Request_Runner::getNextRunTime() const
 {
     return 0; // TODO NOT IMPLEMENTED
+}
+void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
+{
+    // TODO NOT IMPLEMENTED
 }

@@ -1,6 +1,7 @@
 #ifndef N_USDATA_RUNNER_H
 #define N_USDATA_RUNNER_H
 
+#include "CANMessageACKQueue.h"
 #include "CANShim.h"
 #include "DoCANCpp_Data_Structures.h"
 #include "OSShim.h"
@@ -14,9 +15,9 @@ public:
     using FrameCode = enum { SF_CODE = 0b0000, FF_CODE = 0b0001, CF_CODE = 0b0010, FC_CODE = 0b0011 };
 
     constexpr static uint8_t MAX_SF_MESSAGE_LENGTH = 7;
-    constexpr static uint8_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
+    constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-    N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim);
+    N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue);
 
     virtual ~N_USData_Runner() = default;
 
@@ -71,6 +72,12 @@ public:
      */
     [[nodiscard]] RunnerType getRunnerType() const;
 
+    /**
+     * @brief Callback for when a message is received.
+     * @param success True if the message was received successfully, false otherwise.
+     */
+    virtual void messageACKReceivedCallback(CANShim::ACKResult success) = 0;
+
     const char* TAG;
 
 protected:
@@ -81,7 +88,7 @@ protected:
     N_Result result;
     RunnerType runnerType;
     OSShim* osShim;
-    CANShim* canShim;
+    CANMessageACKQueue* CANmessageACKQueue;
 };
 
 #endif // N_USDATA_RUNNER_H

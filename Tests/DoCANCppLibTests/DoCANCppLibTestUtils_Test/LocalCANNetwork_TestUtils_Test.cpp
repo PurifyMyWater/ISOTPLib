@@ -24,6 +24,40 @@ TEST(LocalCANNetwork, network_newCANShimConnection_test_N_nodes)
     }
 }
 
+TEST(LocalCANNetwork, network_getWriteFrameACK_test_none)
+{
+    LocalCANNetwork network;
+    ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_NONE);
+}
+
+TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
+{
+    LocalCANNetwork network;
+    uint32_t id = 0;
+    CANFrame frame;
+    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_SA = 0;
+    frame.identifier.N_TA = 1;
+    frame.data_length_code = 8;
+    for (uint32_t i = 0; i < 8; i++)
+    {
+        frame.data[i] = i;
+    }
+
+    std::list<LocalCANNetworkCANShim*> rcan;
+    for (int i = 1; i < 3; i++)
+    {
+        rcan.push_front(network.newCANShimConnection());
+        ASSERT_NE(rcan.front(), nullptr);
+    }
+    ASSERT_EQ(network.active(), true);
+
+    ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_NONE);
+    ASSERT_EQ(network.writeFrame(id, &frame), true);
+    ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_SUCCESS);
+    ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_NONE);
+}
+
 TEST(LocalCANNetwork, network_read_write_peek_available_0_node)
 {
     LocalCANNetwork network;

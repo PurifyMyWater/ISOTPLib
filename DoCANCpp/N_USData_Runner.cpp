@@ -1,6 +1,6 @@
 #include "N_USData_Runner.h"
 
-N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim)
+N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue)
 {
     this->nAi = nAi;
     this->mType = Mtype_Unknown;
@@ -9,7 +9,7 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANShim& canShim)
     this->result = NOT_STARTED;
     this->runnerType = RunnerUnknownType;
     this->osShim = &osShim;
-    this->canShim = &canShim;
+    this->CANmessageACKQueue = &CANmessageACKQueue;
 
     this->TAG = nullptr;
 }

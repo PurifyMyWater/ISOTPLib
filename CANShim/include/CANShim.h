@@ -41,36 +41,44 @@ using CANFrame = struct CANFrame
 };
 
 /**
- * @brief Interface for a CAN bus driver
+ * @brief Interface for a CAN bus driver.
  */
 class CANShim
 {
 public:
+    using ACKResult = enum ACKResult { ACK_SUCCESS, ACK_ERROR, ACK_NONE };
+
     /**
-     * @brief Check if a frame is available to read
-     * @return Number of frames available to read
+     * @brief Check if a frame is available to read.
+     * @return Number of frames available to read.
      */
     virtual uint32_t frameAvailable() = 0;
 
     /**
-     * @brief Read a frame from the CAN bus
-     * @param frame Pointer to a CANFrame struct to store the read frame
-     * @return True if a frame was read, false if no frame was available
+     * @brief Read a frame from the CAN bus.
+     * @param frame Pointer to a CANFrame struct to store the read frame.
+     * @return True if a frame was read, false if no frame was available.
      */
     virtual bool readFrame(CANFrame* frame) = 0;
 
     /**
-     * @brief Write a frame to the CAN bus
-     * @param frame Pointer to a CANFrame struct to write to the bus
-     * @return True if the frame was written, false if the bus is not active or the frame was not written
+     * @brief Write a frame to the CAN bus.
+     * @param frame Pointer to a CANFrame struct to write to the bus.
+     * @return True if the frame was written, false if the bus is not active, or the frame was not written.
      */
     virtual bool writeFrame(CANFrame* frame) = 0;
 
     /**
-     * @brief Check if the bus is active
-     * @return True if the bus is active, false if the bus is not active
+     * @brief Check if the bus is active.
+     * @return True if the bus is active, false if the bus is not active.
      */
     virtual bool active() = 0;
+
+    /**
+     * @brief Get the ACK result of the last message sent.
+     * @return The result of the last ACK or ACK_NONE if no message finished transmission since the last call to this function.
+     */
+    virtual ACKResult getWriteFrameACK() = 0;
 
     virtual ~CANShim() = default;
 };
