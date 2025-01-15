@@ -8,29 +8,52 @@
 N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
                                                  CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
-    this->internalStatus = INVALID;
+    this->internalStatus = ERROR;
+    this->result = N_ERROR;
     this->messageOffset = 0;
     this->runnerType = RunnerRequestType;
     this->messageData = nullptr;
     this->messageLength = messageLength;
-    if (availableMemoryForRunners.subIfResIsGreaterThanZero(this->messageLength) && messageData != nullptr)
+    this->availableMemoryForRunners = &availableMemoryForRunners;
+    this->cfSentInThisBlock = 0;
+
+    this->timerN_As = new Timer_N(osShim);
+    this->timerN_Bs = new Timer_N(osShim);
+    this->timerN_Cs = new Timer_N(osShim);
+
+    if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))) && messageData != nullptr)
     {
         this->messageData = static_cast<uint8_t*>(osShim.osMalloc(this->messageLength * sizeof(uint8_t)));
-        memcpy(this->messageData, messageData, this->messageLength);
-        this->mType = mType;
-        this->nAi = nAi;
-        this->availableMemoryForRunners = &availableMemoryForRunners;
 
-        if (messageLength <= MAX_SF_MESSAGE_LENGTH)
+        if (this->messageData == nullptr)
         {
-            this->internalStatus = NOT_RUNNING_SF;
+            *result = false;
         }
         else
         {
-            this->internalStatus = NOT_RUNNING_FF;
-        }
+            memcpy(this->messageData, messageData, this->messageLength);
+            this->mType = mType;
 
-        *result = true;
+            if (this->nAi.N_TAtype == CAN_CLASSIC_29bit_Functional && this->messageLength > MAX_SF_MESSAGE_LENGTH)
+            {
+                *result = false;
+            }
+            else
+            {
+                this->nAi = nAi;
+
+                if (messageLength <= MAX_SF_MESSAGE_LENGTH)
+                {
+                    this->internalStatus = NOT_RUNNING_SF;
+                }
+                else
+                {
+                    this->internalStatus = NOT_RUNNING_FF;
+                }
+
+                *result = true;
+            }
+        }
     }
     else
     {
@@ -46,78 +69,152 @@ N_USData_Request_Runner::~N_USData_Request_Runner()
     }
 
     osShim->osFree(this->messageData);
-    availableMemoryForRunners->add(this->messageLength);
+    availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
+}
+
+N_Result N_USData_Request_Runner::sendCFFrame()
+{
+    CANFrame cfFrame = NewCANFrameDoCANCpp();
+    cfFrame.identifier = nAi;
+
+    int64_t remainingBytes = messageLength - messageOffset;
+    uint8_t frameDataLength = remainingBytes > 7 ? 7 : remainingBytes;
+
+    cfFrame.data[0] = CF_CODE << 4 | (sequenceNumber & 0b00001111); // (0b0010xxxx) | SN (0bxxxxllll)
+    memcpy(&cfFrame.data[1], &messageData[messageOffset], frameDataLength); // Payload data
+    messageOffset += frameDataLength;
+
+    cfFrame.data_length_code = frameDataLength + 1; // 1 byte for N_PCI_SF
+
+    if (CANmessageACKQueue->writeFrame(*this, cfFrame))
+    {
+        cfSentInThisBlock++;
+        sequenceNumber++;
+        timerN_As->startTimer();
+
+        internalStatus = AWAITING_CF_ACK;
+        result = IN_PROGRESS;
+        return result;
+    }
+    result = N_ERROR;
+    return result;
+}
+
+N_Result N_USData_Request_Runner::checkTimeouts()
+{
+    if (timerN_As->getElapsedTime_ms() > N_As_TIMEOUT_MS)
+    {
+        returnError(N_TIMEOUT_A);
+    }
+    if (timerN_Bs->getElapsedTime_ms() > N_Bs_TIMEOUT_MS)
+    {
+        returnError(N_TIMEOUT_Bs);
+    }
 }
 
 N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
 {
+    N_Result res = checkTimeouts();
+
     switch (internalStatus)
     {
-        case NOT_RUNNING_SF:
-            return run_step_SF(receivedFrame);
+        case NOT_RUNNING_SF: // TODO review SF
+            res = run_step_SF(receivedFrame);
+            break;
         case NOT_RUNNING_FF:
-            return run_step_FF(receivedFrame);
-        case AWAITING_FC: // We got the message or timeout.
-        {
-        }
-        default:
-            result = N_ERROR;
-            return N_ERROR;
+            res = run_step_FF(receivedFrame);
+            break;
+        case AWAITING_FF_ACK:
+            result = N_TIMEOUT_A;
+            res = N_TIMEOUT_A;
+            break;
+        case AWAITING_FirstFC: // We got the message or timeout.
+            res = run_step_FC(receivedFrame, true);
+            break;
+        case SEND_CF:
+            res = run_step_CF(receivedFrame);
+            break;
+        case AWAITING_FC:
+            res = run_step_FC(receivedFrame);
+            break;
+        case MESSAGE_SENT:
+            res = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
+            break;
+        case ERROR:
+            res = result;
+            break;
     }
+
+    lastRunTime = osShim->osMillis();
+    return res;
+}
+
+N_Result N_USData_Request_Runner::run_step_CF(const CANFrame* receivedFrame)
+{
+    if (receivedFrame != nullptr)
+    {
+        returnError(N_ERROR);
+    }
+
+    result = sendCFFrame();
+    return result;
 }
 
 N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
 {
     if (receivedFrame != nullptr)
     {
-        result = N_ERROR;
-        return result;
+        returnError(N_ERROR);
+    }
+
+    CANFrame ffFrame = NewCANFrameDoCANCpp();
+    ffFrame.identifier = nAi;
+
+
+    if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
+    {
+        ffFrame.data[0] = (FF_CODE << 4) | (messageLength >> 8); // N_PCI_FF (0b0001xxxx) | messageLength (0bxxxxllll)
+        ffFrame.data[1] = messageLength & 0b11111111; // messageLength LSB
+
+        memcpy(&ffFrame.data[2], messageData, 6); // Payload data
+        messageOffset = 6;
     }
     else
     {
-        CANFrame ffFrame = NewCANFrameDoCANCpp();
-        ffFrame.identifier = nAi;
+        ffFrame.data[0] = FF_CODE << 4; // N_PCI_FF (0b00010000)
+        ffFrame.data[1] = 0;
+        *reinterpret_cast<uint32_t*>(&ffFrame.data[2]) = static_cast<uint32_t>(messageLength); // copy messageLength (4 bytes) in the bytes #2 to #5.
 
-        if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
-        {
-            ffFrame.data[0] = (FF_CODE << 4) | (messageLength >> 8); // N_PCI_FF (0b0001xxxx) | messageLength (0bxxxxllll)
-            ffFrame.data[1] = messageLength & 0b11111111; // messageLength LSB
+        ffFrame.data[2] = (messageLength >> 24) & 0b11111111;
+        ffFrame.data[3] = (messageLength >> 16) & 0b11111111;
+        ffFrame.data[4] = (messageLength >> 8) & 0b11111111;
+        ffFrame.data[5] = messageLength & 0b11111111;
 
-            memcpy(&ffFrame.data[2], messageData, 6); // Payload data
-            messageOffset = 6;
-        }
-        else
-        {
-            ffFrame.data[0] = FF_CODE << 4; // N_PCI_FF (0b00010000)
-            ffFrame.data[1] = 0;
-            *reinterpret_cast<uint32_t*>(&ffFrame.data[2]) = static_cast<uint32_t>(messageLength); // copy messageLength (4 bytes) in the bytes #2 to #5.
+        memcpy(&ffFrame.data[6], messageData, 2); // Payload data
+        messageOffset = 2;
+    }
 
-            memcpy(&ffFrame.data[6], messageData, 2); // Payload data
-            messageOffset = 2;
-        }
+    ffFrame.data_length_code = 8;
 
-        ffFrame.data_length_code = 8;
-
-        if (CANmessageACKQueue->writeFrame(*this, ffFrame))
-        {
-            internalStatus = AWAITING_FC;
-            result = IN_PROGRESS;
-            return result;
-        }
-
-        internalStatus = INVALID;
-        result = N_ERROR;
+    if (CANmessageACKQueue->writeFrame(*this, ffFrame))
+    {
+        timerN_As->startTimer();
+        internalStatus = AWAITING_FF_ACK;
+        result = IN_PROGRESS;
         return result;
     }
+
+    returnError(N_ERROR);
 }
 
 N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
 {
     if (receivedFrame != nullptr)
     {
-        result = N_ERROR;
-        return result;
+        returnError(N_ERROR);
     }
+
+    timerN_As->startTimer();
 
     CANFrame sfFrame = NewCANFrameDoCANCpp();
     sfFrame.identifier = nAi;
@@ -129,21 +226,193 @@ N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
 
     if (CANmessageACKQueue->writeFrame(*this, sfFrame))
     {
-        result = N_OK;
+        internalStatus = AWAITING_SF_ACK;
+        result = IN_PROGRESS;
         return result;
     }
     result = N_ERROR;
     return result;
 }
 
+N_Result N_USData_Request_Runner::run_step_FC(const CANFrame* receivedFrame, bool firstFC)
+{
+    FlowStatus fs;
+    uint8_t bs;
+    STmin stM;
+    if (parseFCFrame(receivedFrame, fs, bs, stM) != N_OK)
+    {
+        return result; // All the other error parameters are already set.
+    }
 
-bool N_USData_Request_Runner::awaitingMessage() const { return internalStatus == AWAITING_FC; }
+    switch (fs)
+    {
+        case CONTINUE_TO_SEND:
+        {
+            blockSize = bs;
+            cfSentInThisBlock = 0;
+            stMin = stM;
+
+            timerN_Bs->stopTimer();
+            timerN_Cs->startTimer();
+
+            result = IN_PROGRESS;
+            internalStatus = SEND_CF;
+            return result;
+        }
+        case WAIT:
+        {
+            // Restart N_Bs timer
+            timerN_Bs->startTimer();
+            internalStatus = AWAITING_FC;
+            result = IN_PROGRESS;
+            return result;
+        }
+        break;
+        case OVERFLOW:
+            if (firstFC)
+            {
+                returnError(N_BUFFER_OVFLW);
+            }
+        [[fallthrough]];
+        default:
+            returnError(N_INVALID_FS);
+    }
+}
+
+bool N_USData_Request_Runner::awaitingMessage() const { return (internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC); }
+
+uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
+{
+    uint32_t timeoutAs = timerN_As->getStartTimeStamp() + N_As_TIMEOUT_MS;
+    uint32_t timeoutBs = timerN_Bs->getStartTimeStamp() + N_Bs_TIMEOUT_MS;
+    uint32_t timeoutCs = timerN_Cs->getStartTimeStamp() + getStMinInMs(stMin);
+    uint32_t minTimeoutAsBs = timeoutAs < timeoutBs ? timeoutAs : timeoutBs;
+    return minTimeoutAsBs < timeoutCs ? minTimeoutAsBs : timeoutCs;
+}
 
 uint32_t N_USData_Request_Runner::getNextRunTime() const
 {
-    return 0; // TODO NOT IMPLEMENTED
+    uint32_t nextRunTime = getNextTimeoutTime();
+    switch (internalStatus)
+    {
+        case MESSAGE_SENT:
+            [[fallthrough]]; // Be careful with the fallthrough, we want to execute ASAP.
+        case NOT_RUNNING_SF:
+            [[fallthrough]];
+        case NOT_RUNNING_FF:
+            nextRunTime = 0; // Execute as soon as possible
+            break;
+        default:
+            break;
+    }
+
+    return nextRunTime;
 }
+
 void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
 {
-    // TODO NOT IMPLEMENTED
+    // TODO protect with mutex
+    switch (internalStatus)
+    {
+        case AWAITING_SF_ACK:
+        {
+            if (success == CANShim::ACK_SUCCESS)
+            {
+                timerN_As->stopTimer();
+                internalStatus = MESSAGE_SENT;
+            }
+            else
+            {
+                result = N_ERROR;
+                internalStatus = ERROR;
+            }
+            break;
+        }
+        case AWAITING_FF_ACK:
+        {
+            if (success == CANShim::ACK_SUCCESS)
+            {
+                internalStatus = AWAITING_FirstFC;
+                timerN_As->stopTimer();
+                timerN_Bs->startTimer();
+            }
+            else
+            {
+                result = N_ERROR;
+                internalStatus = ERROR;
+            }
+            break;
+        }
+        case AWAITING_CF_ACK:
+        {
+            if (success == CANShim::ACK_SUCCESS)
+            {
+                timerN_As->stopTimer();
+
+                if (messageOffset == messageLength)
+                {
+                    timerN_As->stopTimer();
+                    internalStatus = MESSAGE_SENT;
+                }
+                else if (cfSentInThisBlock == blockSize)
+                {
+                    internalStatus = AWAITING_FC;
+                    timerN_Bs->startTimer();
+                }
+                else
+                {
+                    timerN_Cs->startTimer();
+                    internalStatus = SEND_CF;
+                }
+            }
+            else
+            {
+                result = N_ERROR;
+                internalStatus = ERROR;
+            }
+            break;
+        }
+    }
+}
+
+N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& bs, STmin& stM)
+{
+    if (receivedFrame == nullptr)
+    {
+        returnError(N_ERROR);
+    }
+
+    timerN_Bs->stopTimer();
+    timerN_Cs->startTimer();
+
+    if (receivedFrame->identifier.N_TAtype != CAN_CLASSIC_29bit_Physical)
+    {
+        returnError(N_ERROR);
+    }
+
+    if (receivedFrame->data_length_code != 3)
+    {
+        returnError(N_ERROR);
+    }
+
+    if ((receivedFrame->data[0] >> 4) & 0b00001111 != FC_CODE)
+    {
+        returnError(N_ERROR);
+    }
+
+    fs = static_cast<FlowStatus>(receivedFrame->data[0] & 0b00001111);
+    bs = receivedFrame->data[1];
+
+    if ((receivedFrame->data[2] & 0b11110000) == 0b11110000)
+    {
+        stM.unit = usX100;
+        stM.value = receivedFrame->data[2] & 0b00001111;
+    }
+    else
+    {
+        stM.unit = ms;
+        stM.value = receivedFrame->data[2];
+    }
+
+    return N_OK;
 }

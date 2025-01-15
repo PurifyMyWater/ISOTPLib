@@ -11,13 +11,6 @@
 
 #define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
-using STminUnit = enum SeparationTimeMinUnit { ms, us };
-using STmin = struct SeparationTimeMin
-{
-    uint16_t value;
-    STminUnit unit;
-};
-
 constexpr uint32_t DoCANCpp_RunPeriod_MS = 100;
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
 constexpr STmin DoCANCpp_DefaultSTmin = {20, ms};

@@ -10,8 +10,17 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& C
     this->runnerType = RunnerUnknownType;
     this->osShim = &osShim;
     this->CANmessageACKQueue = &CANmessageACKQueue;
+    this->blockSize = 0;
+    this->stMin = {0, ms};
+    this->lastRunTime = 0;
+    this->sequenceNumber = 1;
 
     this->TAG = nullptr;
+}
+
+uint32_t N_USData_Runner::getStMinInMs(STmin stMin)
+{
+    return stMin.unit == usX100 ? 1 : stMin.value; // 1 ms is the smallest resolution we can get.
 }
 
 N_AI N_USData_Runner::getN_AI() const { return nAi; }

@@ -8,14 +8,30 @@
 
 #define NewCANFrameDoCANCpp() {.extd = 1, .rtr = 0, .ss = 0, .self = 0, .dlc_non_comp = 0, .reserved = 0, .identifier = {.N_AI = 0}, .data_length_code = 0, .data = {0}}
 
+#define returnError(errorCode)                                                                                                                                                                         \
+    do                                                                                                                                                                                                 \
+    {                                                                                                                                                                                                  \
+        internalStatus = ERROR;                                                                                                                                                                        \
+        result = errorCode;                                                                                                                                                                            \
+        return result;                                                                                                                                                                                 \
+    } while (0)
+
 class N_USData_Runner
 {
 public:
     using RunnerType = enum { RunnerUnknownType, RunnerRequestType, RunnerIndicationType };
     using FrameCode = enum { SF_CODE = 0b0000, FF_CODE = 0b0001, CF_CODE = 0b0010, FC_CODE = 0b0011 };
+    using FlowStatus = enum { CONTINUE_TO_SEND = 0, WAIT = 1, OVERFLOW = 2 };
 
     constexpr static uint8_t MAX_SF_MESSAGE_LENGTH = 7;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
+
+    constexpr static uint32_t N_As_TIMEOUT_MS = 1000;
+    constexpr static uint32_t N_Ar_TIMEOUT_MS = 1000;
+    constexpr static uint32_t N_Bs_TIMEOUT_MS = 1000;
+    // constexpr static uint32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
+    // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
 
     N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue);
 
@@ -81,6 +97,9 @@ public:
     const char* TAG;
 
 protected:
+    static uint32_t getStMinInMs(STmin stMin);
+    virtual N_Result checkTimeouts() = 0;
+
     N_AI nAi;
     Mtype mType;
     uint8_t* messageData;
@@ -89,6 +108,10 @@ protected:
     RunnerType runnerType;
     OSShim* osShim;
     CANMessageACKQueue* CANmessageACKQueue;
+    uint8_t blockSize;
+    uint32_t lastRunTime;
+    uint8_t sequenceNumber;
+    STmin stMin{};
 };
 
 #endif // N_USDATA_RUNNER_H

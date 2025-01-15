@@ -1,6 +1,16 @@
 #ifndef DOCANCPP_DATA_STRUCTURES_H
 #define DOCANCPP_DATA_STRUCTURES_H
 
+#include <cstdint>
+
+using STminUnit = enum SeparationTimeMinUnit { ms, usX100 };
+
+using STmin = struct SeparationTimeMin
+{
+    uint8_t value;
+    STminUnit unit;
+};
+
 using Mtype = enum Mtype { Mtype_Diagnostics, Mtype_Unknown };
 
 using N_Result = enum N_Result {

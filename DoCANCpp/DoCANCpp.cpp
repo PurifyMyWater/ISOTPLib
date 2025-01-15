@@ -105,7 +105,7 @@ STmin DoCANCpp::getSTmin() const
 
 bool DoCANCpp::setSTmin(const STmin stMin)
 {
-    if ((stMin.unit == ms && stMin.value > 127) || (stMin.unit == us && (stMin.value < 100 || stMin.value > 900)))
+    if ((stMin.unit == ms && stMin.value > 127) || (stMin.unit == usX100 && (stMin.value < 1 || stMin.value > 9)))
     {
         return false;
     }
@@ -193,34 +193,31 @@ void DoCANCpp::run_step(DoCANCpp* self)
             {
                 auto runner = runnerPair.second;
                 assert(runner != nullptr);
-                // If the runner has pending actions to run
-                if (self->lastRunTime - runner->getNextRunTime() > 0) // TODO run a runner if it is waiting for a message, without waiting for nextRunTime?
-                {
-                    N_Result result;
-                    // If a message is available, and the runner is waiting for it.
-                    if (frameStatus == frameAvailable && runner->awaitingMessage() && runner->getN_AI().N_AI == frame.identifier.N_AI)
-                    {
-                        // Run the runner with the frame.
-                        result = runner->run_step(&frame);
-                        frameStatus = frameProcessed;
-                    }
-                    else
-                    {
-                        // Run the runner without the frame.
-                        result = runner->run_step(nullptr);
-                    }
 
-                    // Check if the runner has finished
-                    switch (result)
-                    {
-                        case IN_PROGRESS_FF:
-                            assert(false && "N_Result::IN_PROGRESS_FF should not happen, as the runner has already received at least one frame (if it is an indication runner)");
-                        case IN_PROGRESS:
-                            break;
-                        default:
-                            self->finishedRunners.push_front(runner);
-                            break;
-                    }
+                N_Result result = IN_PROGRESS; // If the runner does not run, do nothing in the switch below.
+
+                if (frameStatus == frameAvailable && runner->awaitingMessage() && runner->getN_AI().N_AI == frame.identifier.N_AI) // If the runner has a message to process, do it immediately.
+                {
+                    // Run the runner with the frame.
+                    result = runner->run_step(&frame);
+                    frameStatus = frameProcessed;
+                }
+                else if (self->lastRunTime - runner->getNextRunTime() > 0) // If the runner is ready to run, do it.
+                {
+                    // Run the runner without the frame.
+                    result = runner->run_step(nullptr);
+                }
+
+                // Check if the runner has finished
+                switch (result)
+                {
+                    case IN_PROGRESS_FF:
+                        assert(false && "N_Result::IN_PROGRESS_FF should not happen, as the runner has already received at least one frame (if it is an indication runner)");
+                    case IN_PROGRESS:
+                        break;
+                    default:
+                        self->finishedRunners.push_front(runner);
+                        break;
                 }
             }
 
