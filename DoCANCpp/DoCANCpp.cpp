@@ -121,7 +121,12 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
     bool result;
     N_AI nAI = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
     N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData, length, *osShim, *CANmessageACKQueue);
-    result &= notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    if (!result)
+    {
+        delete runner;
+        return false;
+    }
+    result = notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     notStartedRunners.push_front(runner);
     notStartedRunnersMutex->signal();
     return result;

@@ -1,5 +1,6 @@
 #include "N_USData_Indication_Runner.h"
 
+#include <cassert>
 #include <cstring>
 
 N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANMessageACKQueue& canMessageACKQueue) :
@@ -13,6 +14,7 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
     this->availableMemoryForRunners = &availableMemoryForRunners;
     this->osShim = &osShim;
     this->messageData = nullptr;
+    this->messageOffset = 0;
     this->cfReceivedInThisBlock = 0;
 
     this->timerN_Ar = new Timer_N(osShim);
@@ -29,7 +31,7 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
     }
 }
 
-N_Result N_USData_Indication_Runner::run_step_notRunning(CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
@@ -44,7 +46,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(CANFrame* receivedFrame
         {
             messageLength = receivedFrame->data[0] & 0b00001111;
 
-            if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
+            if (messageLength<=7 && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
             {
                 messageData = static_cast<uint8_t*>(osShim->osMalloc(this->messageLength * sizeof(uint8_t)));
                 memcpy(messageData, &receivedFrame->data[1], messageLength);
@@ -65,7 +67,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(CANFrame* receivedFrame
             messageLength = (receivedFrame->data[0] & 0b00001111) << 8 | receivedFrame->data[1]; // unpack the message length (12 bits) 4 in data[0] lower 4 bits and 8 in data[1]
             if (messageLength == 0) // Escape sequence -> length is >= MIN_FF_DL_WITH_ESCAPE_SEQUENCE
             {
-                messageLength = (receivedFrame->data[2] << 24) | (receivedFrame->data[3] << 16) | (receivedFrame->data[4] << 8) |
+                messageLength = receivedFrame->data[2] << 24 | receivedFrame->data[3] << 16 | receivedFrame->data[4] << 8 |
                                 receivedFrame->data[5]; // unpack the message length (32 bits) 8 in data[2], 8 in data[3], 8 in data[4] and 8 in data[5]
             }
 
@@ -75,7 +77,6 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(CANFrame* receivedFrame
 
                 if (this->messageData == nullptr)
                 {
-                    osShim->osFree(this->messageData);
                     returnError(N_ERROR);
                 }
 
@@ -94,7 +95,6 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(CANFrame* receivedFrame
 
                 if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
                 {
-                    osShim->osFree(this->messageData);
                     returnError(N_ERROR);
                 }
 
@@ -103,11 +103,8 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(CANFrame* receivedFrame
                 result = IN_PROGRESS_FF;
                 return result;
             }
-            else
-            {
-                sendFCFrame(OVERFLOW);
-                returnError(N_ERROR);
-            }
+            sendFCFrame(OVERFLOW);
+            returnError(N_ERROR);
         }
         default:
             returnError(N_UNEXP_PDU);
@@ -144,7 +141,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
     return N_ERROR;
 }
 
-N_Result N_USData_Indication_Runner::run_step_CF(CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
@@ -168,6 +165,11 @@ N_Result N_USData_Indication_Runner::run_step_CF(CANFrame* receivedFrame)
 
     sequenceNumber++;
 
+    if (receivedFrame->data_length_code > 8)
+    {
+        returnError(N_ERROR);
+    }
+
     memcpy(&messageData[messageOffset], &receivedFrame->data[1], receivedFrame->data_length_code - 1);
 
     messageOffset += receivedFrame->data_length_code - 1;
@@ -186,7 +188,6 @@ N_Result N_USData_Indication_Runner::run_step_CF(CANFrame* receivedFrame)
             timerN_Br->startTimer();
             if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
             {
-                osShim->osFree(this->messageData);
                 returnError(N_ERROR);
             }
             timerN_Ar->startTimer();
@@ -211,11 +212,18 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     {
         returnError(N_TIMEOUT_Cr);
     }
+    return N_OK;
 }
 
 N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
 {
-    N_Result res = N_ERROR;
+    N_Result res = checkTimeouts();
+
+    if (res != N_OK)
+    {
+        return res;
+    }
+
     switch (internalStatus)
     {
         case NOT_RUNNING:
@@ -223,19 +231,19 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
             break;
         case AWAITING_CF:
             res = run_step_CF(receivedFrame);
+            break;
         case ERROR:
             res = result;
             break;
+        default:
+            assert(false && "Invalid internal status");
     }
 
     lastRunTime = osShim->osMillis();
     return res;
 }
 
-bool N_USData_Indication_Runner::awaitingMessage() const
-{
-    return true; // TODO NOT IMPLEMENTED
-}
+bool N_USData_Indication_Runner::awaitingMessage() const { return internalStatus == NOT_STARTED || internalStatus == AWAITING_CF; }
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
@@ -252,7 +260,6 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
         case NOT_RUNNING:
             nextRunTime = 0; // Execute as soon as possible
             break;
-
         default:
             break;
     }
@@ -278,5 +285,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult s
                 internalStatus = ERROR;
             }
         }
+        default:
+            assert(false && "Invalid internal status");
     }
 }

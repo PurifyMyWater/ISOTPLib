@@ -1,4 +1,7 @@
 #include "N_USData_Request_Runner.h"
+
+#include <cassert>
+
 #include "Atomic_int64_t.h"
 #include "CANMessageACKQueue.h"
 
@@ -9,7 +12,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
                                                  CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->internalStatus = ERROR;
-    this->result = N_ERROR;
+    this->result = NOT_STARTED;
     this->messageOffset = 0;
     this->runnerType = RunnerRequestType;
     this->messageData = nullptr;
@@ -80,7 +83,7 @@ N_Result N_USData_Request_Runner::sendCFFrame()
     int64_t remainingBytes = messageLength - messageOffset;
     uint8_t frameDataLength = remainingBytes > 7 ? 7 : remainingBytes;
 
-    cfFrame.data[0] = CF_CODE << 4 | (sequenceNumber & 0b00001111); // (0b0010xxxx) | SN (0bxxxxllll)
+    cfFrame.data[0] = CF_CODE << 4 | sequenceNumber & 0b00001111; // (0b0010xxxx) | SN (0bxxxxllll)
     memcpy(&cfFrame.data[1], &messageData[messageOffset], frameDataLength); // Payload data
     messageOffset += frameDataLength;
 
@@ -110,23 +113,25 @@ N_Result N_USData_Request_Runner::checkTimeouts()
     {
         returnError(N_TIMEOUT_Bs);
     }
+    return N_OK;
 }
 
 N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
 {
     N_Result res = checkTimeouts();
 
+    if (res != N_OK)
+    {
+        return res;
+    }
+
     switch (internalStatus)
     {
-        case NOT_RUNNING_SF: // TODO review SF
+        case NOT_RUNNING_SF:
             res = run_step_SF(receivedFrame);
             break;
         case NOT_RUNNING_FF:
             res = run_step_FF(receivedFrame);
-            break;
-        case AWAITING_FF_ACK:
-            result = N_TIMEOUT_A;
-            res = N_TIMEOUT_A;
             break;
         case AWAITING_FirstFC: // We got the message or timeout.
             res = run_step_FC(receivedFrame, true);
@@ -138,11 +143,14 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
             res = run_step_FC(receivedFrame);
             break;
         case MESSAGE_SENT:
-            res = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
+            result = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
+            res = result;
             break;
         case ERROR:
             res = result;
             break;
+        default:
+            assert(false && "Invalid internal status");
     }
 
     lastRunTime = osShim->osMillis();
@@ -173,7 +181,7 @@ N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
 
     if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
     {
-        ffFrame.data[0] = (FF_CODE << 4) | (messageLength >> 8); // N_PCI_FF (0b0001xxxx) | messageLength (0bxxxxllll)
+        ffFrame.data[0] = FF_CODE << 4 | messageLength >> 8; // N_PCI_FF (0b0001xxxx) | messageLength (0bxxxxllll)
         ffFrame.data[1] = messageLength & 0b11111111; // messageLength LSB
 
         memcpy(&ffFrame.data[2], messageData, 6); // Payload data
@@ -185,9 +193,9 @@ N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
         ffFrame.data[1] = 0;
         *reinterpret_cast<uint32_t*>(&ffFrame.data[2]) = static_cast<uint32_t>(messageLength); // copy messageLength (4 bytes) in the bytes #2 to #5.
 
-        ffFrame.data[2] = (messageLength >> 24) & 0b11111111;
-        ffFrame.data[3] = (messageLength >> 16) & 0b11111111;
-        ffFrame.data[4] = (messageLength >> 8) & 0b11111111;
+        ffFrame.data[2] = messageLength >> 24 & 0b11111111;
+        ffFrame.data[3] = messageLength >> 16 & 0b11111111;
+        ffFrame.data[4] = messageLength >> 8 & 0b11111111;
         ffFrame.data[5] = messageLength & 0b11111111;
 
         memcpy(&ffFrame.data[6], messageData, 2); // Payload data
@@ -234,7 +242,7 @@ N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
     return result;
 }
 
-N_Result N_USData_Request_Runner::run_step_FC(const CANFrame* receivedFrame, bool firstFC)
+N_Result N_USData_Request_Runner::run_step_FC(const CANFrame* receivedFrame, const bool firstFC)
 {
     FlowStatus fs;
     uint8_t bs;
@@ -267,19 +275,18 @@ N_Result N_USData_Request_Runner::run_step_FC(const CANFrame* receivedFrame, boo
             result = IN_PROGRESS;
             return result;
         }
-        break;
         case OVERFLOW:
             if (firstFC)
             {
                 returnError(N_BUFFER_OVFLW);
             }
-        [[fallthrough]];
+            [[fallthrough]];
         default:
             returnError(N_INVALID_FS);
     }
 }
 
-bool N_USData_Request_Runner::awaitingMessage() const { return (internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC); }
+bool N_USData_Request_Runner::awaitingMessage() const { return internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC; }
 
 uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
 {
@@ -372,6 +379,8 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
             }
             break;
         }
+        default:
+            assert(false && "Invalid internal status");
     }
 }
 
@@ -395,12 +404,17 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnError(N_ERROR);
     }
 
-    if ((receivedFrame->data[0] >> 4) & 0b00001111 != FC_CODE)
+    if (receivedFrame->data[0] >> 4 & 0b00001111 != FC_CODE)
     {
         returnError(N_ERROR);
     }
 
     fs = static_cast<FlowStatus>(receivedFrame->data[0] & 0b00001111);
+    if (fs >= INVALID_FS)
+    {
+        returnError(N_ERROR);
+    }
+
     bs = receivedFrame->data[1];
 
     if ((receivedFrame->data[2] & 0b11110000) == 0b11110000)
@@ -412,6 +426,22 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
     {
         stM.unit = ms;
         stM.value = receivedFrame->data[2];
+    }
+
+    if (receivedFrame->data[2] <= 0x7F)
+    {
+        stM.unit = ms;
+        stM.value = receivedFrame->data[2];
+    }
+    else if (receivedFrame->data[2] >= 0xF1 && receivedFrame->data[2] <= 0xF9)
+    {
+        stM.unit = usX100;
+        stM.value = receivedFrame->data[2] & 0x0F;
+    }
+    else // Reserved values -> max stMin value
+    {
+        stM.unit = ms;
+        stM.value = 127;
     }
 
     return N_OK;

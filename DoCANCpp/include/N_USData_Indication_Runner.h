@@ -24,8 +24,8 @@ public:
     void messageACKReceivedCallback(CANShim::ACKResult success) override;
 
 private:
-    N_Result run_step_notRunning(CANFrame* receivedFrame);
-    N_Result run_step_CF(CANFrame* receivedFrame);
+    N_Result run_step_notRunning(const CANFrame* receivedFrame);
+    N_Result run_step_CF(const CANFrame* receivedFrame);
 
     N_Result sendFCFrame(FlowStatus fs);
     uint32_t getNextTimeoutTime() const;

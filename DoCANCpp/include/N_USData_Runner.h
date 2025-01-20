@@ -21,7 +21,7 @@ class N_USData_Runner
 public:
     using RunnerType = enum { RunnerUnknownType, RunnerRequestType, RunnerIndicationType };
     using FrameCode = enum { SF_CODE = 0b0000, FF_CODE = 0b0001, CF_CODE = 0b0010, FC_CODE = 0b0011 };
-    using FlowStatus = enum { CONTINUE_TO_SEND = 0, WAIT = 1, OVERFLOW = 2 };
+    using FlowStatus = enum { CONTINUE_TO_SEND = 0, WAIT = 1, OVERFLOW = 2, INVALID_FS };
 
     constexpr static uint8_t MAX_SF_MESSAGE_LENGTH = 7;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
