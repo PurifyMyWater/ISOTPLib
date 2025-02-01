@@ -68,7 +68,6 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemory
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
     bool result;
 
-
     {
         N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
 
@@ -100,12 +99,13 @@ TEST(N_USData_Request_Runner, run_step_SF_valid)
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
 
     ASSERT_EQ(IN_PROGRESS, runner.run_step(nullptr));
-    canMessageACKQueue.run_step(); // Get ACK
-    ASSERT_EQ(N_OK, runner.run_step(nullptr));
-    ASSERT_EQ(N_OK, runner.getResult());
 
     CANFrame receivedFrame;
     ASSERT_TRUE(canShim->readFrame(&receivedFrame));
+
+    canMessageACKQueue.run_step(); // Get ACK
+    ASSERT_EQ(N_OK, runner.run_step(nullptr));
+    ASSERT_EQ(N_OK, runner.getResult());
 
     ASSERT_EQ(1, receivedFrame.extd);
     ASSERT_EQ(0, receivedFrame.dlc_non_comp);
@@ -133,12 +133,13 @@ TEST(N_USData_Request_Runner, run_step_SF_valid_empty)
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
 
     ASSERT_EQ(IN_PROGRESS, runner.run_step(nullptr));
-    canMessageACKQueue.run_step(); // Get ACK
-    ASSERT_EQ(N_OK, runner.run_step(nullptr));
-    ASSERT_EQ(N_OK, runner.getResult());
 
     CANFrame receivedFrame;
     ASSERT_TRUE(canShim->readFrame(&receivedFrame));
+
+    canMessageACKQueue.run_step(); // Get ACK
+    ASSERT_EQ(N_OK, runner.run_step(nullptr));
+    ASSERT_EQ(N_OK, runner.getResult());
 
     ASSERT_EQ(1, receivedFrame.extd);
     ASSERT_EQ(0, receivedFrame.dlc_non_comp);
@@ -161,7 +162,7 @@ TEST(N_USData_Request_Runner, run_step_SF_timeoutAs)
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
     bool result;
-    CANShim* canShim = can_network.newCANShimConnection();
+    CANShim* receiverCanShim = can_network.newCANShimConnection();
 
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
 
@@ -182,7 +183,6 @@ TEST(N_USData_Request_Runner, run_step_SF_unexpectedFrame)
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
     bool result;
-    CANShim* canShim = can_network.newCANShimConnection();
 
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
 
