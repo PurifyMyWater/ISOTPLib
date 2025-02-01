@@ -43,21 +43,21 @@ public:
      * @param frame The frame to peek
      * @return True if a frame was peeked successfully, false otherwise
      */
-    bool peekFrame(uint32_t receiverID, CANFrame* frame);
+    bool peekFrame(uint32_t receiverID, CANFrame* frame) const;
 
     /**
      * @brief Check if a frame is available for a node (Internal use only)
      * @param receiverID The ID of the node that is receiving the frame
      * @return The number of frames available for the node
      */
-    uint32_t frameAvailable(uint32_t receiverID);
+    [[nodiscard]] uint32_t frameAvailable(uint32_t receiverID) const;
 
     /**
      * @brief Check if the network is active (Internal use only)
      * It is active when at least two nodes are connected
      * @return True if the network is active, false otherwise
      */
-    bool active();
+    [[nodiscard]] bool active() const;
 
     /**
      * @brief Get the ACK result of the last message sent (Internal use only)
@@ -69,7 +69,7 @@ public:
 
 private:
     CANShim::ACKResult lastACK = CANShim::ACK_NONE;
-    bool checkNodeID(uint32_t nodeID);
+    [[nodiscard]] bool checkNodeID(uint32_t nodeID) const;
     std::vector<std::list<CANFrame>> network;
     uint32_t nextNodeID = 0;
     bool allowActiveFlag = true;

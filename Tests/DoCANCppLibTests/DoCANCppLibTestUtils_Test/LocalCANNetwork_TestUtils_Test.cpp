@@ -54,6 +54,8 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
 
     ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_NONE);
     ASSERT_EQ(network.writeFrame(id, &frame), true);
+    ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_NONE);
+    ASSERT_EQ(network.readFrame(id+1, &frame), true);
     ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_SUCCESS);
     ASSERT_EQ(network.getWriteFrameACK(), CANShim::ACK_NONE);
 }
