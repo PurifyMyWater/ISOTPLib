@@ -46,7 +46,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
         {
             messageLength = receivedFrame->data[0] & 0b00001111;
 
-            if (messageLength<=7 && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
+            if (messageLength <= 7 && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
             {
                 messageData = static_cast<uint8_t*>(osShim->osMalloc(this->messageLength * sizeof(uint8_t)));
                 memcpy(messageData, &receivedFrame->data[1], messageLength);
