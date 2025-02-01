@@ -417,17 +417,6 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
 
     bs = receivedFrame->data[1];
 
-    if ((receivedFrame->data[2] & 0b11110000) == 0b11110000)
-    {
-        stM.unit = usX100;
-        stM.value = receivedFrame->data[2] & 0b00001111;
-    }
-    else
-    {
-        stM.unit = ms;
-        stM.value = receivedFrame->data[2];
-    }
-
     if (receivedFrame->data[2] <= 0x7F)
     {
         stM.unit = ms;
