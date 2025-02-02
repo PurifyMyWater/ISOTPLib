@@ -162,7 +162,6 @@ TEST(N_USData_Request_Runner, run_step_SF_timeoutAs)
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
     bool result;
-    CANShim* receiverCanShim = can_network.newCANShimConnection();
 
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
 
@@ -303,4 +302,116 @@ TEST(N_USData_Request_Runner, run_step_FF_wrong_frame_type)
 
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
     ASSERT_FALSE(result);
+}
+
+TEST(N_USData_Request_Runner, run_step_First_CF_valid)
+{
+    LocalCANNetwork can_network;
+    int64_t availableMemoryConst = 100;
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
+    CANShim* canShimRunner = can_network.newCANShimConnection();
+    CANMessageACKQueue canMessageACKQueue(*canShimRunner);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    const char* testMessageString = "01234567890123456789"; // strlen = 20
+    size_t messageLen = strlen(testMessageString);
+    const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool result;
+
+    N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
+    CANShim* receiverCanShim = can_network.newCANShimConnection();
+
+    runner.run_step(nullptr);
+    CANFrame receivedFrame;
+
+    // Indication Runner
+
+    receiverCanShim->readFrame(&receivedFrame);
+
+    canMessageACKQueue.run_step(); // Get ACK
+
+    uint8_t blockSize = 4;
+    STmin stMin = {10, ms};
+
+    CANFrame fcFrame = NewCANFrameDoCANCpp();
+    fcFrame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    fcFrame.identifier.N_TA = NAi.N_SA;
+    fcFrame.identifier.N_SA = NAi.N_TA;
+
+    fcFrame.data[0] = N_USData_Runner::FC_CODE << 4 | N_USData_Runner::FlowStatus::CONTINUE_TO_SEND;
+    fcFrame.data[1] = blockSize;
+    fcFrame.data[2] = stMin.value;
+
+    fcFrame.data_length_code = 3;
+
+    // Indication Runner
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&fcFrame));
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(nullptr));
+
+    receiverCanShim->readFrame(&receivedFrame);
+
+    ASSERT_EQ(1, receivedFrame.extd);
+    ASSERT_EQ(0, receivedFrame.dlc_non_comp);
+    ASSERT_EQ_N_AI(NAi, receivedFrame.identifier);
+    ASSERT_EQ(8, receivedFrame.data_length_code);
+    ASSERT_EQ(N_USData_Runner::CF_CODE, receivedFrame.data[0] >> 4);
+    uint8_t sequenceNumber = receivedFrame.data[0] & 0x0F;
+    ASSERT_EQ(1, sequenceNumber);
+    ASSERT_EQ(0, memcmp(&testMessage[6], &receivedFrame.data[1], 7));
+}
+
+TEST(N_USData_Request_Runner, run_step_First_Fast_CF_valid)
+{
+    LocalCANNetwork can_network;
+    int64_t availableMemoryConst = 100;
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
+    CANShim* canShimRunner = can_network.newCANShimConnection();
+    CANMessageACKQueue canMessageACKQueue(*canShimRunner);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    const char* testMessageString = "0123456789"; // strlen = 10
+    size_t messageLen = strlen(testMessageString);
+    const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool result;
+
+    N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
+    CANShim* receiverCanShim = can_network.newCANShimConnection();
+
+    runner.run_step(nullptr);
+    CANFrame receivedFrame;
+
+    // Indication Runner
+
+    receiverCanShim->readFrame(&receivedFrame);
+
+    canMessageACKQueue.run_step(); // Get ACK
+
+    uint8_t blockSize = 4;
+    STmin stMin = {10, ms};
+
+    CANFrame fcFrame = NewCANFrameDoCANCpp();
+    fcFrame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    fcFrame.identifier.N_TA = NAi.N_SA;
+    fcFrame.identifier.N_SA = NAi.N_TA;
+
+    fcFrame.data[0] = N_USData_Runner::FC_CODE << 4 | N_USData_Runner::FlowStatus::CONTINUE_TO_SEND;
+    fcFrame.data[1] = blockSize;
+    fcFrame.data[2] = stMin.value;
+
+    fcFrame.data_length_code = 3;
+
+    // Indication Runner
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&fcFrame));
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(nullptr));
+
+    receiverCanShim->readFrame(&receivedFrame);
+
+    ASSERT_EQ(1, receivedFrame.extd);
+    ASSERT_EQ(0, receivedFrame.dlc_non_comp);
+    ASSERT_EQ_N_AI(NAi, receivedFrame.identifier);
+    ASSERT_EQ(5, receivedFrame.data_length_code);
+    ASSERT_EQ(N_USData_Runner::CF_CODE, receivedFrame.data[0] >> 4);
+    uint8_t sequenceNumber = receivedFrame.data[0] & 0x0F;
+    ASSERT_EQ(1, sequenceNumber);
+    ASSERT_EQ(0, memcmp(&testMessage[6], &receivedFrame.data[1], 4));
 }

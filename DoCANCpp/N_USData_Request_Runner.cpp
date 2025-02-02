@@ -404,7 +404,7 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnError(N_ERROR);
     }
 
-    if (receivedFrame->data[0] >> 4 & 0b00001111 != FC_CODE)
+    if ((receivedFrame->data[0] >> 4 & 0b00001111) != FC_CODE)
     {
         returnError(N_ERROR);
     }
