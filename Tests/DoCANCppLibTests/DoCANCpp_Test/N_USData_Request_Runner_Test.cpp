@@ -164,6 +164,7 @@ TEST(N_USData_Request_Runner, run_step_SF_timeoutAs)
     bool result;
 
     N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
+    can_network.newCANShimConnection();
 
     ASSERT_EQ(IN_PROGRESS, runner.run_step(nullptr));
     linuxOSShim.osSleep(N_USData_Runner::N_As_TIMEOUT_MS + 1);
