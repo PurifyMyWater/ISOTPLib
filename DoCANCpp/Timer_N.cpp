@@ -28,5 +28,5 @@ uint32_t Timer_N::getStartTimeStamp() const
 
 uint32_t Timer_N::getElapsedTime_ms() const
 {
-    return isTimerRunning ? startTime - osShim->osMillis() : elapsedTime;
+    return isTimerRunning ? osShim->osMillis() - startTime : elapsedTime;
 }
