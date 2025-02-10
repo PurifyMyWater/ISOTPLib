@@ -4,10 +4,6 @@
 #include "N_USData_Indication_Runner.h"
 #include "N_USData_Request_Runner.h"
 
-#ifdef NDEBUG
-#error "TODO: Extract the logic from the assert macros to avoid expanding it to none in release builds." // TODO Extract the logic from the assert macros to avoid expanding it to none in release builds.
-#endif
-
 const char* DoCANCpp::TAG = "DoCANCpp";
 
 DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners, const N_USData_confirm_cb_t N_USData_confirm_cb, const N_USData_indication_cb_t N_USData_indication_cb,
@@ -30,7 +26,8 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 
     assert(this->configMutex != nullptr && this->notStartedRunnersMutex != nullptr && "Mutex creation failed");
 
-    assert(setSTmin(stMin) && "STmin is invalid");
+    bool res = setSTmin(stMin);
+    assert(res && "STmin is invalid");
 
     if (this->N_USData_confirm_cb == nullptr)
     {
