@@ -224,7 +224,7 @@ TEST(N_USData_Request_Runner, run_step_FF_valid)
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[2], 6));
 }
 
-TEST(N_USData_Request_Runner, run_step_FF_big_valid) // TODO add a full communication test
+TEST(N_USData_Request_Runner, run_step_FF_big_valid)
 {
     LocalCANNetwork can_network;
     int64_t availableMemoryConst = 10000;
