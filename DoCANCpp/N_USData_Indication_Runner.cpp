@@ -71,6 +71,11 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
                                 receivedFrame->data[5]; // unpack the message length (32 bits) 8 in data[2], 8 in data[3], 8 in data[4] and 8 in data[5]
             }
 
+            if (messageLength <= MAX_SF_MESSAGE_LENGTH)
+            {
+                returnError(N_ERROR);
+            }
+
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
             {
                 this->messageData = static_cast<uint8_t*>(osShim->osMalloc(messageLength * sizeof(uint8_t)));
