@@ -163,14 +163,14 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         returnError(N_UNEXP_PDU);
     }
 
-    if (receivedFrame->data[0] & 0b00001111 != sequenceNumber)
+    if ((receivedFrame->data[0] & 0b00001111) != sequenceNumber)
     {
         returnError(N_WRONG_SN);
     }
 
     sequenceNumber++;
 
-    if (receivedFrame->data_length_code > 8)
+    if (receivedFrame->data_length_code <= 1)
     {
         returnError(N_ERROR);
     }
@@ -290,6 +290,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult s
                 internalStatus = ERROR;
             }
         }
+        break;
         default:
             assert(false && "Invalid internal status");
     }
