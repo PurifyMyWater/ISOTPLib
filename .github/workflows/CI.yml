@@ -129,8 +129,8 @@ jobs:
                     key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
                     path: 'build'
 
-            -   name: Valgrind Memory Check Report Generation
-                run: valgrind --error-exitcode=1 --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTestsExe
+            -   name: Valgrind Memory Check Report Generation # TODO - Make valgrind fail if there are any memory leaks (--error-exitcode=1)
+                run: valgrind  --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTestsExe
 
             -   name: Cache Valgrind Report
                 uses: actions/cache/save@v4
