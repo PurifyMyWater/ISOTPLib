@@ -49,9 +49,9 @@ jobs:
 
             -   name: Build Project
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
-                run: cmake --build ./build --target DoCANCppLib
+                run: cmake --build ./build --target DoCANCpp
 
-            -   name: Build Tests
+            -   name: Build Tests & Dependencies
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
                 run: cmake --build ./build
 
