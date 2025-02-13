@@ -49,7 +49,7 @@ jobs:
 
             -   name: Build Project
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
-                run: cmake --build ./build --target SettingsStorageLib
+                run: cmake --build ./build --target DoCANCppLib
 
             -   name: Build Tests
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
