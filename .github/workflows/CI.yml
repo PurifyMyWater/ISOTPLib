@@ -15,10 +15,6 @@ jobs:
     Build:
         runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                shell: bash
-
         steps:
             -   name: Cache git submodules
                 uses: actions/cache@v4
@@ -99,10 +95,6 @@ jobs:
         runs-on: ubuntu-latest
         needs: Build
 
-        defaults:
-            run:
-                shell: bash
-
         steps:
             -   name: Install Valgrind tool
                 run: sudo apt-get update && sudo apt-get install -y valgrind
@@ -138,10 +130,6 @@ jobs:
     Linter:
         runs-on: ubuntu-latest
         needs: Build
-
-        defaults:
-            run:
-                shell: bash
 
         permissions:
             contents: write
