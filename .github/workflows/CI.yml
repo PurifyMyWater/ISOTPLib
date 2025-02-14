@@ -1,30 +1,27 @@
 # https://cpp-linter.github.io/cpp-linter-action/
 
-name: DoCANCppLib CI
+name: CI
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 on:
-    push:
-        branches-ignore:
-            - '*Test*'
     pull_request:
         branches-ignore:
             - '*Test*'
 
 jobs:
-    Test:
+    Build:
         runs-on: ubuntu-latest
-
-        defaults:
-            run:
-                shell: bash
 
         steps:
             -   name: Cache git submodules
                 uses: actions/cache@v4
                 with:
-                    key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
+                    key: "${{ runner.os }}-git-${{ github.ref_name }}"
                     path: ".git"
-                    restore-keys: "${{ runner.os }}-git-"
+                    restore-keys: "${{ runner.os }}-git-main"
 
             -   name: "Checkout repository"
                 uses: actions/checkout@v4
@@ -32,35 +29,119 @@ jobs:
                     submodules: 'recursive'
                     token: ${{ secrets.SubmoduleToken }}
 
+            -   name: Cache Build Environment
+                id: CacheBuildEnvironment
+                uses: actions/cache@v4
+                with:
+                    key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
+                    path: 'build'
+
             -   name: Configure CMake
-                run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
+                if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
+                run: mkdir build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage -S . -B ./build
 
-            -   name: Build
-                working-directory: ${{runner.workspace}}/build
-                run: cmake --build .
+            -   name: Build Project
+                if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
+                run: cmake --build ./build --target DoCANCpp
 
-            -   name: Test
-                working-directory: ${{runner.workspace}}/build
-                run: ./Tests/DoCANCppLib_GoogleTestsExe
+            -   name: Build Tests & Dependencies
+                if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
+                run: cmake --build ./build
 
-    Linter:
+    Test-Coverage:
         runs-on: ubuntu-latest
+        needs: Build
 
         defaults:
             run:
                 shell: bash
+
+        steps:
+            -   name: Restore cached git submodules
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-git-${{ github.ref_name }}"
+                    path: ".git"
+                    restore-keys: "${{ runner.os }}-git-main"
+
+            -   name: "Checkout repository"
+                uses: actions/checkout@v4
+                with:
+                    submodules: 'recursive'
+                    token: ${{ secrets.SubmoduleToken }}
+
+            -   name: Restore cached build environment
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
+                    path: 'build'
+
+            -   name: Test
+                run: build/Tests/*_GoogleTestsExe
+
+            -   name: Install Coverage Report tool
+                run: sudo apt-get update && sudo apt-get install -y gcovr
+
+            -   name: Generate Coverage Report
+                run: gcovr --sonarqube -r $GITHUB_WORKSPACE > ${{runner.workspace}}/coverage.xml
+
+            -   name: Cache Coverage Report
+                uses: actions/cache/save@v4
+                with:
+                    key: "${{ runner.os }}-coverage-${{ github.sha }}"
+                    path: '${{runner.workspace}}/coverage.xml'
+
+    Valgrind:
+        runs-on: ubuntu-latest
+        needs: Build
+
+        steps:
+            -   name: Install Valgrind tool
+                run: sudo apt-get update && sudo apt-get install -y valgrind
+
+            -   name: Restore cached git submodules
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-git-${{ github.ref_name }}"
+                    path: ".git"
+                    restore-keys: "${{ runner.os }}-git-main"
+
+            -   name: "Checkout repository"
+                uses: actions/checkout@v4
+                with:
+                    submodules: 'recursive'
+                    token: ${{ secrets.SubmoduleToken }}
+
+            -   name: Restore cached build environment
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
+                    path: 'build'
+
+            -   name: Valgrind Memory Check Report Generation # TODO - Make valgrind fail if there are any memory leaks (--error-exitcode=1)
+                run: valgrind  --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTestsExe
+
+            -   name: Cache Valgrind Report
+                uses: actions/cache/save@v4
+                with:
+                    key: "${{ runner.os }}-valgrind-${{ github.sha }}"
+                    path: '${{runner.workspace}}/valgrind.xml'
+
+    Linter:
+        runs-on: ubuntu-latest
+        needs: Build
 
         permissions:
             contents: write
             pull-requests: write
 
         steps:
-            -   name: Cache git submodules
-                uses: actions/cache@v4
+            -   name: Restore cached git submodules
+                uses: actions/cache/restore@v4
                 with:
-                    key: "${{ runner.os }}-git-${{ hashFiles('.git/modules/*/HEAD') }}" # Cache will be dismissed if any submodule change
+                    key: "${{ runner.os }}-git-${{ github.ref_name }}"
                     path: ".git"
-                    restore-keys: "${{ runner.os }}-git-"
+                    restore-keys: "${{ runner.os }}-git-main"
 
             -   name: "Checkout repository"
                 uses: actions/checkout@v4
@@ -68,13 +149,9 @@ jobs:
                     submodules: 'recursive'
                     token: ${{ secrets.SubmoduleToken }}
 
-            -   name: "Checkout repository"
-                uses: actions/checkout@v4
-                with:
-                    submodules: 'recursive'
-
             -   name: Configure CMake
-                run: cmake -S $GITHUB_WORKSPACE -B ${{runner.workspace}}/build
+                working-directory: ${{ runner.workspace }}
+                run: mkdir build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage -S $GITHUB_WORKSPACE -B ./build
 
             -   name: Linter
                 uses: cpp-linter/cpp-linter-action@v2
@@ -86,11 +163,11 @@ jobs:
                     ignore: 'CANShim/|Tests/DoCANCppLibTests/'
                     style: 'file'  # Use .clang-format config file
                     tidy-checks: '' # Use .clang-tidy config file
-                    database: '${{runner.workspace}}/build'
+                    database: '${{ runner.workspace }}/build'
                     step-summary: true
                     tidy-review: true
                     format-review: true
-                    lines-changed-only: true # Only Check the lines that have changed
+                    lines-changed-only: false # Only Check the lines that have changed
                     files-changed-only: true # Only check the files that have changed
                     # only 'update' a single comment in a pull request thread.
                     thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
@@ -102,3 +179,60 @@ jobs:
             -   name: Clang Format Fail Check
                 if: steps.linter.outputs.clang-format-checks-failed > 0
                 run: exit 1 # To enable or disable this check as an error, run exit 1 / exit 0.
+
+    Sonar:
+        runs-on: ubuntu-latest
+        needs:
+            - Test-Coverage
+            - Valgrind
+        env:
+            BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+        steps:
+            -   name: Restore cached Coverage Report
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-coverage-${{ github.sha }}"
+                    path: '${{runner.workspace}}/coverage.xml'
+                    fail-on-cache-miss: true
+
+            -   name: Restore cached Valgrind Report
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-valgrind-${{ github.sha }}"
+                    path: '${{runner.workspace}}/valgrind.xml'
+                    fail-on-cache-miss: true
+
+            -   name: Restore cached git submodules
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-git-${{ github.ref_name }}"
+                    path: ".git"
+                    restore-keys: "${{ runner.os }}-git-main"
+
+            -   name: "Checkout repository"
+                uses: actions/checkout@v4
+                with:
+                    submodules: 'recursive'
+                    token: ${{ secrets.SubmoduleToken }}
+                    fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis.
+
+            -   name: Install Sonar Build Wrapper
+                uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v4
+
+            -   name: Run Sonar Build Wrapper
+                run: |
+                    mkdir build
+                    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage -S $GITHUB_WORKSPACE -B ./build
+                    build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ./build
+
+            -   name: SonarQube Scan
+                uses: SonarSource/sonarqube-scan-action@v4
+                env:
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                with:
+                    args: >
+                        --define sonar.cfamily.compile-commands="${{ env.BUILD_WRAPPER_OUT_DIR }}/compile_commands.json"
+                        --define sonar.coverageReportPaths=${{runner.workspace}}/coverage.xml
+                        --define sonar.cfamily.valgrind.reportsPaths=${{runner.workspace}}/valgrind.xml
+                        --define sonar.analysis.cache.enabled=false
