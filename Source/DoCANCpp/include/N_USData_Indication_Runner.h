@@ -28,7 +28,7 @@ private:
     N_Result run_step_CF(const CANFrame* receivedFrame);
 
     N_Result sendFCFrame(FlowStatus fs);
-    uint32_t getNextTimeoutTime() const;
+    [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result checkTimeouts() override;
 
     using InternalStatus_t = enum { NOT_RUNNING, AWAITING_FC_ACK, AWAITING_CF, ERROR };

@@ -248,7 +248,7 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
     return res;
 }
 
-bool N_USData_Indication_Runner::awaitingMessage() const { return internalStatus == NOT_STARTED || internalStatus == AWAITING_CF; }
+bool N_USData_Indication_Runner::awaitingMessage() const { return internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF; }
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
