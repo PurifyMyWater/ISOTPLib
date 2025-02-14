@@ -33,7 +33,7 @@ private:
     N_Result checkTimeouts() override;
     N_Result sendCFFrame();
 
-    using InternalStatus_t = enum { NOT_RUNNING_SF, AWAITING_SF_ACK, NOT_RUNNING_FF, AWAITING_FF_ACK, AWAITING_FirstFC, AWAITING_FC, SEND_CF, AWAITING_CF_ACK, MESSAGE_SENT, ERROR};
+    using InternalStatus_t = enum { NOT_RUNNING_SF, AWAITING_SF_ACK, NOT_RUNNING_FF, AWAITING_FF_ACK, AWAITING_FirstFC, AWAITING_FC, SEND_CF, AWAITING_CF_ACK, MESSAGE_SENT, ERROR };
 
     Atomic_int64_t* availableMemoryForRunners;
     uint32_t messageOffset;
