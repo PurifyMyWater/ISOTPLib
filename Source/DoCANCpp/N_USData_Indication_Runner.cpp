@@ -226,10 +226,18 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
 
 N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
 {
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        result = N_ERROR;
+        internalStatus = ERROR;
+        return result;
+    }
+
     N_Result res = checkTimeouts();
 
     if (res != N_OK)
     {
+        mutex->signal();
         return res;
     }
 
@@ -249,6 +257,7 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
     }
 
     lastRunTime = osShim->osMillis();
+    mutex->signal();
     return res;
 }
 
@@ -275,9 +284,16 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
 
     return nextRunTime;
 }
+
 void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
 {
-    // TODO protect with mutex
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        result = N_ERROR;
+        internalStatus = ERROR;
+        return;
+    }
+
     switch (internalStatus)
     {
         case AWAITING_FC_ACK:
@@ -298,4 +314,6 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult s
         default:
             assert(false && "Invalid internal status");
     }
+
+    mutex->signal();
 }

@@ -9,7 +9,8 @@
 
 
 N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
-                                                 CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
+                                                 CANMessageACKQueue& canMessageACKQueue) :
+    N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->internalStatus = ERROR;
     this->result = NOT_STARTED;
@@ -118,10 +119,18 @@ N_Result N_USData_Request_Runner::checkTimeouts()
 
 N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
 {
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        result = N_ERROR;
+        internalStatus = ERROR;
+        return result;
+    }
+
     N_Result res = checkTimeouts();
 
     if (res != N_OK)
     {
+        mutex->signal();
         return res;
     }
 
@@ -154,6 +163,8 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
     }
 
     lastRunTime = osShim->osMillis();
+
+    mutex->signal();
     return res;
 }
 
@@ -318,7 +329,13 @@ uint32_t N_USData_Request_Runner::getNextRunTime() const
 
 void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
 {
-    // TODO protect with mutex
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        result = N_ERROR;
+        internalStatus = ERROR;
+        return;
+    }
+
     switch (internalStatus)
     {
         case AWAITING_SF_ACK:
@@ -382,6 +399,8 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
         default:
             assert(false && "Invalid internal status");
     }
+
+    mutex->signal();
 }
 
 N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& bs, STmin& stM)

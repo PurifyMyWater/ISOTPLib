@@ -35,7 +35,7 @@ public:
 
     N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue);
 
-    virtual ~N_USData_Runner() = default;
+    virtual ~N_USData_Runner();
 
     // If no frame is received, the runner will only execute if it is not awaiting a message, otherwise it will return an error.
     virtual N_Result run_step(CANFrame* receivedFrame) = 0;
@@ -100,6 +100,7 @@ protected:
     static uint32_t getStMinInMs(STmin stMin);
     virtual N_Result checkTimeouts() = 0;
 
+    OSShim_Mutex* mutex;
     N_AI nAi;
     Mtype mType;
     uint8_t* messageData;

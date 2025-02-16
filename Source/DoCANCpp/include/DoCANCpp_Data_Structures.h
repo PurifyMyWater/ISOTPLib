@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
+
 using STminUnit = enum SeparationTimeMinUnit { ms, usX100 };
 
 using STmin = struct SeparationTimeMin

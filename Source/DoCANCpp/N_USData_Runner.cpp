@@ -1,5 +1,7 @@
 #include "N_USData_Runner.h"
 
+#include <cassert>
+
 N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue)
 {
     this->nAi = nAi;
@@ -15,7 +17,15 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& C
     this->lastRunTime = 0;
     this->sequenceNumber = 1;
 
+    this->mutex = osShim.osCreateMutex();
+    assert(this->mutex != nullptr && "Failed to create mutex");
+
     this->TAG = nullptr;
+}
+
+N_USData_Runner::~N_USData_Runner()
+{
+    delete mutex;
 }
 
 uint32_t N_USData_Runner::getStMinInMs(STmin stMin)
