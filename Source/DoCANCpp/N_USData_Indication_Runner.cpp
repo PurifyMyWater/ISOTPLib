@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstring>
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANMessageACKQueue& canMessageACKQueue) :
     N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
@@ -175,9 +177,11 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         returnError(N_ERROR);
     }
 
-    memcpy(&messageData[messageOffset], &receivedFrame->data[1], receivedFrame->data_length_code - 1);
+    uint8_t bytesToCopy = MIN(receivedFrame->data_length_code - 1, messageLength - messageOffset);
 
-    messageOffset += receivedFrame->data_length_code - 1;
+    memcpy(&messageData[messageOffset], &receivedFrame->data[1], bytesToCopy);
+
+    messageOffset += bytesToCopy;
     cfReceivedInThisBlock++;
 
     if (messageOffset == messageLength)

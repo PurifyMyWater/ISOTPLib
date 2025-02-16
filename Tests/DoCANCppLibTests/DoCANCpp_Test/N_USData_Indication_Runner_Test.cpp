@@ -344,7 +344,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_nullptr)
     ASSERT_EQ(N_ERROR, runner.getResult());
 }
 
-TEST(N_USData_Indication_Runner, run_step_First_CF_valid)
+TEST(N_USData_Indication_Runner, run_step_CF_valid)
 {
     LocalCANNetwork can_network;
 
@@ -359,7 +359,7 @@ TEST(N_USData_Indication_Runner, run_step_First_CF_valid)
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
 
-    const char* testMessageString = "01234567890123456789"; // strlen = 20
+    const char* testMessageString = "012345678901234567890123456789"; // strlen = 30
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
 
@@ -393,6 +393,90 @@ TEST(N_USData_Indication_Runner, run_step_First_CF_valid)
     memcpy(&cfFrame.data[1], &testMessage[6], 7);
 
     ASSERT_EQ(IN_PROGRESS, runner.run_step(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 2; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[13], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&cfFrame));
+
+    receiverCanShim->readFrame(&receivedFrame);
+    canMessageACKQueue.run_step(); // Get ACK
+    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[20], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 4; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[27], 3);
+
+    ASSERT_EQ(N_OK, runner.run_step(&cfFrame));
 }
 
-// TODO middle CF frame, last CF frame, middle FC frame ( with blockSize = 0 & != 0)
+TEST(N_USData_Indication_Runner, run_step_CF_blockSize0_valid)
+{
+    LocalCANNetwork can_network;
+
+    int64_t availableMemoryConst = 100;
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
+
+    CANShim* canShim = can_network.newCANShimConnection();
+    CANMessageACKQueue canMessageACKQueue(*canShim);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 0;
+    STmin stMin = {10, ms};
+
+    const char* testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t messageLen = strlen(testMessageString);
+    const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
+
+    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSShim, canMessageACKQueue);
+
+    CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1] = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANShim* receiverCanShim = can_network.newCANShimConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.run_step(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanShim->readFrame(&receivedFrame));
+    canMessageACKQueue.run_step(); // Get ACK
+
+    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame = NewCANFrameDoCANCpp();
+    cfFrame.identifier = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 2; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[13], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[20], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.run_step(&cfFrame));
+
+    cfFrame.data_length_code = 4;
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 4; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[27], 3);
+
+    ASSERT_EQ(N_OK, runner.run_step(&cfFrame));
+}
