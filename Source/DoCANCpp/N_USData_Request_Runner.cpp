@@ -84,7 +84,7 @@ N_Result N_USData_Request_Runner::sendCFFrame()
     int64_t remainingBytes = messageLength - messageOffset;
     uint8_t frameDataLength = remainingBytes > 7 ? 7 : remainingBytes;
 
-    cfFrame.data[0] = CF_CODE << 4 | sequenceNumber & 0b00001111; // (0b0010xxxx) | SN (0bxxxxllll)
+    cfFrame.data[0] = (CF_CODE << 4) | (sequenceNumber & 0b00001111); // (0b0010xxxx) | SN (0bxxxxllll)
     memcpy(&cfFrame.data[1], &messageData[messageOffset], frameDataLength); // Payload data
     messageOffset += frameDataLength;
 
