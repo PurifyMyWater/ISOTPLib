@@ -26,8 +26,7 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 
     assert(this->configMutex != nullptr && this->notStartedRunnersMutex != nullptr && "Mutex creation failed");
 
-    bool res = setSTmin(stMin);
-    assert(res && "STmin is invalid");
+    ASSERT_SAFE(setSTmin(stMin), == true);
 
     if (this->N_USData_confirm_cb == nullptr)
     {
