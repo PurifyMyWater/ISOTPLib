@@ -132,7 +132,7 @@ jobs:
                     tidy-review: true
                     format-review: true
                     lines-changed-only: false # Only Check the lines that have changed
-                    files-changed-only: false # Only check the files that have changed
+                    files-changed-only: true # Only check the files that have changed
                     # only 'update' a single comment in a pull request thread.
                     thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
