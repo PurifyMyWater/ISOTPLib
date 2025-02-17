@@ -149,9 +149,11 @@ jobs:
                     submodules: 'recursive'
                     token: ${{ secrets.SubmoduleToken }}
 
-            -   name: Configure CMake
-                working-directory: ${{ runner.workspace }}
-                run: mkdir build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage -S $GITHUB_WORKSPACE -B ./build
+            -   name: Restore cached build environment
+                uses: actions/cache/restore@v4
+                with:
+                    key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
+                    path: 'build'
 
             -   name: Linter
                 uses: cpp-linter/cpp-linter-action@v2
