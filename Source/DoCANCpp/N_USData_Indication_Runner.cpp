@@ -5,8 +5,8 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osShim, CANMessageACKQueue& canMessageACKQueue) :
-    N_USData_Runner(nAi, osShim, canMessageACKQueue)
+N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osShim,
+                                                       CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->internalStatus = NOT_RUNNING;
     this->runnerType = RunnerIndicationType;

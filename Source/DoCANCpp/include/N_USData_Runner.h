@@ -1,8 +1,8 @@
 #ifndef N_USDATA_RUNNER_H
 #define N_USDATA_RUNNER_H
 
-#include "CANMessageACKQueue.h"
 #include "CANInterface.h"
+#include "CANMessageACKQueue.h"
 #include "DoCANCpp_Data_Structures.h"
 #include "OSInterface.h"
 

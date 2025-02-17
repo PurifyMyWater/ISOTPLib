@@ -4,7 +4,7 @@
 #ifdef NDEBUG
 #define ASSERT_SAFE(expression, condition) expression
 #else
-#define ASSERT_SAFE(expression, condition) assert(expression  condition)
+#define ASSERT_SAFE(expression, condition) assert(expression condition)
 #endif
 
 #include <cstdint>

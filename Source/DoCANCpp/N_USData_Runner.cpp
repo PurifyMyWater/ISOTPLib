@@ -23,10 +23,7 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osShim, CANMessageACKQue
     this->TAG = nullptr;
 }
 
-N_USData_Runner::~N_USData_Runner()
-{
-    delete mutex;
-}
+N_USData_Runner::~N_USData_Runner() { delete mutex; }
 
 uint32_t N_USData_Runner::getStMinInMs(STmin stMin)
 {

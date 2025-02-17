@@ -8,9 +8,8 @@
 #include <cstring>
 
 
-N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSInterface& osShim,
-                                                 CANMessageACKQueue& canMessageACKQueue) :
-    N_USData_Runner(nAi, osShim, canMessageACKQueue)
+N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength,
+                                                 OSInterface& osShim, CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->internalStatus = ERROR;
     this->result = NOT_STARTED;
