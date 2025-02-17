@@ -3,23 +3,23 @@
 
 #include <list>
 #include <vector>
-#include "CANShim.h"
-#include "LinuxOSShim.h"
+#include "CANInterface.h"
+#include "LinuxOSInterface.h"
 
-class LocalCANNetworkCANShim;
+class LocalCANNetworkCANInterface;
 
 /**
- * @brief A local CAN network that can be used to test CANShim implementations
- * To use it, call newCANShimConnection() to create a new CANShim connection to the network, and use the CANShim as you would use normally
+ * @brief A local CAN network that can be used to test CANInterface implementations
+ * To use it, call newCANInterfaceConnection() to create a new CANInterface connection to the network, and use the CANInterface as you would use normally
  */
 class LocalCANNetwork
 {
 public:
     /**
-     * @brief Create a new CANShim instance connected to the network
-     * @return A new CANShim instance connected to the network
+     * @brief Create a new CANInterface instance connected to the network
+     * @return A new CANInterface instance connected to the network
      */
-    LocalCANNetworkCANShim* newCANShimConnection();
+    LocalCANNetworkCANInterface* newCANInterfaceConnection();
 
     /**
      * @brief Write a frame to the network (Internal use only)
@@ -63,23 +63,23 @@ public:
      * @brief Get the ACK result of the last message sent (Internal use only)
      * @return The result of the last ACK or ACK_NONE if no message was transmitted since the last call to this function.
      */
-    CANShim::ACKResult getWriteFrameACK();
+    CANInterface::ACKResult getWriteFrameACK();
 
     void overrideActive(bool forceDisable);
 
 private:
-    CANShim::ACKResult lastACK = CANShim::ACK_NONE;
+    CANInterface::ACKResult lastACK = CANInterface::ACK_NONE;
     [[nodiscard]] bool checkNodeID(uint32_t nodeID) const;
     std::vector<std::list<CANFrame>> network;
     uint32_t nextNodeID = 0;
     bool allowActiveFlag = true;
-    OSShim_Mutex* accessMutex = LinuxOSShim().osCreateMutex();
+    OSInterface_Mutex* accessMutex = LinuxOSInterface().osCreateMutex();
 };
 
 /**
- * @brief A CANShim implementation that uses a LocalCANNetwork to simulate a CAN bus
+ * @brief A CANInterface implementation that uses a LocalCANNetwork to simulate a CAN bus
  */
-class LocalCANNetworkCANShim : public CANShim
+class LocalCANNetworkCANInterface : public CANInterface
 {
 public:
     uint32_t frameAvailable() override;
@@ -91,7 +91,7 @@ public:
 
     [[nodiscard]] uint32_t getNodeID() const;
 
-    LocalCANNetworkCANShim(LocalCANNetwork* network, uint32_t nodeID);
+    LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID);
 
 private:
     LocalCANNetwork* network;

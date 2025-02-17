@@ -8,7 +8,7 @@
 #include <cstring>
 
 
-N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
+N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSInterface& osShim,
                                                  CANMessageACKQueue& canMessageACKQueue) :
     N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
@@ -327,7 +327,7 @@ uint32_t N_USData_Request_Runner::getNextRunTime() const
     return nextRunTime;
 }
 
-void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
+void N_USData_Request_Runner::messageACKReceivedCallback(CANInterface::ACKResult success)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
@@ -340,7 +340,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
     {
         case AWAITING_SF_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_As->stopTimer();
                 internalStatus = MESSAGE_SENT;
@@ -354,7 +354,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
         }
         case AWAITING_FF_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 internalStatus = AWAITING_FirstFC;
                 timerN_As->stopTimer();
@@ -369,7 +369,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
         }
         case AWAITING_CF_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_As->stopTimer();
 

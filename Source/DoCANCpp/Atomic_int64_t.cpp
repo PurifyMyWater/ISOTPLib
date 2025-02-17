@@ -1,8 +1,8 @@
 #include "Atomic_int64_t.h"
 
-Atomic_int64_t::Atomic_int64_t(const int64_t initialValue, OSShim& OSShim)
+Atomic_int64_t::Atomic_int64_t(const int64_t initialValue, OSInterface& OSInterface)
 {
-    this->osShim = &OSShim;
+    this->osShim = &OSInterface;
     internalValue = initialValue;
     this->mutex = this->osShim->osCreateMutex();
 }

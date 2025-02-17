@@ -6,35 +6,35 @@
 #include <N_USData_Runner.h>
 #include "LocalCANNetwork.h"
 #include "gtest/gtest.h"
-#include "LinuxOSShim.h"
+#include "LinuxOSInterface.h"
 #include "ASSERT_MACROS.h"
 
-static LinuxOSShim linuxOSShim;
+static LinuxOSInterface linuxOSInterface;
 
 TEST(CANMessageACKQueue, writeFrame)
 {
     // Given
     LocalCANNetwork localCANNetwork;
-    CANShim* canShim = localCANNetwork.newCANShimConnection();
+    CANInterface* canShim = localCANNetwork.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canShim);
     CANFrame frame = NewCANFrameDoCANCpp();
 
     // Create dumb runner
     int64_t availableMemoryConst = 100;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSShim);
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
     N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
     const char* testMessageString = ""; // strlen = 0
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
     bool result;
-    N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSShim, canMessageACKQueue);
+    N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSInterface, canMessageACKQueue);
 
     for (int i = 0; i < 8; i++)
     {
         frame.data[i] = i;
     }
 
-    CANShim* receivedCanShim = localCANNetwork.newCANShimConnection();
+    CANInterface* receivedCanShim = localCANNetwork.newCANInterfaceConnection();
 
     bool res = canMessageACKQueue.writeFrame(runner, frame);
 

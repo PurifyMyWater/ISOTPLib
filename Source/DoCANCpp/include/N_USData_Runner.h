@@ -2,9 +2,9 @@
 #define N_USDATA_RUNNER_H
 
 #include "CANMessageACKQueue.h"
-#include "CANShim.h"
+#include "CANInterface.h"
 #include "DoCANCpp_Data_Structures.h"
-#include "OSShim.h"
+#include "OSInterface.h"
 
 #define NewCANFrameDoCANCpp() {.extd = 1, .rtr = 0, .ss = 0, .self = 0, .dlc_non_comp = 0, .reserved = 0, .identifier = {.N_AI = 0}, .data_length_code = 0, .data = {0}}
 
@@ -33,7 +33,7 @@ public:
     constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
     // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
 
-    N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue);
+    N_USData_Runner(N_AI nAi, OSInterface& osShim, CANMessageACKQueue& CANmessageACKQueue);
 
     virtual ~N_USData_Runner();
 
@@ -92,7 +92,7 @@ public:
      * @brief Callback for when a message is received.
      * @param success True if the message was received successfully, false otherwise.
      */
-    virtual void messageACKReceivedCallback(CANShim::ACKResult success) = 0;
+    virtual void messageACKReceivedCallback(CANInterface::ACKResult success) = 0;
 
     const char* TAG;
 
@@ -100,14 +100,14 @@ protected:
     static uint32_t getStMinInMs(STmin stMin);
     virtual N_Result checkTimeouts() = 0;
 
-    OSShim_Mutex* mutex;
+    OSInterface_Mutex* mutex;
     N_AI nAi;
     Mtype mType;
     uint8_t* messageData;
     int64_t messageLength;
     N_Result result;
     RunnerType runnerType;
-    OSShim* osShim;
+    OSInterface* osShim;
     CANMessageACKQueue* CANmessageACKQueue;
     uint8_t blockSize;
     uint32_t lastRunTime;

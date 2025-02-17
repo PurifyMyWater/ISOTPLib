@@ -1,5 +1,5 @@
-#ifndef CANShim_h
-#define CANShim_h
+#ifndef CANInterface_h
+#define CANInterface_h
 
 #include <cstdint>
 
@@ -43,7 +43,7 @@ using CANFrame = struct CANFrame
 /**
  * @brief Interface for a CAN bus driver.
  */
-class CANShim
+class CANInterface
 {
 public:
     using ACKResult = enum ACKResult { ACK_SUCCESS, ACK_ERROR, ACK_NONE };
@@ -80,7 +80,7 @@ public:
      */
     virtual ACKResult getWriteFrameACK() = 0;
 
-    virtual ~CANShim() = default;
+    virtual ~CANInterface() = default;
 };
 
-#endif // CANShim_h
+#endif // CANInterface_h

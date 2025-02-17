@@ -5,7 +5,7 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSShim& osShim, CANMessageACKQueue& canMessageACKQueue) :
+N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osShim, CANMessageACKQueue& canMessageACKQueue) :
     N_USData_Runner(nAi, osShim, canMessageACKQueue)
 {
     this->internalStatus = NOT_RUNNING;
@@ -285,7 +285,7 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
     return nextRunTime;
 }
 
-void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
+void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKResult success)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
@@ -298,7 +298,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANShim::ACKResult s
     {
         case AWAITING_FC_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_Ar->stopTimer();
                 timerN_Cr->startTimer();

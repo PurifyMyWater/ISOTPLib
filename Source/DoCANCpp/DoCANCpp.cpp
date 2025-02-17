@@ -7,7 +7,7 @@
 const char* DoCANCpp::TAG = "DoCANCpp";
 
 DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners, const N_USData_confirm_cb_t N_USData_confirm_cb, const N_USData_indication_cb_t N_USData_indication_cb,
-                   const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, const uint8_t blockSize, const STmin stMin) :
+                   const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osShim, CANInterface& canShim, const uint8_t blockSize, const STmin stMin) :
     availableMemoryForRunners(totalAvailableMemoryForRunners, osShim)
 {
     this->osShim = &osShim;
@@ -31,15 +31,15 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 
     if (this->N_USData_confirm_cb == nullptr)
     {
-        OSShimWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
+        OSInterfaceWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
     }
     if (this->N_USData_indication_cb == nullptr)
     {
-        OSShimWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
+        OSInterfaceWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
     }
     if (this->N_USData_FF_indication_cb == nullptr)
     {
-        OSShimWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
+        OSInterfaceWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
     }
 }
 

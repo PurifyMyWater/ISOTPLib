@@ -1,6 +1,6 @@
 #include "Timer_N.h"
 
-Timer_N::Timer_N(OSShim& osShim)
+Timer_N::Timer_N(OSInterface& osShim)
 {
     this->osShim = &osShim;
     elapsedTime = 0;

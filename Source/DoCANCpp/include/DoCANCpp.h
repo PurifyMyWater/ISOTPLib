@@ -139,16 +139,16 @@ public:
     bool setSTmin(STmin stMin);
 
     DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb,
-             N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSShim& osShim, CANShim& canShim, uint8_t blockSize = DoCANCpp_DefaultBlockSize, STmin stMin = DoCANCpp_DefaultSTmin);
+             N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osShim, CANInterface& canShim, uint8_t blockSize = DoCANCpp_DefaultBlockSize, STmin stMin = DoCANCpp_DefaultSTmin);
 
 private:
     // Shims
-    OSShim* osShim;
-    CANShim* canShim;
+    OSInterface* osShim;
+    CANInterface* canShim;
 
     // Synchronization & mutual exclusion
-    OSShim_Mutex* volatile configMutex;
-    OSShim_Mutex* volatile notStartedRunnersMutex;
+    OSInterface_Mutex* volatile configMutex;
+    OSInterface_Mutex* volatile notStartedRunnersMutex;
 
     // Internal configuration (constant)
     N_USData_confirm_cb_t N_USData_confirm_cb;

@@ -2,12 +2,12 @@
 #include <N_USData_Runner.h>
 
 
-CANMessageACKQueue::CANMessageACKQueue(CANShim& canShim) { this->canShim = &canShim; }
+CANMessageACKQueue::CANMessageACKQueue(CANInterface& canShim) { this->canShim = &canShim; }
 
 void CANMessageACKQueue::run_step()
 {
-    CANShim::ACKResult ack = canShim->getWriteFrameACK();
-    if (ack != CANShim::ACK_NONE)
+    CANInterface::ACKResult ack = canShim->getWriteFrameACK();
+    if (ack != CANInterface::ACK_NONE)
     {
         N_USData_Runner* runner = messageQueue.front();
         runner->messageACKReceivedCallback(ack);

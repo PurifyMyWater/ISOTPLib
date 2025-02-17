@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-N_USData_Runner::N_USData_Runner(N_AI nAi, OSShim& osShim, CANMessageACKQueue& CANmessageACKQueue)
+N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osShim, CANMessageACKQueue& CANmessageACKQueue)
 {
     this->nAi = nAi;
     this->mType = Mtype_Unknown;

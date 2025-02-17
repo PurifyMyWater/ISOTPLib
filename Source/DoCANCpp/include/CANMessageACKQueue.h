@@ -2,14 +2,14 @@
 #define CANMESSAGEACKQUEUE_H
 
 #include <list>
-#include "CANShim.h"
+#include "CANInterface.h"
 
 class N_USData_Runner;
 
 class CANMessageACKQueue
 {
 public:
-    explicit CANMessageACKQueue(CANShim& canShim);
+    explicit CANMessageACKQueue(CANInterface& canShim);
 
     void run_step();
 
@@ -17,7 +17,7 @@ public:
 
 private:
     std::list<N_USData_Runner*> messageQueue;
-    CANShim* canShim;
+    CANInterface* canShim;
 };
 
 #endif // CANMESSAGEACKQUEUE_H

@@ -1,12 +1,12 @@
 #ifndef TIMER_N_H
 #define TIMER_N_H
 
-#include "OSShim.h"
+#include "OSInterface.h"
 
 class Timer_N
 {
 public:
-    explicit Timer_N(OSShim& osShim);
+    explicit Timer_N(OSInterface& osShim);
     void stopTimer();
     void startTimer();
 
@@ -14,7 +14,7 @@ public:
     [[nodiscard]] uint32_t getElapsedTime_ms() const;
 
 private:
-    OSShim* osShim;
+    OSInterface* osShim;
     uint32_t elapsedTime;
     uint32_t startTime;
     bool isTimerRunning;

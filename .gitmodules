@@ -1,9 +1,0 @@
-[submodule "Tests/googletest"]
-	path = Tests/googletest
-	url = https://github.com/google/googletest.git
-[submodule "Tests/LinuxOSShim"]
-	path = Tests/LinuxOSShim
-	url = git@github.com:vacmg/PMW-LinuxOSShim.git
-[submodule "Source/OSShim"]
-	path = Source/OSShim
-	url = git@github.com:vacmg/PMW-OSShim.git
