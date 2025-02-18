@@ -9,7 +9,7 @@
 class N_USData_Request_Runner : public N_USData_Runner
 {
 public:
-    N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSInterface& osShim,
+    N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSInterface& osInterface,
                             CANMessageACKQueue& canMessageACKQueue);
 
     ~N_USData_Request_Runner() override;

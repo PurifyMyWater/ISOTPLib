@@ -5,8 +5,8 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osShim,
-                                                       CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osShim, canMessageACKQueue)
+N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osInterface,
+                                                       CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osInterface, canMessageACKQueue)
 {
     this->internalStatus = NOT_RUNNING;
     this->runnerType = RunnerIndicationType;
@@ -14,21 +14,21 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
     this->blockSize = blockSize;
     this->stMin = stMin;
     this->availableMemoryForRunners = &availableMemoryForRunners;
-    this->osShim = &osShim;
+    this->osInterface = &osInterface;
     this->messageData = nullptr;
     this->messageOffset = 0;
     this->cfReceivedInThisBlock = 0;
 
-    this->timerN_Ar = new Timer_N(osShim);
-    this->timerN_Br = new Timer_N(osShim);
-    this->timerN_Cr = new Timer_N(osShim);
+    this->timerN_Ar = new Timer_N(osInterface);
+    this->timerN_Br = new Timer_N(osInterface);
+    this->timerN_Cr = new Timer_N(osInterface);
 }
 
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
 {
     if (this->messageData != nullptr)
     {
-        this->osShim->osFree(messageData);
+        this->osInterface->osFree(messageData);
         this->availableMemoryForRunners->add(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
 }
@@ -50,7 +50,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
             if (messageLength <= 7 && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
             {
-                messageData = static_cast<uint8_t*>(osShim->osMalloc(this->messageLength * sizeof(uint8_t)));
+                messageData = static_cast<uint8_t*>(osInterface->osMalloc(this->messageLength * sizeof(uint8_t)));
                 memcpy(messageData, &receivedFrame->data[1], messageLength);
                 result = N_OK;
                 return result;
@@ -80,7 +80,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
             {
-                this->messageData = static_cast<uint8_t*>(osShim->osMalloc(messageLength * sizeof(uint8_t)));
+                this->messageData = static_cast<uint8_t*>(osInterface->osMalloc(messageLength * sizeof(uint8_t)));
 
                 if (this->messageData == nullptr)
                 {
@@ -256,7 +256,7 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
             assert(false && "Invalid internal status");
     }
 
-    lastRunTime = osShim->osMillis();
+    lastRunTime = osInterface->osMillis();
     mutex->signal();
     return res;
 }

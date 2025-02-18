@@ -2,11 +2,11 @@
 #include <N_USData_Runner.h>
 
 
-CANMessageACKQueue::CANMessageACKQueue(CANInterface& canShim) { this->canShim = &canShim; }
+CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface) { this->canInterface = &canInterface; }
 
 void CANMessageACKQueue::run_step()
 {
-    CANInterface::ACKResult ack = canShim->getWriteFrameACK();
+    CANInterface::ACKResult ack = canInterface->getWriteFrameACK();
     if (ack != CANInterface::ACK_NONE)
     {
         N_USData_Runner* runner = messageQueue.front();
@@ -17,7 +17,7 @@ void CANMessageACKQueue::run_step()
 
 bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
 {
-    bool res = canShim->writeFrame(&frame);
+    bool res = canInterface->writeFrame(&frame);
     if (res)
     {
         messageQueue.push_back(&runner);

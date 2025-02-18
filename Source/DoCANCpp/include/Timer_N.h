@@ -6,7 +6,7 @@
 class Timer_N
 {
 public:
-    explicit Timer_N(OSInterface& osShim);
+    explicit Timer_N(OSInterface& osInterface);
     void stopTimer();
     void startTimer();
 
@@ -14,7 +14,7 @@ public:
     [[nodiscard]] uint32_t getElapsedTime_ms() const;
 
 private:
-    OSInterface* osShim;
+    OSInterface* osInterface;
     uint32_t elapsedTime;
     uint32_t startTime;
     bool isTimerRunning;

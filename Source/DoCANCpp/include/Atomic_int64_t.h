@@ -18,7 +18,7 @@ public:
 
 private:
     int64_t internalValue;
-    OSInterface* osShim;
+    OSInterface* osInterface;
     OSInterface_Mutex* mutex;
 };
 

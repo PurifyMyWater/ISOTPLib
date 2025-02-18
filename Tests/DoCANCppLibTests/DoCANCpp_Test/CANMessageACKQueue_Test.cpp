@@ -15,8 +15,8 @@ TEST(CANMessageACKQueue, writeFrame)
 {
     // Given
     LocalCANNetwork localCANNetwork;
-    CANInterface* canShim = localCANNetwork.newCANInterfaceConnection();
-    CANMessageACKQueue canMessageACKQueue(*canShim);
+    CANInterface* canInterface = localCANNetwork.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface);
     CANFrame frame = NewCANFrameDoCANCpp();
 
     // Create dumb runner
@@ -34,14 +34,14 @@ TEST(CANMessageACKQueue, writeFrame)
         frame.data[i] = i;
     }
 
-    CANInterface* receivedCanShim = localCANNetwork.newCANInterfaceConnection();
+    CANInterface* receivedCanInterface = localCANNetwork.newCANInterfaceConnection();
 
     bool res = canMessageACKQueue.writeFrame(runner, frame);
 
     // Want
     bool expected_result = true;
     CANFrame realFrame;
-    receivedCanShim->readFrame(&realFrame);
+    receivedCanInterface->readFrame(&realFrame);
 
     ASSERT_EQ(expected_result, res);
     ASSERT_EQ_FRAMES(frame, realFrame);

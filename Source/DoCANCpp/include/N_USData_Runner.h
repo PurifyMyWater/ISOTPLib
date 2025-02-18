@@ -33,7 +33,7 @@ public:
     constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
     // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
 
-    N_USData_Runner(N_AI nAi, OSInterface& osShim, CANMessageACKQueue& CANmessageACKQueue);
+    N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CANmessageACKQueue);
 
     virtual ~N_USData_Runner();
 
@@ -47,7 +47,7 @@ public:
     [[nodiscard]] virtual bool awaitingMessage() const = 0;
 
     /**
-     * @brief Returns the next timestamp the runner will run. The timestamp is derived from OsShim::millis().
+     * @brief Returns the next timestamp the runner will run. The timestamp is derived from OsInterface::millis().
      * @return The next timestamp the runner will run.
      */
     [[nodiscard]] virtual uint32_t getNextRunTime() const = 0;
@@ -107,7 +107,7 @@ protected:
     int64_t messageLength;
     N_Result result;
     RunnerType runnerType;
-    OSInterface* osShim;
+    OSInterface* osInterface;
     CANMessageACKQueue* CANmessageACKQueue;
     uint8_t blockSize;
     uint32_t lastRunTime;

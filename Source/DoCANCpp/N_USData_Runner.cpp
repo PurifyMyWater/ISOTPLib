@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osShim, CANMessageACKQueue& CANmessageACKQueue)
+N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CANmessageACKQueue)
 {
     this->nAi = nAi;
     this->mType = Mtype_Unknown;
@@ -10,14 +10,14 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osShim, CANMessageACKQue
     this->messageLength = 0;
     this->result = NOT_STARTED;
     this->runnerType = RunnerUnknownType;
-    this->osShim = &osShim;
+    this->osInterface = &osInterface;
     this->CANmessageACKQueue = &CANmessageACKQueue;
     this->blockSize = 0;
     this->stMin = {0, ms};
     this->lastRunTime = 0;
     this->sequenceNumber = 1;
 
-    this->mutex = osShim.osCreateMutex();
+    this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");
 
     this->TAG = nullptr;
