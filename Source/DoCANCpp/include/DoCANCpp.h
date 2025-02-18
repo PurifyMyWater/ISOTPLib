@@ -139,7 +139,8 @@ public:
     bool setSTmin(STmin stMin);
 
     DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb,
-             N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize, STmin stMin = DoCANCpp_DefaultSTmin);
+             N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize,
+             STmin stMin = DoCANCpp_DefaultSTmin);
 
 private:
     // Interfaces
