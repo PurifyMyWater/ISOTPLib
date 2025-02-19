@@ -192,3 +192,14 @@ jobs:
                         --define sonar.coverageReportPaths=${{runner.workspace}}/coverage.xml
                         --define sonar.cfamily.valgrind.reportsPaths=${{runner.workspace}}/valgrind.xml
                         --define sonar.analysis.cache.enabled=false
+    FinalResult:
+        runs-on: ubuntu-latest
+        needs:
+            - Build
+            - Test-Coverage
+            - Valgrind
+            - Linter
+#            - Sonar
+        steps:
+            -   name: Final Result
+                run: echo "All required jobs are completed successfully."
