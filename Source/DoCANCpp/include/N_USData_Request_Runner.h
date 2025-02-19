@@ -28,7 +28,7 @@ private:
     N_Result run_step_CF(const CANFrame* receivedFrame);
     N_Result run_step_FC(const CANFrame* receivedFrame, bool firstFC = false);
 
-    N_Result parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blockSize, STmin& stMin);
+    N_Result parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result checkTimeouts() override;
     N_Result sendCFFrame();

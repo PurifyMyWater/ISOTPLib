@@ -402,7 +402,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANInterface::ACKResult
     mutex->signal();
 }
 
-N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& bs, STmin& stM)
+N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM)
 {
     if (receivedFrame == nullptr)
     {
@@ -433,7 +433,7 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnError(N_ERROR);
     }
 
-    bs = receivedFrame->data[1];
+    blcksize = receivedFrame->data[1];
 
     if (receivedFrame->data[2] <= 0x7F)
     {
