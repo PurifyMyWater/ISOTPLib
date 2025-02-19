@@ -193,13 +193,17 @@ jobs:
                         --define sonar.cfamily.valgrind.reportsPaths=${{runner.workspace}}/valgrind.xml
                         --define sonar.analysis.cache.enabled=false
     FinalResult:
-        runs-on: ubuntu-latest
+        if: always()
         needs:
             - Build
             - Test-Coverage
             - Valgrind
             - Linter
-#            - Sonar
+            - Sonar
+        runs-on: ubuntu-latest
         steps:
-            -   name: Final Result
-                run: echo "All required jobs are completed successfully."
+            -   name: Decide whether the needed jobs succeeded or failed
+                uses: re-actors/alls-green@release/v1
+                with:
+                    allowed-failures: Sonar
+                    jobs: ${{ toJSON(needs) }}
