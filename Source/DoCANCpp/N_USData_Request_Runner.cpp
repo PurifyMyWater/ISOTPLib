@@ -8,9 +8,8 @@
 #include <cstring>
 
 
-N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSShim& osShim,
-                                                 CANMessageACKQueue& canMessageACKQueue) :
-    N_USData_Runner(nAi, osShim, canMessageACKQueue)
+N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength,
+                                                 OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osInterface, canMessageACKQueue)
 {
     this->internalStatus = ERROR;
     this->result = NOT_STARTED;
@@ -21,13 +20,13 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
     this->availableMemoryForRunners = &availableMemoryForRunners;
     this->cfSentInThisBlock = 0;
 
-    this->timerN_As = new Timer_N(osShim);
-    this->timerN_Bs = new Timer_N(osShim);
-    this->timerN_Cs = new Timer_N(osShim);
+    this->timerN_As = new Timer_N(osInterface);
+    this->timerN_Bs = new Timer_N(osInterface);
+    this->timerN_Cs = new Timer_N(osInterface);
 
     if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))) && messageData != nullptr)
     {
-        this->messageData = static_cast<uint8_t*>(osShim.osMalloc(this->messageLength * sizeof(uint8_t)));
+        this->messageData = static_cast<uint8_t*>(osInterface.osMalloc(this->messageLength * sizeof(uint8_t)));
 
         if (this->messageData == nullptr)
         {
@@ -72,7 +71,7 @@ N_USData_Request_Runner::~N_USData_Request_Runner()
         return;
     }
 
-    osShim->osFree(this->messageData);
+    osInterface->osFree(this->messageData);
     availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
 }
 
@@ -162,7 +161,7 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
             assert(false && "Invalid internal status");
     }
 
-    lastRunTime = osShim->osMillis();
+    lastRunTime = osInterface->osMillis();
 
     mutex->signal();
     return res;
@@ -327,7 +326,7 @@ uint32_t N_USData_Request_Runner::getNextRunTime() const
     return nextRunTime;
 }
 
-void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult success)
+void N_USData_Request_Runner::messageACKReceivedCallback(CANInterface::ACKResult success)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
@@ -340,7 +339,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
     {
         case AWAITING_SF_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_As->stopTimer();
                 internalStatus = MESSAGE_SENT;
@@ -354,7 +353,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
         }
         case AWAITING_FF_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 internalStatus = AWAITING_FirstFC;
                 timerN_As->stopTimer();
@@ -369,7 +368,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANShim::ACKResult succ
         }
         case AWAITING_CF_ACK:
         {
-            if (success == CANShim::ACK_SUCCESS)
+            if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_As->stopTimer();
 

@@ -1,6 +1,12 @@
 #ifndef DOCANCPP_DATA_STRUCTURES_H
 #define DOCANCPP_DATA_STRUCTURES_H
 
+#ifdef NDEBUG
+#define ASSERT_SAFE(expression, condition) expression
+#else
+#define ASSERT_SAFE(expression, condition) assert(expression condition)
+#endif
+
 #include <cstdint>
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;

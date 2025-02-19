@@ -1,10 +1,10 @@
 #include "Atomic_int64_t.h"
 
-Atomic_int64_t::Atomic_int64_t(const int64_t initialValue, OSShim& OSShim)
+Atomic_int64_t::Atomic_int64_t(const int64_t initialValue, OSInterface& OSInterface)
 {
-    this->osShim = &OSShim;
+    this->osInterface = &OSInterface;
     internalValue = initialValue;
-    this->mutex = this->osShim->osCreateMutex();
+    this->mutex = this->osInterface->osCreateMutex();
 }
 
 bool Atomic_int64_t::get(int64_t* out, const uint32_t timeout) const
