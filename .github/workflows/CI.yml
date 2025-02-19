@@ -44,10 +44,6 @@ jobs:
         runs-on: ubuntu-latest
         needs: Build
 
-        defaults:
-            run:
-                shell: bash
-
         steps:
             -   name: "Checkout repository"
                 uses: actions/checkout@v4
