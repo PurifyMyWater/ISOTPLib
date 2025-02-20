@@ -1,3 +1,0 @@
-idf_component_register(SRCS "DoCANCpp.cpp" "DoCANCpp_Utils.cpp" "DoCANCpp_Signal_Storage.cpp" "DoCANCpp_Data_Structures.cpp" "N_USData_Runner.cpp" "N_USData_Request_Runner.cpp" "N_USData_Indication_Runner.cpp"
-                    INCLUDE_DIRS "include"
-                    REQUIRES OSInterface CANInterface )
