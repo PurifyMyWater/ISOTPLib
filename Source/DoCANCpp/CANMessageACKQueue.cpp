@@ -1,0 +1,26 @@
+#include "CANMessageACKQueue.h"
+#include <N_USData_Runner.h>
+
+
+CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface) { this->canInterface = &canInterface; }
+
+void CANMessageACKQueue::run_step()
+{
+    CANInterface::ACKResult ack = canInterface->getWriteFrameACK();
+    if (ack != CANInterface::ACK_NONE)
+    {
+        N_USData_Runner* runner = messageQueue.front();
+        runner->messageACKReceivedCallback(ack);
+        messageQueue.pop_front();
+    }
+}
+
+bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
+{
+    bool res = canInterface->writeFrame(&frame);
+    if (res)
+    {
+        messageQueue.push_back(&runner);
+    }
+    return res;
+}
