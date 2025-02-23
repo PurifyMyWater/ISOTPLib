@@ -179,7 +179,8 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         returnError(N_ERROR);
     }
 
-    uint8_t bytesToCopy = MIN(receivedFrame->data_length_code - 1, messageLength - messageOffset); // Copy the minimum between the remaining bytes and the received bytes (1st byte is used to transport metadata).
+    uint8_t bytesToCopy =
+            MIN(receivedFrame->data_length_code - 1, messageLength - messageOffset); // Copy the minimum between the remaining bytes and the received bytes (1st byte is used to transport metadata).
 
     memcpy(&messageData[messageOffset], &receivedFrame->data[1], bytesToCopy);
 
