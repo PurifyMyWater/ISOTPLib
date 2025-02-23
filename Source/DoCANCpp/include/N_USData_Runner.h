@@ -24,6 +24,8 @@ public:
     using FlowStatus = enum { CONTINUE_TO_SEND = 0, WAIT = 1, OVERFLOW = 2, INVALID_FS };
 
     constexpr static uint8_t MAX_SF_MESSAGE_LENGTH = 7;
+    constexpr static uint8_t MAX_CF_MESSAGE_LENGTH = 7;
+    constexpr static uint8_t FC_MESSAGE_LENGTH = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
     constexpr static uint32_t N_As_TIMEOUT_MS = 1000;

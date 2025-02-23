@@ -175,12 +175,12 @@ void parseFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs,
     uint8_t realBS = receivedFrame->data[1];
 
     STmin realSTmin;
-    if (receivedFrame->data[2] <= 0x7F)
+    if (receivedFrame->data[2] <= MAX_STMIN_MS_VALUE)
     {
         realSTmin.unit = ms;
         realSTmin.value = receivedFrame->data[2];
     }
-    else if (receivedFrame->data[2] >= 0xF1 && receivedFrame->data[2] <= 0xF9)
+    else if (receivedFrame->data[2] >= MIN_STMIN_US_VALUE && receivedFrame->data[2] <= MAX_STMIN_US_VALUE)
     {
         realSTmin.unit = usX100;
         realSTmin.value = receivedFrame->data[2] & 0x0F;
@@ -188,7 +188,7 @@ void parseFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs,
     else // Reserved values -> max stMin value
     {
         realSTmin.unit = ms;
-        realSTmin.value = 127;
+        realSTmin.value = MAX_STMIN_MS_VALUE;
     }
 
     ASSERT_EQ(fs, realFS);

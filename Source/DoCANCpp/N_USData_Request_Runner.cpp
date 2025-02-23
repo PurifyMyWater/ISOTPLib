@@ -81,7 +81,7 @@ N_Result N_USData_Request_Runner::sendCFFrame()
     cfFrame.identifier = nAi;
 
     int64_t remainingBytes = messageLength - messageOffset;
-    uint8_t frameDataLength = remainingBytes > 7 ? 7 : remainingBytes;
+    uint8_t frameDataLength = remainingBytes > MAX_CF_MESSAGE_LENGTH ? MAX_CF_MESSAGE_LENGTH : remainingBytes;
 
     cfFrame.data[0] = (CF_CODE << 4) | (sequenceNumber & 0b00001111); // (0b0010xxxx) | SN (0bxxxxllll)
     memcpy(&cfFrame.data[1], &messageData[messageOffset], frameDataLength); // Payload data
@@ -142,7 +142,7 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
             res = run_step_FF(receivedFrame);
             break;
         case AWAITING_FirstFC: // We got the message or timeout.
-            res = run_step_FC(receivedFrame, true);
+            res = run_step_FC(receivedFrame, true); // First FC
             break;
         case SEND_CF:
             res = run_step_CF(receivedFrame);
@@ -212,7 +212,7 @@ N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
         messageOffset = 2;
     }
 
-    ffFrame.data_length_code = 8;
+    ffFrame.data_length_code = CAN_FRAME_MAX_DLC;
 
     if (CANmessageACKQueue->writeFrame(*this, ffFrame))
     {
@@ -417,7 +417,7 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnError(N_ERROR);
     }
 
-    if (receivedFrame->data_length_code != 3)
+    if (receivedFrame->data_length_code != FC_MESSAGE_LENGTH)
     {
         returnError(N_ERROR);
     }

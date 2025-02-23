@@ -15,7 +15,7 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageA
     this->blockSize = 0;
     this->stMin = {0, ms};
     this->lastRunTime = 0;
-    this->sequenceNumber = 1;
+    this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
 
     this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");

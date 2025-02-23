@@ -11,6 +11,10 @@
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
 
+constexpr uint8_t MAX_STMIN_MS_VALUE = 0x7F;
+constexpr uint8_t MIN_STMIN_US_VALUE = 0xF1;
+constexpr uint8_t MAX_STMIN_US_VALUE = 0xF9;
+
 using STminUnit = enum SeparationTimeMinUnit { ms, usX100 };
 
 using STmin = struct SeparationTimeMin

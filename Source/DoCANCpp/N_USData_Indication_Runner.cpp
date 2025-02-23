@@ -52,7 +52,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
         {
             messageLength = receivedFrame->data[0] & 0b00001111;
 
-            if (messageLength <= 7 && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
+            if (messageLength <= MAX_SF_MESSAGE_LENGTH && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
             {
                 messageData = static_cast<uint8_t*>(osInterface->osMalloc(this->messageLength * sizeof(uint8_t)));
                 memcpy(messageData, &receivedFrame->data[1], messageLength);
@@ -141,7 +141,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
         fcFrame.data[2] = 0b11110000 | stMin.value;
     }
 
-    fcFrame.data_length_code = 3;
+    fcFrame.data_length_code = FC_MESSAGE_LENGTH;
 
     if (CANmessageACKQueue->writeFrame(*this, fcFrame))
     {
