@@ -1,4 +1,4 @@
-#include "DoCANCpp_Data_Structures.h"
+#include "DoCANCpp_Common.h"
 
 const char* N_Result_to_string(N_Result result)
 {

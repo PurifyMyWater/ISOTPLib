@@ -3,7 +3,7 @@
 
 #include "CANInterface.h"
 #include "CANMessageACKQueue.h"
-#include "DoCANCpp_Data_Structures.h"
+#include "DoCANCpp_Common.h"
 #include "OSInterface.h"
 
 #define NewCANFrameDoCANCpp() {.extd = 1, .rtr = 0, .ss = 0, .self = 0, .dlc_non_comp = 0, .reserved = 0, .identifier = {.N_AI = 0}, .data_length_code = 0, .data = {0}}
