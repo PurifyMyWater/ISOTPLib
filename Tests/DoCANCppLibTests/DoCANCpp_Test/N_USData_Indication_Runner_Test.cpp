@@ -16,7 +16,7 @@ TEST(N_USData_Indication_Runner, constructor_getters)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -41,7 +41,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -75,7 +75,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -109,7 +109,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_big_invalid)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -131,7 +131,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_big_invalid)
 void parseFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs, uint8_t blockSize, STmin stMin)
 {
     ASSERT_NE(nullptr, receivedFrame);
-    ASSERT_EQ(CAN_CLASSIC_29bit_Physical, receivedFrame->identifier.N_TAtype);
+    ASSERT_EQ(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, receivedFrame->identifier.N_TAtype);
     ASSERT_EQ(3, receivedFrame->data_length_code);
     ASSERT_EQ(N_USData_Runner::FC_CODE, receivedFrame->data[0] >> 4 & 0x0F);
 
@@ -173,7 +173,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_valid)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -218,7 +218,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_small)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -250,7 +250,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_big_valid)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -299,7 +299,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_invalid_no_memory)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -333,7 +333,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_nullptr)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -354,7 +354,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_valid)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 2;
     STmin stMin = {10, ms};
@@ -424,7 +424,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_blockSize0_valid)
     CANInterface* canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface);
 
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Physical, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
 
     uint8_t blockSize = 0;
     STmin stMin = {10, ms};

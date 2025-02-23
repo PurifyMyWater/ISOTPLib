@@ -35,7 +35,7 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
     LocalCANNetwork network;
     uint32_t id = 0;
     CANFrame frame;
-    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     frame.identifier.N_SA = 0;
     frame.identifier.N_TA = 1;
     frame.data_length_code = 8;
@@ -65,7 +65,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_0_node)
     LocalCANNetwork network;
     uint32_t id = 0;
     CANFrame frame;
-    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     frame.identifier.N_SA = 0;
     frame.identifier.N_TA = 1;
     frame.data_length_code = 8;
@@ -88,7 +88,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_node)
     ASSERT_NE(can, nullptr);
     uint32_t id = can->getNodeID();
     CANFrame frame;
-    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     frame.identifier.N_SA = 0;
     frame.identifier.N_TA = 1;
     frame.data_length_code = 8;
@@ -114,7 +114,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_to_N_node)
     ASSERT_NE(wcan, nullptr);
     uint32_t writterId = wcan->getNodeID();
     CANFrame frame;
-    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     frame.identifier.N_SA = 0;
     frame.identifier.N_TA = 1;
     frame.data_length_code = 8;
@@ -239,7 +239,7 @@ TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_node)
     LocalCANNetworkCANInterface* can = network.newCANInterfaceConnection();
     ASSERT_NE(can, nullptr);
     CANFrame frame;
-    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     frame.identifier.N_SA = 0;
     frame.identifier.N_TA = 1;
     frame.data_length_code = 8;
@@ -263,7 +263,7 @@ TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_to_N_node)
     LocalCANNetworkCANInterface* wcan = network.newCANInterfaceConnection();
     ASSERT_NE(wcan, nullptr);
     CANFrame frame;
-    frame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     frame.identifier.N_SA = 0;
     frame.identifier.N_TA = 1;
     frame.data_length_code = 8;

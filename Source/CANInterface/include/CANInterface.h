@@ -6,7 +6,7 @@
 #define CAN_FRAME_MAX_DLC 8
 
 
-using N_TAtype_t = enum N_TAtype { CAN_UNKNOWN = 0, CAN_CLASSIC_29bit_Physical = 218, CAN_CLASSIC_29bit_Functional = 219 };
+using N_TAtype_t = enum N_TAtype { CAN_UNKNOWN = 0, N_TATYPE_5_CAN_CLASSIC_29bit_Physical = 218, N_TATYPE_6_CAN_CLASSIC_29bit_Functional = 219 };
 
 using N_AI = union N_AI
 {

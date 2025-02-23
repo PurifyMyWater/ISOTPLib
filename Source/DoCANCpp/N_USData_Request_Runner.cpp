@@ -37,7 +37,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
             memcpy(this->messageData, messageData, this->messageLength);
             this->mType = mType;
 
-            if (this->nAi.N_TAtype == CAN_CLASSIC_29bit_Functional && this->messageLength > MAX_SF_MESSAGE_LENGTH)
+            if (this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional && this->messageLength > MAX_SF_MESSAGE_LENGTH)
             {
                 *result = false;
             }
@@ -412,7 +412,7 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
     timerN_Bs->stopTimer();
     timerN_Cs->startTimer();
 
-    if (receivedFrame->identifier.N_TAtype != CAN_CLASSIC_29bit_Physical)
+    if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical)
     {
         returnError(N_ERROR);
     }

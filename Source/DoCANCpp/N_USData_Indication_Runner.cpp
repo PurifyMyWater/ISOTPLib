@@ -61,7 +61,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
         case FF_CODE:
         {
             timerN_Br->startTimer();
-            if (nAi.N_TAtype == CAN_CLASSIC_29bit_Functional)
+            if (nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
             {
                 returnError(N_UNEXP_PDU);
             }
@@ -121,7 +121,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
 {
     CANFrame fcFrame = NewCANFrameDoCANCpp();
-    fcFrame.identifier.N_TAtype = CAN_CLASSIC_29bit_Physical;
+    fcFrame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     fcFrame.identifier.N_TA = nAi.N_SA;
     fcFrame.identifier.N_SA = nAi.N_TA;
 
@@ -155,7 +155,7 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         returnError(N_ERROR);
     }
 
-    if (nAi.N_TAtype == CAN_CLASSIC_29bit_Functional)
+    if (nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
         returnError(N_UNEXP_PDU);
     }

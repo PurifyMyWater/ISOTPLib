@@ -22,7 +22,7 @@ TEST(CANMessageACKQueue, writeFrame)
     // Create dumb runner
     int64_t availableMemoryConst = 100;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
-    N_AI NAi = DoCANCpp_N_AI_CONFIG(CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
     const char* testMessageString = ""; // strlen = 0
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
