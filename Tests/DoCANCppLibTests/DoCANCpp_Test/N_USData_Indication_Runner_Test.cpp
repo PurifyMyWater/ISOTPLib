@@ -53,6 +53,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::SF_CODE << 4) | messageLen;
     memcpy(&sentFrame.data[1], testMessage, messageLen);
 
@@ -87,6 +88,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::SF_CODE << 4) | messageLen;
     memcpy(&sentFrame.data[1], testMessage, messageLen);
 
@@ -121,6 +123,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_big_invalid)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::SF_CODE << 4) | messageLen;
     memcpy(&sentFrame.data[1], testMessage, 7);
 
@@ -185,6 +188,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_valid)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
     sentFrame.data[1] = messageLen & 0xFF;
     memcpy(&sentFrame.data[2], testMessage, 6);
@@ -230,6 +234,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_small)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
     sentFrame.data[1] = messageLen & 0xFF;
     memcpy(&sentFrame.data[2], testMessage, 6);
@@ -262,6 +267,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_big_valid)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4);
     sentFrame.data[1] = 0;
     sentFrame.data[2] = messageLen >> 24 & 0xFF;
@@ -311,6 +317,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_invalid_no_memory)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4);
     sentFrame.data[1] = 0;
     sentFrame.data[2] = messageLen >> 24 & 0xFF;
@@ -366,6 +373,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_valid)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
     sentFrame.data[1] = messageLen & 0xFF;
     memcpy(&sentFrame.data[2], testMessage, 6);
@@ -436,6 +444,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_blockSize0_valid)
     N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
 
     CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
     sentFrame.data[0] = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
     sentFrame.data[1] = messageLen & 0xFF;
     memcpy(&sentFrame.data[2], testMessage, 6);

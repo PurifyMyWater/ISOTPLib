@@ -40,7 +40,11 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
         returnError(N_ERROR);
     }
 
-    this->mType = Mtype_Diagnostics; // DoCANCpp already checks if the frame is a diagnostics frame by looking at the N_TAType
+    if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical && receivedFrame->identifier.N_TAtype != N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
+    {
+        returnError(N_ERROR); // The frame is not a Mtype_Diagnostics frame.
+    }
+    this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 & 206 is the value used for remote diagnostics)
 
     switch (receivedFrame->data[0] >> 4)
     {
