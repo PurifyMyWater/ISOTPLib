@@ -12,7 +12,7 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 {
     this->osInterface = &osInterface;
     this->canInterface = &canInterface;
-    this->CANmessageACKQueue = new CANMessageACKQueue(canInterface);
+    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface);
     this->nSA = nSA;
     this->availableMemoryForRunners.set(totalAvailableMemoryForRunners);
     this->N_USData_confirm_cb = N_USData_confirm_cb;
@@ -120,7 +120,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
 {
     bool result;
     N_AI nAI = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
-    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData, length, *osInterface, *CANmessageACKQueue);
+    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData, length, *osInterface, *CanMessageACKQueue);
     if (!result)
     {
         delete runner;
@@ -229,7 +229,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // The fifth part of the run_step is to check if a runner processed a message, and if no one did, start a new runner to handle it.
             if (frameStatus == frameAvailable)
             {
-                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin, *self->osInterface, *self->CANmessageACKQueue);
+                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin, *self->osInterface, *self->CanMessageACKQueue);
                 switch (runner->run_step(&frame))
                 {
                     case IN_PROGRESS:

@@ -141,7 +141,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
 
     fcFrame.data_length_code = FC_MESSAGE_LENGTH;
 
-    if (CANmessageACKQueue->writeFrame(*this, fcFrame))
+    if (CanMessageACKQueue->writeFrame(*this, fcFrame))
     {
         internalStatus = AWAITING_FC_ACK;
         return N_OK;
