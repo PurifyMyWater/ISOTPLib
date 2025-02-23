@@ -7,6 +7,8 @@
 #define ASSERT_SAFE(expression, condition) assert(expression condition)
 #endif
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #include <cstdint>
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
