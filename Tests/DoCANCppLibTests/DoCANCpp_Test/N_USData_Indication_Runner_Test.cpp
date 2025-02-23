@@ -101,6 +101,37 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
     ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), messageLen);
 }
 
+TEST(N_USData_Indication_Runner, run_step_SF_Mtype_invalid)
+{
+    LocalCANNetwork can_network;
+
+    int64_t availableMemoryConst = 100;
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+
+    CANInterface* canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin stMin = {10, ms};
+
+    const char* testMessageString = "1234567"; // strlen = 7
+    size_t messageLen = strlen(testMessageString);
+    const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
+
+    N_USData_Indication_Runner runner(NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface, canMessageACKQueue);
+
+    CANFrame sentFrame = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.identifier.N_TAtype = CAN_UNKNOWN; // This should invalidate the Mtype
+    sentFrame.data[0] = (N_USData_Runner::SF_CODE << 4) | messageLen;
+    memcpy(&sentFrame.data[1], testMessage, messageLen);
+
+    ASSERT_EQ(N_ERROR, runner.run_step(&sentFrame));
+    ASSERT_EQ(N_ERROR, runner.getResult());
+}
+
 TEST(N_USData_Indication_Runner, run_step_SF_big_invalid)
 {
     LocalCANNetwork can_network;
