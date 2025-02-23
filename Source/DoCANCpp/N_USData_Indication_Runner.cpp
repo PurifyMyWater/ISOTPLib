@@ -269,7 +269,7 @@ uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
     uint32_t timeoutAr = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
     uint32_t timeoutCr = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
-    return timeoutAr < timeoutCr ? timeoutAr : timeoutCr;
+    return MIN(timeoutAr, timeoutCr);
 }
 
 uint32_t N_USData_Indication_Runner::getNextRunTime() const

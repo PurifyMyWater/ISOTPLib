@@ -303,8 +303,8 @@ uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
     uint32_t timeoutAs = timerN_As->getStartTimeStamp() + N_As_TIMEOUT_MS;
     uint32_t timeoutBs = timerN_Bs->getStartTimeStamp() + N_Bs_TIMEOUT_MS;
     uint32_t timeoutCs = timerN_Cs->getStartTimeStamp() + getStMinInMs(stMin);
-    uint32_t minTimeoutAsBs = timeoutAs < timeoutBs ? timeoutAs : timeoutBs;
-    return minTimeoutAsBs < timeoutCs ? minTimeoutAsBs : timeoutCs;
+    uint32_t minTimeoutAsBs = MIN(timeoutAs, timeoutBs);
+    return MIN(minTimeoutAsBs, timeoutCs);
 }
 
 uint32_t N_USData_Request_Runner::getNextRunTime() const
