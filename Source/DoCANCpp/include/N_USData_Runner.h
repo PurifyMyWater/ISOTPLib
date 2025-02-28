@@ -35,7 +35,7 @@ public:
     constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
     // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
 
-    N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CANmessageACKQueue);
+    N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CanMessageACKQueue);
 
     virtual ~N_USData_Runner();
 
@@ -110,7 +110,7 @@ protected:
     N_Result result;
     RunnerType runnerType;
     OSInterface* osInterface;
-    CANMessageACKQueue* CANmessageACKQueue;
+    CANMessageACKQueue* CanMessageACKQueue;
     uint8_t blockSize;
     uint32_t lastRunTime;
     uint8_t sequenceNumber;

@@ -89,7 +89,7 @@ N_Result N_USData_Request_Runner::sendCFFrame()
 
     cfFrame.data_length_code = frameDataLength + 1; // 1 byte for N_PCI_SF
 
-    if (CANmessageACKQueue->writeFrame(*this, cfFrame))
+    if (CanMessageACKQueue->writeFrame(*this, cfFrame))
     {
         cfSentInThisBlock++;
         sequenceNumber++;
@@ -214,7 +214,7 @@ N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
 
     ffFrame.data_length_code = CAN_FRAME_MAX_DLC;
 
-    if (CANmessageACKQueue->writeFrame(*this, ffFrame))
+    if (CanMessageACKQueue->writeFrame(*this, ffFrame))
     {
         timerN_As->startTimer();
         internalStatus = AWAITING_FF_ACK;
@@ -242,7 +242,7 @@ N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
 
     sfFrame.data_length_code = messageLength + 1; // 1 byte for N_PCI_SF
 
-    if (CANmessageACKQueue->writeFrame(*this, sfFrame))
+    if (CanMessageACKQueue->writeFrame(*this, sfFrame))
     {
         internalStatus = AWAITING_SF_ACK;
         result = IN_PROGRESS;

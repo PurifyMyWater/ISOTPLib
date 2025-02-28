@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CANmessageACKQueue)
+N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CanMessageACKQueue)
 {
     this->nAi = nAi;
     this->mType = Mtype_Unknown;
@@ -11,7 +11,7 @@ N_USData_Runner::N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageA
     this->result = NOT_STARTED;
     this->runnerType = RunnerUnknownType;
     this->osInterface = &osInterface;
-    this->CANmessageACKQueue = &CANmessageACKQueue;
+    this->CanMessageACKQueue = &CanMessageACKQueue;
     this->blockSize = 0;
     this->stMin = {0, ms};
     this->lastRunTime = 0;
