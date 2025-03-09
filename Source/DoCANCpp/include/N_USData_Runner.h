@@ -102,7 +102,7 @@ protected:
     static uint32_t getStMinInMs(STmin stMin);
     virtual N_Result checkTimeouts() = 0;
 
-    OSInterface_Mutex* volatile mutex;
+    OSInterface_Mutex* mutex;
     N_AI nAi;
     Mtype mType;
     uint8_t* messageData;

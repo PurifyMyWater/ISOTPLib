@@ -19,7 +19,7 @@ public:
 private:
     int64_t internalValue;
     OSInterface* osInterface;
-    OSInterface_Mutex* volatile mutex;
+    OSInterface_Mutex* mutex;
 };
 
 #endif // ATOMIC_UINT32_H

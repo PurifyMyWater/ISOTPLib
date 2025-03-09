@@ -16,7 +16,7 @@ TEST(CANMessageACKQueue, writeFrame)
     // Given
     LocalCANNetwork localCANNetwork;
     CANInterface* canInterface = localCANNetwork.newCANInterfaceConnection();
-    CANMessageACKQueue canMessageACKQueue(*canInterface);
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     CANFrame frame = NewCANFrameDoCANCpp();
 
     // Create dumb runner
