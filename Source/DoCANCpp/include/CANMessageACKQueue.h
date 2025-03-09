@@ -11,6 +11,7 @@ class CANMessageACKQueue
 {
 public:
     explicit CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface);
+    ~CANMessageACKQueue();
 
     void run_step();
 

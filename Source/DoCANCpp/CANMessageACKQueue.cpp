@@ -7,6 +7,10 @@ CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface, OSInterface& 
     mutex = osInterface.osCreateMutex();
     this->canInterface = &canInterface;
 }
+CANMessageACKQueue::~CANMessageACKQueue()
+{
+    delete mutex;
+}
 
 void CANMessageACKQueue::run_step()
 {
