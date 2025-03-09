@@ -35,9 +35,8 @@ public:
     constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
     // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
 
-    N_USData_Runner(N_AI nAi, OSInterface& osInterface, CANMessageACKQueue& CanMessageACKQueue);
-
-    virtual ~N_USData_Runner();
+    N_USData_Runner();
+    virtual ~N_USData_Runner() = default;
 
     // If no frame is received, the runner will only execute if it is not awaiting a message, otherwise it will return an error.
     virtual N_Result run_step(CANFrame* receivedFrame) = 0;
@@ -58,37 +57,37 @@ public:
      * @brief Returns the N_AI of the runner.
      * @return The N_AI of the runner.
      */
-    [[nodiscard]] N_AI getN_AI() const;
+    [[nodiscard]] virtual N_AI getN_AI() const = 0;
 
     /**
      * @brief Returns the message data of the runner.
      * @return The message data of the runner.
      */
-    [[nodiscard]] uint8_t* getMessageData() const;
+    [[nodiscard]] virtual uint8_t* getMessageData() const = 0;
 
     /**
      * @brief Returns the message length of the runner.
      * @return The message length of the runner.
      */
-    [[nodiscard]] uint32_t getMessageLength() const;
+    [[nodiscard]] virtual uint32_t getMessageLength() const = 0;
 
     /**
      * @brief Returns the result of the last run_step().
      * @return The result of the runner.
      */
-    [[nodiscard]] N_Result getResult() const;
+    [[nodiscard]] virtual N_Result getResult() const = 0;
 
     /**
      * @brief Returns the Mtype of the runner.
      * @return The Mtype of the runner.
      */
-    [[nodiscard]] Mtype getMtype() const;
+    [[nodiscard]] virtual Mtype getMtype() const = 0;
 
     /**
      * @brief Returns the type of the runner.
      * @return The type of the runner.
      */
-    [[nodiscard]] RunnerType getRunnerType() const;
+    [[nodiscard]] virtual RunnerType getRunnerType() const = 0;
 
     /**
      * @brief Callback for when a message is received.
@@ -100,21 +99,6 @@ public:
 
 protected:
     static uint32_t getStMinInMs(STmin stMin);
-    virtual N_Result checkTimeouts() = 0;
-
-    OSInterface_Mutex* mutex;
-    N_AI nAi;
-    Mtype mType;
-    uint8_t* messageData;
-    int64_t messageLength;
-    N_Result result;
-    RunnerType runnerType;
-    OSInterface* osInterface;
-    CANMessageACKQueue* CanMessageACKQueue;
-    uint8_t blockSize;
-    uint32_t lastRunTime;
-    uint8_t sequenceNumber;
-    STmin stMin{};
 };
 
 #endif // N_USDATA_RUNNER_H
