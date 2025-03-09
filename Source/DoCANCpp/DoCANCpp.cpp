@@ -30,15 +30,15 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 
     if (this->N_USData_confirm_cb == nullptr)
     {
-        OSInterfaceWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
+        OSInterfaceLogWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
     }
     if (this->N_USData_indication_cb == nullptr)
     {
-        OSInterfaceWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
+        OSInterfaceLogWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
     }
     if (this->N_USData_FF_indication_cb == nullptr)
     {
-        OSInterfaceWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
+        OSInterfaceLogWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
     }
 }
 
