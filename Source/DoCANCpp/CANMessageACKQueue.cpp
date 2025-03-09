@@ -7,16 +7,13 @@ CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface, OSInterface& 
     mutex = osInterface.osCreateMutex();
     this->canInterface = &canInterface;
 }
-CANMessageACKQueue::~CANMessageACKQueue()
-{
-    delete mutex;
-}
+CANMessageACKQueue::~CANMessageACKQueue() { delete mutex; }
 
 void CANMessageACKQueue::run_step()
 {
     if (CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {
-        if(mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+        if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
             N_USData_Runner* runner = messageQueue.front();
             messageQueue.pop_front();
