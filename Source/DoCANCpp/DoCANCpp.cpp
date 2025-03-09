@@ -1,6 +1,9 @@
 #include "cassert"
 
 #include "DoCANCpp.h"
+
+#include <ranges>
+
 #include "N_USData_Indication_Runner.h"
 #include "N_USData_Request_Runner.h"
 
@@ -23,6 +26,7 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 
     this->configMutex = this->osInterface->osCreateMutex();
     this->notStartedRunnersMutex = this->osInterface->osCreateMutex();
+    this->runnersMutex = this->osInterface->osCreateMutex();
 
     assert(this->configMutex != nullptr && this->notStartedRunnersMutex != nullptr && "Mutex creation failed");
 
@@ -88,11 +92,13 @@ uint8_t DoCANCpp::getBlockSize() const
     return bs;
 }
 
-void DoCANCpp::setBlockSize(const uint8_t blockSize)
+bool DoCANCpp::setBlockSize(const uint8_t blockSize)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     this->blockSize = blockSize;
     configMutex->signal();
+
+    return updateRunners();
 }
 
 STmin DoCANCpp::getSTmin() const
@@ -113,7 +119,8 @@ bool DoCANCpp::setSTmin(const STmin stMin)
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     this->stMin = stMin;
     configMutex->signal();
-    return true;
+
+    return updateRunners();
 }
 
 bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t nTaType, const uint8_t* messageData, const uint32_t length, const Mtype mType)
@@ -148,6 +155,8 @@ void DoCANCpp::run_step(DoCANCpp* self)
             STmin stMin = self->stMin;
             uint8_t blockSize = self->blockSize;
             self->configMutex->signal();
+
+            self->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForRunnersSync_MS);
 
             // The second part of the run_step is to check if there are any runners in notStartedRunners, and move them to activeRunners.
             // ISO 15765-2 specifies that there should not be more than one message with the same N_AI being transmitted or received at the same time.
@@ -273,6 +282,46 @@ void DoCANCpp::run_step(DoCANCpp* self)
                 delete runner;
             }
             self->finishedRunners.clear();
+
+            self->runnersMutex->signal();
         }
     }
+}
+
+bool DoCANCpp::updateRunners()
+{
+    runnersMutex->wait(DoCANCpp_MaxTimeToWaitForRunnersSync_MS);
+
+    for (const auto runner: notStartedRunners)
+    {
+        if (!updateRunner(runner))
+        {
+            return false;
+        }
+    }
+
+    for (const auto runner: activeRunners | std::views::values)
+    {
+        if (!updateRunner(runner))
+        {
+            return false;
+        }
+    }
+    runnersMutex->signal();
+    return true;
+}
+
+bool DoCANCpp::updateRunner(N_USData_Runner* runner) const
+{
+    if (runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
+    {
+        N_USData_Indication_Runner* indicationRunner = dynamic_cast<N_USData_Indication_Runner*>(runner);
+
+        if (!indicationRunner->setBlockSize(blockSize))
+        {
+            return false;
+        }
+        return indicationRunner->setSTmin(stMin);
+    }
+    return true;
 }

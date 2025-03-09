@@ -9,8 +9,10 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
     this->internalStatus = NOT_RUNNING;
     this->runnerType = RunnerIndicationType;
     this->nAi = nAi;
-    this->blockSize = blockSize;
     this->stMin = stMin;
+    this->blockSize = blockSize;
+    this->effectiveBlockSize = blockSize;
+    this->effectiveStMin = stMin;
     this->availableMemoryForRunners = &availableMemoryForRunners;
     this->osInterface = &osInterface;
     this->messageData = nullptr;
@@ -29,6 +31,28 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
         this->osInterface->osFree(messageData);
         this->availableMemoryForRunners->add(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
+}
+
+bool N_USData_Indication_Runner::setBlockSize(uint8_t blockSize)
+{
+    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        this->blockSize = blockSize;
+        mutex->signal();
+        return true;
+    }
+    return false;
+}
+
+bool N_USData_Indication_Runner::setSTmin(STmin stMin)
+{
+    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        this->stMin = stMin;
+        mutex->signal();
+        return true;
+    }
+    return false;
 }
 
 N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receivedFrame)
@@ -122,21 +146,24 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
 N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
 {
+    effectiveBlockSize = blockSize;
+    effectiveStMin = stMin;
+
     CANFrame fcFrame = NewCANFrameDoCANCpp();
     fcFrame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     fcFrame.identifier.N_TA = nAi.N_SA;
     fcFrame.identifier.N_SA = nAi.N_TA;
 
     fcFrame.data[0] = FC_CODE << 4 | fs;
-    fcFrame.data[1] = blockSize;
+    fcFrame.data[1] = effectiveBlockSize;
 
-    if (stMin.unit == ms)
+    if (effectiveStMin.unit == ms)
     {
-        fcFrame.data[2] = stMin.value;
+        fcFrame.data[2] = effectiveStMin.value;
     }
     else
     {
-        fcFrame.data[2] = 0b11110000 | stMin.value;
+        fcFrame.data[2] = 0b11110000 | effectiveStMin.value;
     }
 
     fcFrame.data_length_code = FC_MESSAGE_LENGTH;
@@ -194,7 +221,7 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
     }
     else
     {
-        if (blockSize == cfReceivedInThisBlock)
+        if (effectiveBlockSize == cfReceivedInThisBlock)
         {
             timerN_Cr->stopTimer();
             timerN_Br->startTimer();

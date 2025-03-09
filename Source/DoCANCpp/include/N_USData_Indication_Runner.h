@@ -23,6 +23,10 @@ public:
 
     void messageACKReceivedCallback(CANInterface::ACKResult success) override;
 
+    bool setBlockSize(uint8_t blockSize);
+
+    bool setSTmin(STmin stMin);
+
 private:
     N_Result run_step_notRunning(const CANFrame* receivedFrame);
     N_Result run_step_CF(const CANFrame* receivedFrame);
@@ -42,6 +46,9 @@ private:
     Timer_N* timerN_Ar; // Timer for sending a frame
     Timer_N* timerN_Br; // Timer that holds the time since the last FF or CF to the next FC.
     Timer_N* timerN_Cr; // Timer that holds the time since the last FC to the next FC.
+
+    STmin effectiveStMin{};
+    uint8_t effectiveBlockSize;
 };
 
 #endif // N_USDATA_INDICATION_RUNNER_H
