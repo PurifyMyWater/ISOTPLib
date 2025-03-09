@@ -2,10 +2,7 @@
 
 #include <cassert>
 
-N_USData_Runner::N_USData_Runner()
-{
-    this->TAG = nullptr;
-}
+N_USData_Runner::N_USData_Runner() { this->TAG = nullptr; }
 
 uint32_t N_USData_Runner::getStMinInMs(STmin stMin)
 {
