@@ -102,7 +102,7 @@ bool DoCANCpp::setBlockSize(const uint8_t bs)
 STmin DoCANCpp::getSTmin() const
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    STmin stM = this->stMin;
+    const STmin stM = this->stMin;
     configMutex->signal();
     return stM;
 }

@@ -121,9 +121,9 @@ public:
     /**
      * This function is used to set the block size for this DoCANCpp object.
      * All messages sent or received by this object will have this block size, even if they are being sent or received before setting the new block size.
-     * @param blockSize The block size to set for this DoCANCpp object.
+     * @param bs The block size to set for this DoCANCpp object.
      */
-    bool setBlockSize(uint8_t blockSize);
+    bool setBlockSize(uint8_t bs);
 
     /**
      * This function is used to get the separation time for this DoCANCpp object.
