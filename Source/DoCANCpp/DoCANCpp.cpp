@@ -92,10 +92,10 @@ uint8_t DoCANCpp::getBlockSize() const
     return bs;
 }
 
-bool DoCANCpp::setBlockSize(const uint8_t blockSize)
+bool DoCANCpp::setBlockSize(const uint8_t bs)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->blockSize = blockSize;
+    this->blockSize = bs;
     configMutex->signal();
 
     return updateRunners();
@@ -315,7 +315,7 @@ bool DoCANCpp::updateRunner(N_USData_Runner* runner) const
 {
     if (runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
     {
-        N_USData_Indication_Runner* indicationRunner = dynamic_cast<N_USData_Indication_Runner*>(runner);
+        const auto indicationRunner = dynamic_cast<N_USData_Indication_Runner*>(runner);
 
         if (!indicationRunner->setBlockSize(blockSize))
         {
