@@ -216,6 +216,8 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
 
 N_Result N_USData_Indication_Runner::checkTimeouts()
 {
+#if !DOCANCPP_DISABLE_TIMEOUTS
+
     if (timerN_Ar->getElapsedTime_ms() > N_Ar_TIMEOUT_MS)
     {
         returnError(N_TIMEOUT_A);
@@ -224,6 +226,7 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     {
         returnError(N_TIMEOUT_Cr);
     }
+#endif
     return N_OK;
 }
 

@@ -1,6 +1,8 @@
 #ifndef DOCANCPP_DATA_STRUCTURES_H
 #define DOCANCPP_DATA_STRUCTURES_H
 
+#define DOCANCPP_DISABLE_TIMEOUTS false
+
 #ifdef NDEBUG
 #define ASSERT_SAFE(expression, condition) expression
 #else

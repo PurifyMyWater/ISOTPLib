@@ -105,6 +105,7 @@ N_Result N_USData_Request_Runner::sendCFFrame()
 
 N_Result N_USData_Request_Runner::checkTimeouts()
 {
+#if !DOCANCPP_DISABLE_TIMEOUTS
     if (timerN_As->getElapsedTime_ms() > N_As_TIMEOUT_MS)
     {
         returnError(N_TIMEOUT_A);
@@ -113,6 +114,7 @@ N_Result N_USData_Request_Runner::checkTimeouts()
     {
         returnError(N_TIMEOUT_Bs);
     }
+#endif
     return N_OK;
 }
 
@@ -158,7 +160,7 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
             res = result;
             break;
         default:
-            assert(false && "Invalid internal status");
+            assert(false && "Invalid internal status: Maybe DOCANCPP_DISABLE_TIMEOUTS is true?");
     }
 
     lastRunTime = osInterface->osMillis();
