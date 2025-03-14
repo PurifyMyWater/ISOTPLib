@@ -27,19 +27,45 @@ public:
 
     bool setSTmin(STmin stMin);
 
+    [[nodiscard]] N_AI getN_AI() const override;
+
+    [[nodiscard]] uint8_t* getMessageData() const override;
+
+    [[nodiscard]] uint32_t getMessageLength() const override;
+
+    [[nodiscard]] N_Result getResult() const override;
+
+    [[nodiscard]] Mtype getMtype() const override;
+
+    [[nodiscard]] RunnerType getRunnerType() const override;
+
 private:
     N_Result run_step_notRunning(const CANFrame* receivedFrame);
     N_Result run_step_CF(const CANFrame* receivedFrame);
 
     N_Result sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
-    N_Result checkTimeouts() override;
+    N_Result checkTimeouts();
 
     using InternalStatus_t = enum { NOT_RUNNING, AWAITING_FC_ACK, AWAITING_CF, ERROR };
 
+    OSInterface_Mutex* mutex;
+
+    N_AI nAi;
+    Mtype mType;
+    uint8_t* messageData;
+    int64_t messageLength;
+    uint8_t blockSize;
+    uint8_t effectiveBlockSize;
+    STmin stMin{};
+    STmin effectiveStMin{};
+
+    N_Result result;
+    RunnerType runnerType;
+    uint32_t lastRunTime;
+    uint8_t sequenceNumber;
     InternalStatus_t internalStatus;
     Atomic_int64_t* availableMemoryForRunners;
-
     uint32_t messageOffset;
     int16_t cfReceivedInThisBlock;
 
@@ -47,8 +73,8 @@ private:
     Timer_N* timerN_Br; // Timer that holds the time since the last FF or CF to the next FC.
     Timer_N* timerN_Cr; // Timer that holds the time since the last FC to the next FC.
 
-    STmin effectiveStMin{};
-    uint8_t effectiveBlockSize;
+    OSInterface* osInterface;
+    CANMessageACKQueue* CanMessageACKQueue{};
 };
 
 #endif // N_USDATA_INDICATION_RUNNER_H

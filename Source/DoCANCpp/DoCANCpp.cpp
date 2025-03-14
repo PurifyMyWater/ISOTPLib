@@ -11,11 +11,9 @@ const char* DoCANCpp::TAG = "DoCANCpp";
 
 DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners, const N_USData_confirm_cb_t N_USData_confirm_cb, const N_USData_indication_cb_t N_USData_indication_cb,
                    const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface, CANInterface& canInterface, const uint8_t blockSize, const STmin stMin) :
-    availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface)
+    osInterface(osInterface), canInterface(canInterface), availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface)
 {
-    this->osInterface = &osInterface;
-    this->canInterface = &canInterface;
-    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface);
+    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface, osInterface);
     this->nSA = nSA;
     this->availableMemoryForRunners.set(totalAvailableMemoryForRunners);
     this->N_USData_confirm_cb = N_USData_confirm_cb;
@@ -24,9 +22,9 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
     this->blockSize = blockSize;
     this->lastRunTime = 0;
 
-    this->configMutex = this->osInterface->osCreateMutex();
-    this->notStartedRunnersMutex = this->osInterface->osCreateMutex();
-    this->runnersMutex = this->osInterface->osCreateMutex();
+    this->configMutex = this->osInterface.osCreateMutex();
+    this->notStartedRunnersMutex = this->osInterface.osCreateMutex();
+    this->runnersMutex = this->osInterface.osCreateMutex();
 
     assert(this->configMutex != nullptr && this->notStartedRunnersMutex != nullptr && "Mutex creation failed");
 
@@ -92,10 +90,10 @@ uint8_t DoCANCpp::getBlockSize() const
     return bs;
 }
 
-bool DoCANCpp::setBlockSize(const uint8_t blockSize)
+bool DoCANCpp::setBlockSize(const uint8_t bs)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->blockSize = blockSize;
+    this->blockSize = bs;
     configMutex->signal();
 
     return updateRunners();
@@ -104,7 +102,7 @@ bool DoCANCpp::setBlockSize(const uint8_t blockSize)
 STmin DoCANCpp::getSTmin() const
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    STmin stM = this->stMin;
+    const STmin stM = this->stMin;
     configMutex->signal();
     return stM;
 }
@@ -127,7 +125,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
 {
     bool result;
     N_AI nAI = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
-    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData, length, *osInterface, *CanMessageACKQueue);
+    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData, length, osInterface, *CanMessageACKQueue);
     if (!result)
     {
         delete runner;
@@ -142,11 +140,11 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
 void DoCANCpp::run_step(DoCANCpp* self)
 {
     // The first part of the run_step is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed since the last run.
-    if (self->osInterface->osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
+    if (self->osInterface.osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
     {
-        self->lastRunTime = self->osInterface->osMillis();
+        self->lastRunTime = self->osInterface.osMillis();
 
-        if (self->canInterface->active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
+        if (self->canInterface.active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
         {
             // Get the configuration used in this run_step.
             self->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
@@ -188,9 +186,9 @@ void DoCANCpp::run_step(DoCANCpp* self)
             };
             FrameStatus frameStatus = frameNotAvailable;
             CANFrame frame;
-            if (self->canInterface->frameAvailable())
+            if (self->canInterface.frameAvailable())
             {
-                self->canInterface->readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
+                self->canInterface.readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
                 if (frame.extd == 1 && frame.data_length_code > 0 && frame.data_length_code <= CAN_FRAME_MAX_DLC)
                 {
                     if ((frame.identifier.N_TAtype == N_TATYPE_5_CAN_CLASSIC_29bit_Physical && frame.identifier.N_TA == nSA) ||
@@ -238,7 +236,7 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // The fifth part of the run_step is to check if a runner processed a message, and if no one did, start a new runner to handle it.
             if (frameStatus == frameAvailable)
             {
-                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin, *self->osInterface, *self->CanMessageACKQueue);
+                N_USData_Runner* runner = new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin, self->osInterface, *self->CanMessageACKQueue);
                 switch (runner->run_step(&frame))
                 {
                     case IN_PROGRESS:
@@ -315,7 +313,7 @@ bool DoCANCpp::updateRunner(N_USData_Runner* runner) const
 {
     if (runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
     {
-        N_USData_Indication_Runner* indicationRunner = dynamic_cast<N_USData_Indication_Runner*>(runner);
+        const auto indicationRunner = dynamic_cast<N_USData_Indication_Runner*>(runner);
 
         if (!indicationRunner->setBlockSize(blockSize))
         {

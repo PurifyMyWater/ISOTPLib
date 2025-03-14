@@ -121,9 +121,9 @@ public:
     /**
      * This function is used to set the block size for this DoCANCpp object.
      * All messages sent or received by this object will have this block size, even if they are being sent or received before setting the new block size.
-     * @param blockSize The block size to set for this DoCANCpp object.
+     * @param bs The block size to set for this DoCANCpp object.
      */
-    bool setBlockSize(uint8_t blockSize);
+    bool setBlockSize(uint8_t bs);
 
     /**
      * This function is used to get the separation time for this DoCANCpp object.
@@ -145,13 +145,13 @@ public:
 
 private:
     // Interfaces
-    OSInterface* osInterface;
-    CANInterface* canInterface;
+    OSInterface& osInterface;
+    CANInterface& canInterface;
 
     // Synchronization & mutual exclusion
-    OSInterface_Mutex* volatile configMutex;
-    OSInterface_Mutex* volatile notStartedRunnersMutex;
-    OSInterface_Mutex* volatile runnersMutex;
+    OSInterface_Mutex* configMutex;
+    OSInterface_Mutex* notStartedRunnersMutex;
+    OSInterface_Mutex* runnersMutex;
 
     // Internal configuration (constant)
     N_USData_confirm_cb_t N_USData_confirm_cb;
@@ -159,7 +159,7 @@ private:
     N_USData_FF_indication_cb_t N_USData_FF_indication_cb;
 
     // Internal configuration (mutable)
-    volatile typeof(N_AI::N_SA) nSA;
+    typeof(N_AI::N_SA) nSA;
     std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs;
     uint8_t blockSize;
     STmin stMin{};

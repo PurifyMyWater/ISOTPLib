@@ -4,8 +4,22 @@
 #include <cstring>
 
 N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osInterface,
-                                                       CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osInterface, canMessageACKQueue)
+                                                       CANMessageACKQueue& canMessageACKQueue)
 {
+    this->TAG = "DoCANCpp_IndicationRunner";
+
+    this->mType = Mtype_Unknown;
+    this->osInterface = &osInterface;
+    this->CanMessageACKQueue = &canMessageACKQueue;
+    this->messageData = nullptr;
+    this->messageLength = 0;
+    this->result = NOT_STARTED;
+    this->lastRunTime = 0;
+    this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
+
+    this->mutex = osInterface.osCreateMutex();
+    assert(this->mutex != nullptr && "Failed to create mutex");
+
     this->internalStatus = NOT_RUNNING;
     this->runnerType = RunnerIndicationType;
     this->nAi = nAi;
@@ -31,6 +45,8 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
         this->osInterface->osFree(messageData);
         this->availableMemoryForRunners->add(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
+
+    delete mutex;
 }
 
 bool N_USData_Indication_Runner::setBlockSize(uint8_t blockSize)
@@ -350,3 +366,15 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKRes
 
     mutex->signal();
 }
+
+N_AI N_USData_Indication_Runner::getN_AI() const { return nAi; }
+
+uint8_t* N_USData_Indication_Runner::getMessageData() const { return messageData; }
+
+uint32_t N_USData_Indication_Runner::getMessageLength() const { return messageLength; }
+
+N_Result N_USData_Indication_Runner::getResult() const { return result; }
+
+Mtype N_USData_Indication_Runner::getMtype() const { return mType; }
+
+N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const { return this->runnerType; }

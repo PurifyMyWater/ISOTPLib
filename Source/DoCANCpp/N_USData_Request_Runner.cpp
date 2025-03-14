@@ -9,8 +9,22 @@
 
 
 N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength,
-                                                 OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue) : N_USData_Runner(nAi, osInterface, canMessageACKQueue)
+                                                 OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue)
 {
+    this->TAG = "DoCANCpp_RequestRunner";
+
+    this->nAi = nAi;
+    this->mType = Mtype_Unknown;
+    this->osInterface = &osInterface;
+    this->CanMessageACKQueue = &canMessageACKQueue;
+    this->blockSize = 0;
+    this->stMin = {0, ms};
+    this->lastRunTime = 0;
+    this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
+
+    this->mutex = osInterface.osCreateMutex();
+    assert(this->mutex != nullptr && "Failed to create mutex");
+
     this->internalStatus = ERROR;
     this->result = NOT_STARTED;
     this->messageOffset = 0;
@@ -73,6 +87,8 @@ N_USData_Request_Runner::~N_USData_Request_Runner()
 
     osInterface->osFree(this->messageData);
     availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
+
+    delete mutex;
 }
 
 N_Result N_USData_Request_Runner::sendCFFrame()
@@ -455,3 +471,15 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
 
     return N_OK;
 }
+
+N_AI N_USData_Request_Runner::getN_AI() const { return nAi; }
+
+uint8_t* N_USData_Request_Runner::getMessageData() const { return messageData; }
+
+uint32_t N_USData_Request_Runner::getMessageLength() const { return messageLength; }
+
+N_Result N_USData_Request_Runner::getResult() const { return result; }
+
+Mtype N_USData_Request_Runner::getMtype() const { return mType; }
+
+N_USData_Request_Runner::RunnerType N_USData_Request_Runner::getRunnerType() const { return this->runnerType; }
