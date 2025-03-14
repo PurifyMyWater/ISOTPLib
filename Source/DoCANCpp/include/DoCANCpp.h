@@ -11,6 +11,7 @@
 
 #define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
+constexpr uint32_t DoCANCpp_MaxTimeToWaitForRunnersSync_MS = 1000;
 constexpr uint32_t DoCANCpp_RunPeriod_MS = 100;
 constexpr STmin DoCANCpp_DefaultSTmin = {20, ms};
 constexpr uint8_t DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
@@ -120,9 +121,9 @@ public:
     /**
      * This function is used to set the block size for this DoCANCpp object.
      * All messages sent or received by this object will have this block size, even if they are being sent or received before setting the new block size.
-     * @param blockSize The block size to set for this DoCANCpp object.
+     * @param bs The block size to set for this DoCANCpp object.
      */
-    void setBlockSize(uint8_t blockSize);
+    bool setBlockSize(uint8_t bs);
 
     /**
      * This function is used to get the separation time for this DoCANCpp object.
@@ -144,12 +145,13 @@ public:
 
 private:
     // Interfaces
-    OSInterface* osInterface;
-    CANInterface* canInterface;
+    OSInterface& osInterface;
+    CANInterface& canInterface;
 
     // Synchronization & mutual exclusion
-    OSInterface_Mutex* volatile configMutex;
-    OSInterface_Mutex* volatile notStartedRunnersMutex;
+    OSInterface_Mutex* configMutex;
+    OSInterface_Mutex* notStartedRunnersMutex;
+    OSInterface_Mutex* runnersMutex;
 
     // Internal configuration (constant)
     N_USData_confirm_cb_t N_USData_confirm_cb;
@@ -157,7 +159,7 @@ private:
     N_USData_FF_indication_cb_t N_USData_FF_indication_cb;
 
     // Internal configuration (mutable)
-    volatile typeof(N_AI::N_SA) nSA;
+    typeof(N_AI::N_SA) nSA;
     std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs;
     uint8_t blockSize;
     STmin stMin{};
@@ -169,6 +171,10 @@ private:
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
     std::list<N_USData_Runner*> finishedRunners;
     CANMessageACKQueue* CanMessageACKQueue;
+
+    // Functions
+    bool updateRunners();
+    bool updateRunner(N_USData_Runner* runner) const;
 };
 
 #endif // DoCANCpp_H

@@ -22,6 +22,18 @@ public:
 
     void messageACKReceivedCallback(CANInterface::ACKResult success) override;
 
+    [[nodiscard]] N_AI getN_AI() const override;
+
+    [[nodiscard]] uint8_t* getMessageData() const override;
+
+    [[nodiscard]] uint32_t getMessageLength() const override;
+
+    [[nodiscard]] N_Result getResult() const override;
+
+    [[nodiscard]] Mtype getMtype() const override;
+
+    [[nodiscard]] RunnerType getRunnerType() const override;
+
 private:
     N_Result run_step_SF(const CANFrame* receivedFrame);
     N_Result run_step_FF(const CANFrame* receivedFrame);
@@ -30,11 +42,24 @@ private:
 
     N_Result parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
-    N_Result checkTimeouts() override;
+    N_Result checkTimeouts();
     N_Result sendCFFrame();
 
     using InternalStatus_t = enum { NOT_RUNNING_SF, AWAITING_SF_ACK, NOT_RUNNING_FF, AWAITING_FF_ACK, AWAITING_FirstFC, AWAITING_FC, SEND_CF, AWAITING_CF_ACK, MESSAGE_SENT, ERROR };
 
+    OSInterface_Mutex* mutex;
+
+    N_AI nAi;
+    Mtype mType;
+    uint8_t* messageData;
+    int64_t messageLength;
+    uint8_t blockSize;
+    STmin stMin{};
+
+    N_Result result;
+    RunnerType runnerType;
+    uint32_t lastRunTime;
+    uint8_t sequenceNumber;
     Atomic_int64_t* availableMemoryForRunners;
     uint32_t messageOffset;
     InternalStatus_t internalStatus;
@@ -43,6 +68,9 @@ private:
     Timer_N* timerN_As; // Timer for sending a frame
     Timer_N* timerN_Bs; // Timer that holds the time since the last FF or CF to the next CF.
     Timer_N* timerN_Cs; // Timer that calls out once STmin has passed.
+
+    OSInterface* osInterface;
+    CANMessageACKQueue* CanMessageACKQueue;
 };
 
 #endif // N_USDATA_REQUEST_RUNNER_H
