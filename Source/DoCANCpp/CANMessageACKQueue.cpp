@@ -14,7 +14,6 @@ void CANMessageACKQueue::run_step()
     if (CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {
         OSInterfaceLogDebug(TAG, "ACK received: %s", CANInterface::ackResultToString(ack));
-        
         if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
             N_USData_Runner* runner = messageQueue.front();
