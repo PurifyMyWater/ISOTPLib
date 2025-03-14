@@ -9,6 +9,7 @@ void CANMessageACKQueue::run_step()
     CANInterface::ACKResult ack = canInterface->getWriteFrameACK();
     if (ack != CANInterface::ACK_NONE)
     {
+        OSInterfaceLogDebug(TAG, "ACK received: %s", CANInterface::ackResultToString(ack));
         N_USData_Runner* runner = messageQueue.front();
         runner->messageACKReceivedCallback(ack);
         messageQueue.pop_front();
@@ -17,6 +18,8 @@ void CANMessageACKQueue::run_step()
 
 bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
 {
+    OSInterfaceLogDebug(TAG, "Writing frame with N_AI=%s: ", nAiToString(frame.identifier));
+    OSInterfaceLogVerbose(TAG, "Writing frame: %s", frameToString(frame));
     bool res = canInterface->writeFrame(&frame);
     if (res)
     {

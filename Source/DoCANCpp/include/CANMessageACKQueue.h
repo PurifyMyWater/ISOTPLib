@@ -15,6 +15,8 @@ public:
 
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
 
+    constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
+
 private:
     std::list<N_USData_Runner*> messageQueue;
     CANInterface* canInterface;
