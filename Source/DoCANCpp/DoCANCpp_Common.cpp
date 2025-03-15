@@ -1,6 +1,6 @@
 #include "DoCANCpp_Common.h"
 
-const char* N_Result_to_string(N_Result result)
+const char* N_ResultToString(const N_Result result)
 {
     switch (result)
     {
