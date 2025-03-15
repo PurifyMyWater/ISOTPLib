@@ -47,13 +47,23 @@ private:
     N_Result run_step_CF(const CANFrame* receivedFrame);
     N_Result run_step_FC(const CANFrame* receivedFrame, bool firstFC = false);
 
-    N_Result parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM);
+    N_Result               parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
-    N_Result checkTimeouts();
-    N_Result sendCFFrame();
+    N_Result               checkTimeouts();
+    N_Result               sendCFFrame();
 
-    using InternalStatus_t = enum { NOT_RUNNING_SF, AWAITING_SF_ACK, NOT_RUNNING_FF, AWAITING_FF_ACK, AWAITING_FirstFC, AWAITING_FC, SEND_CF, AWAITING_CF_ACK, MESSAGE_SENT, ERROR };
-
+    using InternalStatus_t = enum {
+        NOT_RUNNING_SF,
+        AWAITING_SF_ACK,
+        NOT_RUNNING_FF,
+        AWAITING_FF_ACK,
+        AWAITING_FirstFC,
+        AWAITING_FC,
+        SEND_CF,
+        AWAITING_CF_ACK,
+        MESSAGE_SENT,
+        ERROR
+    };
 
     N_AI nAi;
     Mtype mType;
@@ -72,13 +82,13 @@ private:
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t internalStatus;
-    int16_t cfSentInThisBlock;
+    int16_t          cfSentInThisBlock;
 
     Timer_N* timerN_As{}; // Timer for sending a frame
     Timer_N* timerN_Bs{}; // Timer that holds the time since the last FF or CF to the next CF.
     Timer_N* timerN_Cs{}; // Timer that calls out once STmin has passed.
 
-    OSInterface* osInterface;
+    OSInterface*        osInterface;
     CANMessageACKQueue* CanMessageACKQueue;
 };
 

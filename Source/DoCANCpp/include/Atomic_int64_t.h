@@ -17,8 +17,8 @@ public:
     bool subIfResIsGreaterThanZero(int64_t amount, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);
 
 private:
-    int64_t internalValue;
-    OSInterface* osInterface;
+    int64_t            internalValue;
+    OSInterface*       osInterface;
     OSInterface_Mutex* mutex;
 };
 

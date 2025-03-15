@@ -4,20 +4,20 @@
 #include <N_USData_Request_Runner.h>
 
 #include <N_USData_Runner.h>
+#include "ASSERT_MACROS.h"
+#include "LinuxOSInterface.h"
 #include "LocalCANNetwork.h"
 #include "gtest/gtest.h"
-#include "LinuxOSInterface.h"
-#include "ASSERT_MACROS.h"
 
 static LinuxOSInterface linuxOSInterface;
 
 TEST(CANMessageACKQueue, writeFrame)
 {
     // Given
-    LocalCANNetwork localCANNetwork;
-    CANInterface* canInterface = localCANNetwork.newCANInterfaceConnection();
+    LocalCANNetwork    localCANNetwork;
+    CANInterface*      canInterface = localCANNetwork.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
-    CANFrame frame = NewCANFrameDoCANCpp();
+    CANFrame           frame = NewCANFrameDoCANCpp();
 
     // Create dumb runner
     int64_t availableMemoryConst = 100;
@@ -39,7 +39,7 @@ TEST(CANMessageACKQueue, writeFrame)
     bool res = canMessageACKQueue.writeFrame(runner, frame);
 
     // Want
-    bool expected_result = true;
+    bool     expected_result = true;
     CANFrame realFrame;
     receivedCanInterface->readFrame(&realFrame);
 

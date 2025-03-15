@@ -48,12 +48,11 @@ private:
     N_Result run_step_notRunning(const CANFrame* receivedFrame);
     N_Result run_step_CF(const CANFrame* receivedFrame);
 
-    N_Result sendFCFrame(FlowStatus fs);
+    N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
-    N_Result checkTimeouts();
+    N_Result               checkTimeouts();
 
     using InternalStatus_t = enum { NOT_RUNNING, AWAITING_FC_ACK, AWAITING_CF, ERROR };
-
 
     N_AI nAi;
     Mtype mType;
@@ -72,15 +71,15 @@ private:
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t internalStatus;
-    Atomic_int64_t* availableMemoryForRunners;
-    uint32_t messageOffset;
-    int16_t cfReceivedInThisBlock;
+    Atomic_int64_t*  availableMemoryForRunners;
+    uint32_t         messageOffset;
+    int16_t          cfReceivedInThisBlock;
 
     Timer_N* timerN_Ar{}; // Timer for sending a frame
     Timer_N* timerN_Br{}; // Timer that holds the time since the last FF or CF to the next FC.
     Timer_N* timerN_Cr{}; // Timer that holds the time since the last FC to the next FC.
 
-    OSInterface* osInterface;
+    OSInterface*        osInterface;
     CANMessageACKQueue* CanMessageACKQueue{};
 };
 

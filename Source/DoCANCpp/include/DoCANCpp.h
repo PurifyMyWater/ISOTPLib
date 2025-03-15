@@ -10,12 +10,13 @@
 #include "DoCANCpp_Common.h"
 #include "N_USData_Runner.h"
 
-#define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA) {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
+#define DoCANCpp_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA)                                                                  \
+    {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForRunnersSync_MS = 1000;
-constexpr uint32_t DoCANCpp_RunPeriod_MS = 100;
-constexpr STmin DoCANCpp_DefaultSTmin = {20, ms};
-constexpr uint8_t DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
+constexpr uint32_t DoCANCpp_RunPeriod_MS                   = 100;
+constexpr STmin    DoCANCpp_DefaultSTmin                   = {20, ms};
+constexpr uint8_t  DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
 /**
  * This function is used to confirm the reception of a message.
@@ -34,7 +35,8 @@ using N_USData_confirm_cb_t = void (*)(N_AI nAi, N_Result nResult, Mtype mtype);
  * @param nResult The result of the reception.
  * @param mtype The Mtype of the message.
  */
-using N_USData_indication_cb_t = void (*)(N_AI nAi, const uint8_t* messageData, uint32_t messageLength, N_Result nResult, Mtype mtype);
+using N_USData_indication_cb_t = void (*)(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                          N_Result nResult, Mtype mtype);
 
 /**
  * This function is used to indicate the reception of the first frame of a multi-frame message.
@@ -45,8 +47,9 @@ using N_USData_indication_cb_t = void (*)(N_AI nAi, const uint8_t* messageData, 
 using N_USData_FF_indication_cb_t = void (*)(N_AI nAi, uint32_t messageLength, Mtype mtype);
 
 /**
- * This class provides a C++ implementation of the DoCAN protocol aka ISO-TP, it currently only supports N_TAtype #5 & #6
- * (Standard CAN, 29bit ID Physical & Functional address modes using normal fixed addressing (See ISO 15765-2 for more details)).
+ * This class provides a C++ implementation of the DoCAN protocol aka ISO-TP, it currently only supports N_TAtype #5 &
+ * #6 (Standard CAN, 29bit ID Physical & Functional address modes using normal fixed addressing (See ISO 15765-2 for
+ * more details)).
  */
 class DoCANCpp
 {
@@ -56,7 +59,8 @@ public:
     /**
      * This function is used to queue a message to be sent to an N_TA from the current DoCANCpp object N_SA.
      * The message will be sent as soon as possible, but there is no guarantee on the timing.
-     * @note If the request is issued to an N_AI that is currently being processed, the message will be queued and processed once the conflicting message is processed.
+     * @note If the request is issued to an N_AI that is currently being processed, the message will be queued and
+     * processed once the conflicting message is processed.
      * @param nTa The N_TA to send the message to.
      * @param nTaType The N_TAtype of the N_TA.
      * @param messageData The message data to send.
@@ -65,7 +69,8 @@ public:
      *
      * @returns true if the request was queued successfully and false if it failed to enqueue the message.
      */
-    bool N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, const uint8_t* messageData, uint32_t length, Mtype mType = Mtype_Diagnostics);
+    bool N_USData_request(typeof(N_AI::N_TA) nTa, N_TAtype_t nTaType, const uint8_t* messageData, uint32_t length,
+                          Mtype mType = Mtype_Diagnostics);
 
     /**
      * This function is used to run the DoCAN service.
@@ -121,7 +126,8 @@ public:
 
     /**
      * This function is used to set the block size for this DoCANCpp object.
-     * All messages sent or received by this object will have this block size, even if they are being sent or received before setting the new block size.
+     * All messages sent or received by this object will have this block size, even if they are being sent or received
+     * before setting the new block size.
      * @param bs The block size to set for this DoCANCpp object.
      */
     bool setBlockSize(uint8_t bs);
@@ -134,19 +140,21 @@ public:
 
     /**
      * This function is used to set the separation time for this DoCANCpp object.
-     * All messages sent or received by this object will have this separation time, even if they are being sent or received before setting the new separation time.
+     * All messages sent or received by this object will have this separation time, even if they are being sent or
+     * received before setting the new separation time.
      * @param stMin The separation time to set for this DoCANCpp object.
      * @return True if the separation time was set, false otherwise.
      */
     bool setSTmin(STmin stMin);
 
-    DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb, N_USData_indication_cb_t N_USData_indication_cb,
-             N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize,
+    DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb,
+             N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb,
+             OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize,
              STmin stMin = DoCANCpp_DefaultSTmin);
 
 private:
     // Interfaces
-    OSInterface& osInterface;
+    OSInterface&  osInterface;
     CANInterface& canInterface;
 
     // Synchronization & mutual exclusion
@@ -155,23 +163,23 @@ private:
     OSInterface_Mutex* runnersMutex;
 
     // Internal configuration (constant)
-    N_USData_confirm_cb_t N_USData_confirm_cb;
-    N_USData_indication_cb_t N_USData_indication_cb;
+    N_USData_confirm_cb_t       N_USData_confirm_cb;
+    N_USData_indication_cb_t    N_USData_indication_cb;
     N_USData_FF_indication_cb_t N_USData_FF_indication_cb;
 
     // Internal configuration (mutable)
-    typeof(N_AI::N_SA) nSA;
+    typeof(N_AI::N_SA)                     nSA;
     std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs;
-    uint8_t blockSize;
-    STmin stMin{};
+    uint8_t                                blockSize;
+    STmin                                  stMin{};
 
     // Internal data
-    Atomic_int64_t availableMemoryForRunners;
-    uint32_t lastRunTime;
-    std::list<N_USData_Runner*> notStartedRunners;
+    Atomic_int64_t                                           availableMemoryForRunners;
+    uint32_t                                                 lastRunTime;
+    std::list<N_USData_Runner*>                              notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
-    std::list<N_USData_Runner*> finishedRunners;
-    CANMessageACKQueue* CanMessageACKQueue;
+    std::list<N_USData_Runner*>                              finishedRunners;
+    CANMessageACKQueue*                                      CanMessageACKQueue;
 
     // Functions
     bool updateRunners();
