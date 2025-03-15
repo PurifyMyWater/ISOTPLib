@@ -10,7 +10,8 @@ class LocalCANNetworkCANInterface;
 
 /**
  * @brief A local CAN network that can be used to test CANInterface implementations
- * To use it, call newCANInterfaceConnection() to create a new CANInterface connection to the network, and use the CANInterface as you would use normally
+ * To use it, call newCANInterfaceConnection() to create a new CANInterface connection to the network, and use the
+ * CANInterface as you would use normally
  */
 class LocalCANNetwork
 {
@@ -61,19 +62,20 @@ public:
 
     /**
      * @brief Get the ACK result of the last message sent (Internal use only)
-     * @return The result of the last ACK or ACK_NONE if no message was transmitted since the last call to this function.
+     * @return The result of the last ACK or ACK_NONE if no message was transmitted since the last call to this
+     * function.
      */
     CANInterface::ACKResult getWriteFrameACK();
 
     void overrideActive(bool forceDisable);
 
 private:
-    CANInterface::ACKResult lastACK = CANInterface::ACK_NONE;
-    [[nodiscard]] bool checkNodeID(uint32_t nodeID) const;
+    CANInterface::ACKResult          lastACK = CANInterface::ACK_NONE;
+    [[nodiscard]] bool               checkNodeID(uint32_t nodeID) const;
     std::vector<std::list<CANFrame>> network;
-    uint32_t nextNodeID = 0;
-    bool allowActiveFlag = true;
-    OSInterface_Mutex* accessMutex = LinuxOSInterface().osCreateMutex();
+    uint32_t                         nextNodeID      = 0;
+    bool                             allowActiveFlag = true;
+    OSInterface_Mutex*               accessMutex     = LinuxOSInterface().osCreateMutex();
 };
 
 /**
@@ -83,9 +85,9 @@ class LocalCANNetworkCANInterface : public CANInterface
 {
 public:
     uint32_t frameAvailable() override;
-    bool readFrame(CANFrame* frame) override;
-    bool writeFrame(CANFrame* frame) override;
-    bool active() override;
+    bool     readFrame(CANFrame* frame) override;
+    bool     writeFrame(CANFrame* frame) override;
+    bool     active() override;
 
     ACKResult getWriteFrameACK() override;
 
@@ -95,7 +97,7 @@ public:
 
 private:
     LocalCANNetwork* network;
-    uint32_t nodeID;
+    uint32_t         nodeID;
 };
 
 #endif // DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
