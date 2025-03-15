@@ -18,9 +18,9 @@ public:
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
 
 private:
-    OSInterface_Mutex* mutex;
+    OSInterface_Mutex*          mutex;
     std::list<N_USData_Runner*> messageQueue;
-    CANInterface* canInterface;
+    CANInterface*               canInterface;
 };
 
 #endif // CANMESSAGEACKQUEUE_H

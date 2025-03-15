@@ -1,13 +1,15 @@
 #include "CANMessageACKQueue.h"
 #include <N_USData_Runner.h>
 
-
 CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface)
 {
-    mutex = osInterface.osCreateMutex();
+    mutex              = osInterface.osCreateMutex();
     this->canInterface = &canInterface;
 }
-CANMessageACKQueue::~CANMessageACKQueue() { delete mutex; }
+CANMessageACKQueue::~CANMessageACKQueue()
+{
+    delete mutex;
+}
 
 void CANMessageACKQueue::run_step()
 {

@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include "Timer_N.h"
+#include <gtest/gtest.h>
 #include "LinuxOSInterface.h"
 
 static LinuxOSInterface linuxOSInterface;
@@ -32,7 +32,7 @@ TEST(Timer_N, stopTimer)
 TEST(Timer_N, getStartTimeStamp)
 {
     Timer_N timer(linuxOSInterface);
-    auto stamp = timer.getStartTimeStamp();
+    auto    stamp = timer.getStartTimeStamp();
     ASSERT_EQ(0, stamp);
     timer.startTimer();
     stamp = timer.getStartTimeStamp();

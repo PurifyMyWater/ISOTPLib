@@ -3,35 +3,36 @@
 #include <cassert>
 #include <cstring>
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize, STmin stMin, OSInterface& osInterface,
+N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
+                                                       uint8_t blockSize, STmin stMin, OSInterface& osInterface,
                                                        CANMessageACKQueue& canMessageACKQueue)
 {
     this->TAG = "DoCANCpp_IndicationRunner";
 
-    this->mType = Mtype_Unknown;
-    this->osInterface = &osInterface;
+    this->mType              = Mtype_Unknown;
+    this->osInterface        = &osInterface;
     this->CanMessageACKQueue = &canMessageACKQueue;
-    this->messageData = nullptr;
-    this->messageLength = 0;
-    this->result = NOT_STARTED;
-    this->lastRunTime = 0;
+    this->messageData        = nullptr;
+    this->messageLength      = 0;
+    this->result             = NOT_STARTED;
+    this->lastRunTime        = 0;
     this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
 
     this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");
 
-    this->internalStatus = NOT_RUNNING;
-    this->runnerType = RunnerIndicationType;
-    this->nAi = nAi;
-    this->stMin = stMin;
-    this->blockSize = blockSize;
-    this->effectiveBlockSize = blockSize;
-    this->effectiveStMin = stMin;
+    this->internalStatus            = NOT_RUNNING;
+    this->runnerType                = RunnerIndicationType;
+    this->nAi                       = nAi;
+    this->stMin                     = stMin;
+    this->blockSize                 = blockSize;
+    this->effectiveBlockSize        = blockSize;
+    this->effectiveStMin            = stMin;
     this->availableMemoryForRunners = &availableMemoryForRunners;
-    this->osInterface = &osInterface;
-    this->messageData = nullptr;
-    this->messageOffset = 0;
-    this->cfReceivedInThisBlock = 0;
+    this->osInterface               = &osInterface;
+    this->messageData               = nullptr;
+    this->messageOffset             = 0;
+    this->cfReceivedInThisBlock     = 0;
 
     this->timerN_Ar = new Timer_N(osInterface);
     this->timerN_Br = new Timer_N(osInterface);
@@ -78,11 +79,13 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
         returnError(N_ERROR);
     }
 
-    if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical && receivedFrame->identifier.N_TAtype != N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
+    if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical &&
+        receivedFrame->identifier.N_TAtype != N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
         returnError(N_ERROR); // The frame is not a Mtype_Diagnostics frame.
     }
-    this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 & 206 is the value used for remote diagnostics)
+    this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 &
+                                     // 206 is the value used for remote diagnostics)
 
     switch (receivedFrame->data[0] >> 4)
     {
@@ -90,7 +93,9 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
         {
             messageLength = receivedFrame->data[0] & 0b00001111;
 
-            if (messageLength <= MAX_SF_MESSAGE_LENGTH && this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t))))
+            if (messageLength <= MAX_SF_MESSAGE_LENGTH &&
+                this->availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength *
+                                                                           static_cast<int64_t>(sizeof(uint8_t))))
             {
                 messageData = static_cast<uint8_t*>(osInterface->osMalloc(this->messageLength * sizeof(uint8_t)));
                 memcpy(messageData, &receivedFrame->data[1], messageLength);
@@ -108,11 +113,16 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
                 returnError(N_UNEXP_PDU);
             }
 
-            messageLength = (receivedFrame->data[0] & 0b00001111) << 8 | receivedFrame->data[1]; // unpack the message length (12 bits) 4 in data[0] lower 4 bits and 8 in data[1]
+            messageLength =
+                (receivedFrame->data[0] & 0b00001111) << 8 |
+                receivedFrame
+                    ->data[1];      // unpack the message length (12 bits) 4 in data[0] lower 4 bits and 8 in data[1]
             if (messageLength == 0) // Escape sequence -> length is >= MIN_FF_DL_WITH_ESCAPE_SEQUENCE
             {
-                messageLength = receivedFrame->data[2] << 24 | receivedFrame->data[3] << 16 | receivedFrame->data[4] << 8 |
-                                receivedFrame->data[5]; // unpack the message length (32 bits) 8 in data[2], 8 in data[3], 8 in data[4] and 8 in data[5]
+                messageLength = receivedFrame->data[2] << 24 | receivedFrame->data[3] << 16 |
+                                receivedFrame->data[4] << 8 |
+                                receivedFrame->data[5]; // unpack the message length (32 bits) 8 in data[2], 8 in
+                                                        // data[3], 8 in data[4] and 8 in data[5]
             }
 
             if (messageLength <= MAX_SF_MESSAGE_LENGTH)
@@ -120,7 +130,8 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
                 returnError(N_ERROR);
             }
 
-            if (availableMemoryForRunners->subIfResIsGreaterThanZero(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
+            if (availableMemoryForRunners->subIfResIsGreaterThanZero(
+                    this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
             {
                 this->messageData = static_cast<uint8_t*>(osInterface->osMalloc(messageLength * sizeof(uint8_t)));
 
@@ -163,12 +174,12 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
 {
     effectiveBlockSize = blockSize;
-    effectiveStMin = stMin;
+    effectiveStMin     = stMin;
 
-    CANFrame fcFrame = NewCANFrameDoCANCpp();
+    CANFrame fcFrame            = NewCANFrameDoCANCpp();
     fcFrame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
-    fcFrame.identifier.N_TA = nAi.N_SA;
-    fcFrame.identifier.N_SA = nAi.N_TA;
+    fcFrame.identifier.N_TA     = nAi.N_SA;
+    fcFrame.identifier.N_SA     = nAi.N_TA;
 
     fcFrame.data[0] = FC_CODE << 4 | fs;
     fcFrame.data[1] = effectiveBlockSize;
@@ -223,7 +234,9 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
     }
 
     uint8_t bytesToCopy =
-            MIN(receivedFrame->data_length_code - 1, messageLength - messageOffset); // Copy the minimum between the remaining bytes and the received bytes (1st byte is used to transport metadata).
+        MIN(receivedFrame->data_length_code - 1,
+            messageLength - messageOffset); // Copy the minimum between the remaining bytes and the received bytes (1st
+                                            // byte is used to transport metadata).
 
     memcpy(&messageData[messageOffset], &receivedFrame->data[1], bytesToCopy);
 
@@ -277,7 +290,7 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
-        result = N_ERROR;
+        result         = N_ERROR;
         internalStatus = ERROR;
         return result;
     }
@@ -310,7 +323,10 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
     return res;
 }
 
-bool N_USData_Indication_Runner::awaitingMessage() const { return internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF; }
+bool N_USData_Indication_Runner::awaitingMessage() const
+{
+    return internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF;
+}
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
@@ -338,7 +354,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKRes
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
-        result = N_ERROR;
+        result         = N_ERROR;
         internalStatus = ERROR;
         return;
     }
@@ -355,7 +371,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKRes
             }
             else
             {
-                result = N_ERROR;
+                result         = N_ERROR;
                 internalStatus = ERROR;
             }
         }
@@ -367,14 +383,32 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKRes
     mutex->signal();
 }
 
-N_AI N_USData_Indication_Runner::getN_AI() const { return nAi; }
+N_AI N_USData_Indication_Runner::getN_AI() const
+{
+    return nAi;
+}
 
-uint8_t* N_USData_Indication_Runner::getMessageData() const { return messageData; }
+uint8_t* N_USData_Indication_Runner::getMessageData() const
+{
+    return messageData;
+}
 
-uint32_t N_USData_Indication_Runner::getMessageLength() const { return messageLength; }
+uint32_t N_USData_Indication_Runner::getMessageLength() const
+{
+    return messageLength;
+}
 
-N_Result N_USData_Indication_Runner::getResult() const { return result; }
+N_Result N_USData_Indication_Runner::getResult() const
+{
+    return result;
+}
 
-Mtype N_USData_Indication_Runner::getMtype() const { return mType; }
+Mtype N_USData_Indication_Runner::getMtype() const
+{
+    return mType;
+}
 
-N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const { return this->runnerType; }
+N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const
+{
+    return this->runnerType;
+}
