@@ -3,8 +3,9 @@
 
 #include <cstdint>
 
-#define CAN_FRAME_MAX_DLC 8
-
+constexpr uint8_t CAN_FRAME_MAX_DLC = 8;
+constexpr uint32_t MAX_N_AI_STR_SIZE = 71; // 40 (N_TAtype) + 3 (N_SA) + 3 (N_TA) + 24 (for the format string) + 1 (for the null terminator)
+constexpr uint32_t MAX_FRAME_STR_SIZE = 178; // 70 (N_AI) + 5 (flags) + 1 (data_length_code) + 16 (data) + 85 (format string) + 1 (null terminator)
 
 using N_TAtype_t = enum N_TAtype { CAN_UNKNOWN = 0, N_TATYPE_5_CAN_CLASSIC_29bit_Physical = 218, N_TATYPE_6_CAN_CLASSIC_29bit_Functional = 219 };
 
