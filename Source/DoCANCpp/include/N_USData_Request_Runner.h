@@ -69,7 +69,6 @@ private:
     STmin    stMin{};
 
     N_Result         result;
-    RunnerType       runnerType;
     uint32_t         lastRunTime;
     uint8_t          sequenceNumber;
     Atomic_int64_t*  availableMemoryForRunners;
