@@ -1,5 +1,5 @@
-#ifndef DOCANCPP_DATA_STRUCTURES_H
-#define DOCANCPP_DATA_STRUCTURES_H
+#ifndef DOCANCPP_COMMON_H
+#define DOCANCPP_COMMON_H
 
 #define DOCANCPP_DISABLE_TIMEOUTS false
 
@@ -49,4 +49,4 @@ const char* N_Result_to_string(N_Result result);
 
 uint32_t getStMinInMs(STmin stMin);
 
-#endif // DOCANCPP_DATA_STRUCTURES_H
+#endif // DOCANCPP_COMMON_H
