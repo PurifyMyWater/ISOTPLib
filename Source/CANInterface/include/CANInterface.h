@@ -25,7 +25,7 @@ using N_AI = union N_AI_union
         uint8_t    N_SA{0};
     };
     uint32_t N_AI;
-} N_AI;
+};
 
 using CANFrame = struct CANFrame
 {
