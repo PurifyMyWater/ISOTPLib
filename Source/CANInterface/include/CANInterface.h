@@ -15,7 +15,7 @@ using N_TAtype_t = enum N_TAtype {
     N_TATYPE_6_CAN_CLASSIC_29bit_Functional = 219
 };
 
-typedef union
+using N_AI = union N_AI_union
 {
     struct __attribute__((packed))
     {
@@ -25,7 +25,7 @@ typedef union
         uint8_t    N_SA{0};
     };
     uint32_t N_AI;
-} N_AI;
+};
 
 using CANFrame = struct CANFrame
 {
