@@ -7,6 +7,9 @@
 
 #include <Timer_N.h>
 
+#warning TODO remove this include after removing tag before merging this branch
+#include <cstring> // TODO remove this include after removing tag before merging this branch
+
 // Class that handles the indication aka reception of a message
 class N_USData_Indication_Runner : public N_USData_Runner
 {
@@ -60,6 +63,8 @@ private:
     uint8_t  effectiveBlockSize;
     STmin    stMin{};
     STmin    effectiveStMin{};
+
+    char* tag = strdup("N_USData_Request_Runner");
 
     N_Result         result;
     RunnerType       runnerType;

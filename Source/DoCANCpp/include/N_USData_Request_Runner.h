@@ -5,6 +5,9 @@
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
 
+#warning TODO remove this include after removing tag before merging this branch
+#include <cstring> // TODO remove this include after removing tag before merging this branch
+
 // Class that handles the request aka transmission of a message
 class N_USData_Request_Runner : public N_USData_Runner
 {
@@ -60,6 +63,8 @@ private:
     };
 
     OSInterface_Mutex* mutex;
+
+    char* tag = strdup("N_USData_Request_Runner");
 
     N_AI     nAi;
     Mtype    mType;
