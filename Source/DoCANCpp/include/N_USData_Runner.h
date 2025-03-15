@@ -35,7 +35,7 @@ public:
     constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
     // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
 
-    N_USData_Runner();
+    N_USData_Runner() = default;
     virtual ~N_USData_Runner() = default;
 
     // If no frame is received, the runner will only execute if it is not awaiting a message, otherwise it will return an error.
@@ -96,9 +96,6 @@ public:
     virtual void messageACKReceivedCallback(CANInterface::ACKResult success) = 0;
 
     const char* TAG;
-
-protected:
-    static uint32_t getStMinInMs(STmin stMin);
 };
 
 #endif // N_USDATA_RUNNER_H

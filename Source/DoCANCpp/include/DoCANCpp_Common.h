@@ -47,4 +47,6 @@ using N_Result = enum N_Result {
 
 const char* N_Result_to_string(N_Result result);
 
+uint32_t getStMinInMs(STmin stMin);
+
 #endif // DOCANCPP_DATA_STRUCTURES_H

@@ -32,3 +32,8 @@ const char* N_Result_to_string(N_Result result)
             return "UNKNOWN";
     }
 }
+
+uint32_t getStMinInMs(STmin stMin)
+{
+    return stMin.unit == usX100 ? 1 : stMin.value; // 1 ms is the smallest resolution we can get.
+}
