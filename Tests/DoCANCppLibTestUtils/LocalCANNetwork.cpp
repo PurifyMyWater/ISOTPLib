@@ -5,21 +5,38 @@ constexpr uint32_t maxSyncTimeMS = 100;
 LocalCANNetworkCANInterface::LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID)
 {
     this->network = network;
-    this->nodeID = nodeID;
+    this->nodeID  = nodeID;
 }
 
-uint32_t LocalCANNetworkCANInterface::frameAvailable() { return network->frameAvailable(nodeID); }
+uint32_t LocalCANNetworkCANInterface::frameAvailable()
+{
+    return network->frameAvailable(nodeID);
+}
 
-bool LocalCANNetworkCANInterface::readFrame(CANFrame* frame) { return network->readFrame(nodeID, frame); }
+bool LocalCANNetworkCANInterface::readFrame(CANFrame* frame)
+{
+    return network->readFrame(nodeID, frame);
+}
 
-bool LocalCANNetworkCANInterface::writeFrame(CANFrame* frame) { return network->writeFrame(nodeID, frame); }
+bool LocalCANNetworkCANInterface::writeFrame(CANFrame* frame)
+{
+    return network->writeFrame(nodeID, frame);
+}
 
-bool LocalCANNetworkCANInterface::active() { return network->active(); }
+bool LocalCANNetworkCANInterface::active()
+{
+    return network->active();
+}
 
-CANInterface::ACKResult LocalCANNetworkCANInterface::getWriteFrameACK() { return network->getWriteFrameACK(); }
+CANInterface::ACKResult LocalCANNetworkCANInterface::getWriteFrameACK()
+{
+    return network->getWriteFrameACK();
+}
 
-uint32_t LocalCANNetworkCANInterface::getNodeID() const { return nodeID; }
-
+uint32_t LocalCANNetworkCANInterface::getNodeID() const
+{
+    return nodeID;
+}
 
 LocalCANNetworkCANInterface* LocalCANNetwork::newCANInterfaceConnection()
 {
@@ -38,7 +55,7 @@ bool LocalCANNetwork::writeFrame(uint32_t emitterID, CANFrame* frame)
     {
         if (checkNodeID(emitterID))
         {
-            for (auto& frames: network)
+            for (auto& frames : network)
             {
                 if (&frames != &network[emitterID])
                 {
@@ -110,13 +127,19 @@ CANInterface::ACKResult LocalCANNetwork::getWriteFrameACK()
     CANInterface::ACKResult res = CANInterface::ACK_NONE;
     if (accessMutex->wait(maxSyncTimeMS))
     {
-        res = lastACK;
+        res     = lastACK;
         lastACK = CANInterface::ACK_NONE;
         accessMutex->signal();
     }
     return res;
 }
 
-bool LocalCANNetwork::checkNodeID(uint32_t nodeID) const { return nodeID < network.size(); }
+bool LocalCANNetwork::checkNodeID(uint32_t nodeID) const
+{
+    return nodeID < network.size();
+}
 
-void LocalCANNetwork::overrideActive(bool forceDisable) { allowActiveFlag = !forceDisable; }
+void LocalCANNetwork::overrideActive(bool forceDisable)
+{
+    allowActiveFlag = !forceDisable;
+}

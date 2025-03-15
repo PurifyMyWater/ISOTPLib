@@ -15,9 +15,9 @@ public:
 
 private:
     OSInterface* osInterface;
-    uint32_t elapsedTime;
-    uint32_t startTime;
-    bool isTimerRunning;
+    uint32_t     elapsedTime;
+    uint32_t     startTime;
+    bool         isTimerRunning;
 };
 
 #endif // TIMER_N_H
