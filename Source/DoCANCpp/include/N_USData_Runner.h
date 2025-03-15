@@ -95,7 +95,7 @@ public:
      */
     virtual void messageACKReceivedCallback(CANInterface::ACKResult success) = 0;
 
-    const char* TAG;
+    const char* TAG{};
 };
 
 #endif // N_USDATA_RUNNER_H
