@@ -2,14 +2,15 @@
 #include <cassert>
 #include <cstring>
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
-                                                       uint8_t blockSize, STmin stMin, OSInterface& osInterface,
+N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
+                                                       Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize,
+                                                       STmin stMin, OSInterface& osInterface,
                                                        CANMessageACKQueue& canMessageACKQueue)
 {
     result = false;
 
     this->availableMemoryForRunners = &availableMemoryForRunners;
-    this->osInterface = &osInterface;
+    this->osInterface               = &osInterface;
 
     if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(N_USDATA_INDICATION_RUNNER_TAG_SIZE))
     {
@@ -18,14 +19,15 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi, A
         {
             return;
         }
-        snprintf(this->tag, N_USDATA_INDICATION_RUNNER_TAG_SIZE, "%s%s", N_USDATA_INDICATION_RUNNER_STATIC_TAG, nAiToString(nAi));
+        snprintf(this->tag, N_USDATA_INDICATION_RUNNER_TAG_SIZE, "%s%s", N_USDATA_INDICATION_RUNNER_STATIC_TAG,
+                 nAiToString(nAi));
     }
     else
     {
         return;
     }
 
-    this->mType = Mtype_Unknown;
+    this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->messageData        = nullptr;
     this->messageLength      = 0;
@@ -36,16 +38,16 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi, A
     this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");
 
-    this->internalStatus = NOT_RUNNING;
-    this->runnerType = RunnerIndicationType;
-    this->nAi = nAi;
-    this->stMin = stMin;
-    this->blockSize = blockSize;
-    this->effectiveBlockSize = blockSize;
-    this->effectiveStMin = stMin;
-    this->osInterface = &osInterface;
-    this->messageData = nullptr;
-    this->messageOffset = 0;
+    this->internalStatus        = NOT_RUNNING;
+    this->runnerType            = RunnerIndicationType;
+    this->nAi                   = nAi;
+    this->stMin                 = stMin;
+    this->blockSize             = blockSize;
+    this->effectiveBlockSize    = blockSize;
+    this->effectiveStMin        = stMin;
+    this->osInterface           = &osInterface;
+    this->messageData           = nullptr;
+    this->messageOffset         = 0;
     this->cfReceivedInThisBlock = 0;
 
     this->timerN_Ar = new Timer_N(osInterface);
@@ -55,7 +57,8 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi, A
     result = true;
 }
 
-// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise, the destructor may attempt a free on an invalid pointer.
+// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise,
+// the destructor may attempt a free on an invalid pointer.
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
 {
     if (this->messageData != nullptr)
@@ -434,6 +437,12 @@ Mtype N_USData_Indication_Runner::getMtype() const
     return mType;
 }
 
-N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const { return this->runnerType; }
+N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const
+{
+    return this->runnerType;
+}
 
-const char* N_USData_Indication_Runner::getTAG() const { return this->tag; }
+const char* N_USData_Indication_Runner::getTAG() const
+{
+    return this->tag;
+}

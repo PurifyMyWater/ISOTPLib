@@ -4,13 +4,14 @@
 #include "Atomic_int64_t.h"
 #include "CANMessageACKQueue.h"
 
-N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength,
+N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
+                                                 Mtype mType, const uint8_t* messageData, uint32_t messageLength,
                                                  OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue)
 {
     result = false;
 
     this->availableMemoryForRunners = &availableMemoryForRunners;
-    this->osInterface = &osInterface;
+    this->osInterface               = &osInterface;
 
     if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(N_USDATA_REQUEST_RUNNER_TAG_SIZE))
     {
@@ -19,15 +20,16 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
         {
             return;
         }
-        snprintf(this->tag, N_USDATA_REQUEST_RUNNER_TAG_SIZE, "%s%s", N_USDATA_REQUEST_RUNNER_STATIC_TAG, nAiToString(nAi));
+        snprintf(this->tag, N_USDATA_REQUEST_RUNNER_TAG_SIZE, "%s%s", N_USDATA_REQUEST_RUNNER_STATIC_TAG,
+                 nAiToString(nAi));
     }
     else
     {
         return;
     }
 
-    this->nAi = nAi;
-    this->mType = Mtype_Unknown;
+    this->nAi                = nAi;
+    this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->blockSize          = 0;
     this->stMin              = {0, ms};
@@ -37,12 +39,12 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");
 
-    this->internalStatus = ERROR;
-    this->result = NOT_STARTED;
-    this->messageOffset = 0;
-    this->runnerType = RunnerRequestType;
-    this->messageData = nullptr;
-    this->messageLength = messageLength;
+    this->internalStatus    = ERROR;
+    this->result            = NOT_STARTED;
+    this->messageOffset     = 0;
+    this->runnerType        = RunnerRequestType;
+    this->messageData       = nullptr;
+    this->messageLength     = messageLength;
     this->cfSentInThisBlock = 0;
 
     this->timerN_As = new Timer_N(osInterface);
@@ -60,7 +62,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
             memcpy(this->messageData, messageData, this->messageLength);
             this->mType = mType;
 
-            if (!(this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional && this->messageLength > MAX_SF_MESSAGE_LENGTH))
+            if (!(this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
+                  this->messageLength > MAX_SF_MESSAGE_LENGTH))
             {
                 this->nAi = nAi;
 
@@ -79,7 +82,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     }
 }
 
-// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise, the destructor may attempt a free on an invalid pointer.
+// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise,
+// the destructor may attempt a free on an invalid pointer.
 N_USData_Request_Runner::~N_USData_Request_Runner()
 {
     if (this->messageData != nullptr)
@@ -510,6 +514,12 @@ Mtype N_USData_Request_Runner::getMtype() const
     return mType;
 }
 
-N_USData_Request_Runner::RunnerType N_USData_Request_Runner::getRunnerType() const { return this->runnerType; }
+N_USData_Request_Runner::RunnerType N_USData_Request_Runner::getRunnerType() const
+{
+    return this->runnerType;
+}
 
-const char* N_USData_Request_Runner::getTAG() const { return this->tag; }
+const char* N_USData_Request_Runner::getTAG() const
+{
+    return this->tag;
+}

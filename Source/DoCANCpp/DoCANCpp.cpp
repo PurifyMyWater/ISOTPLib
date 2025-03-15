@@ -253,10 +253,10 @@ void DoCANCpp::run_step(DoCANCpp* self)
             if (frameStatus == frameAvailable)
             {
                 bool result;
-                
+
                 N_USData_Runner* runner =
-                    new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin,
-                                                   self->osInterface, *self->CanMessageACKQueue);
+                    new N_USData_Indication_Runner(result, frame.identifier, self->availableMemoryForRunners, blockSize,
+                                                   stMin, self->osInterface, *self->CanMessageACKQueue);
                 if (!result)
                 {
                     // TODO: handle this error (Out of memory)

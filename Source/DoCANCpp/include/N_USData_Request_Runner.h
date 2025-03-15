@@ -65,24 +65,24 @@ private:
         ERROR
     };
 
-    N_AI nAi;
-    Mtype mType;
+    N_AI     nAi;
+    Mtype    mType;
     uint8_t* messageData{};
-    int64_t messageLength;
-    uint8_t blockSize;
-    STmin stMin{};
+    int64_t  messageLength;
+    uint8_t  blockSize;
+    STmin    stMin{};
 
-    N_Result result;
-    RunnerType runnerType;
-    uint32_t lastRunTime;
-    uint8_t sequenceNumber;
+    N_Result        result;
+    RunnerType      runnerType;
+    uint32_t        lastRunTime;
+    uint8_t         sequenceNumber;
     Atomic_int64_t* availableMemoryForRunners;
-    uint32_t messageOffset;
-    char* tag{};
+    uint32_t        messageOffset;
+    char*           tag{};
 
     OSInterface_Mutex* mutex{};
-    InternalStatus_t internalStatus;
-    int16_t          cfSentInThisBlock;
+    InternalStatus_t   internalStatus;
+    int16_t            cfSentInThisBlock;
 
     Timer_N* timerN_As{}; // Timer for sending a frame
     Timer_N* timerN_Bs{}; // Timer that holds the time since the last FF or CF to the next CF.
