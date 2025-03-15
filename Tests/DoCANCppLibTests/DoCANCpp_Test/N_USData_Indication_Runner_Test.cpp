@@ -36,6 +36,55 @@ TEST(N_USData_Indication_Runner, constructor_getters)
     ASSERT_EQ(Mtype_Unknown, runner.getMtype());
 }
 
+TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemoryTest)
+{
+    LocalCANNetwork can_network;
+    int64_t availableMemoryConst = 200;
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    CANInterface* canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
+    int bs = 2;
+    STmin stMin = {10, ms};
+
+    {
+        bool result;
+        N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, bs, stMin, linuxOSInterface, canMessageACKQueue);
+        int64_t actualMemory;
+        ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
+        ASSERT_EQ(availableMemoryConst, actualMemory + N_USDATA_INDICATION_RUNNER_TAG_SIZE);
+        ASSERT_TRUE(result);
+    }
+    int64_t actualMemory;
+    ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
+    ASSERT_EQ(availableMemoryConst, actualMemory);
+}
+
+TEST(N_USData_Indication_Runner, constructor_destructor_argument_notAvailableMemoryTest)
+{
+    LocalCANNetwork can_network;
+    int64_t availableMemoryConst = 2;
+    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    CANInterface* canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
+    int bs = 2;
+    STmin stMin = {10, ms};
+
+    {
+        bool result;
+        N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, bs, stMin, linuxOSInterface, canMessageACKQueue);
+        int64_t actualMemory;
+        ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
+        ASSERT_EQ(availableMemoryConst, actualMemory);
+        ASSERT_FALSE(result);
+    }
+
+    int64_t actualMemory;
+    ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
+    ASSERT_EQ(availableMemoryConst, actualMemory);
+}
+
 TEST(N_USData_Indication_Runner, run_step_SF_valid)
 {
     LocalCANNetwork can_network;

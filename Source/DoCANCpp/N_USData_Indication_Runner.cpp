@@ -54,14 +54,24 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi, A
     result = true;
 }
 
+// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise, the destructor may attempt a free on an invalid pointer.
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
 {
     if (this->messageData != nullptr)
     {
-        this->osInterface->osFree(messageData);
-        this->availableMemoryForRunners->add(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)));
+        osInterface->osFree(this->messageData);
+        availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
 
+    if (this->tag != nullptr)
+    {
+        osInterface->osFree(this->tag);
+        availableMemoryForRunners->add(N_USDATA_INDICATION_RUNNER_TAG_SIZE);
+    }
+
+    delete timerN_Ar;
+    delete timerN_Br;
+    delete timerN_Cr;
     delete mutex;
 }
 

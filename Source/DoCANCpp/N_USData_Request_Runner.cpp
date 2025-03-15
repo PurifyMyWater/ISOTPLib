@@ -77,16 +77,24 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     }
 }
 
+// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise, the destructor may attempt a free on an invalid pointer.
 N_USData_Request_Runner::~N_USData_Request_Runner()
 {
-    if (this->messageData == nullptr)
+    if (this->messageData != nullptr)
     {
-        return;
+        osInterface->osFree(this->messageData);
+        availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
 
-    osInterface->osFree(this->messageData);
-    availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
+    if (this->tag != nullptr)
+    {
+        osInterface->osFree(this->tag);
+        availableMemoryForRunners->add(N_USDATA_REQUEST_RUNNER_TAG_SIZE);
+    }
 
+    delete timerN_As;
+    delete timerN_Bs;
+    delete timerN_Cs;
     delete mutex;
 }
 
