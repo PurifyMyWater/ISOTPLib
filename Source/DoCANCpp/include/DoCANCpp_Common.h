@@ -4,9 +4,9 @@
 #define DOCANCPP_DISABLE_TIMEOUTS false
 
 #ifdef NDEBUG
-#define ASSERT_SAFE(expression, condition) expression
+    #define ASSERT_SAFE(expression, condition) expression
 #else
-#define ASSERT_SAFE(expression, condition) assert(expression condition)
+    #define ASSERT_SAFE(expression, condition) assert(expression condition)
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -23,7 +23,7 @@ using STminUnit = enum SeparationTimeMinUnit { ms, usX100 };
 
 using STmin = struct SeparationTimeMin
 {
-    uint8_t value;
+    uint8_t   value;
     STminUnit unit;
 };
 
