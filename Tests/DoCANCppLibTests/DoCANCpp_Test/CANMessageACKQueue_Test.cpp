@@ -27,7 +27,7 @@ TEST(CANMessageACKQueue, writeFrame)
     size_t messageLen = strlen(testMessageString);
     const uint8_t* testMessage = reinterpret_cast<const uint8_t*>(testMessageString);
     bool result;
-    N_USData_Request_Runner runner(&result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSInterface, canMessageACKQueue);
+    N_USData_Request_Runner runner(result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen, linuxOSInterface, canMessageACKQueue);
 
     for (int i = 0; i < 8; i++)
     {

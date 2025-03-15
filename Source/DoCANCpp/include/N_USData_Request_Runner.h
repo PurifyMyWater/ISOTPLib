@@ -2,14 +2,19 @@
 #define N_USDATA_REQUEST_RUNNER_H
 
 #include "Atomic_int64_t.h"
+#include "CANMessageACKQueue.h"
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
+
+constexpr char    N_USDATA_REQUEST_RUNNER_STATIC_TAG[] = "DoCANCpp_RequestRunner_";
+constexpr int32_t N_USDATA_REQUEST_RUNNER_TAG_SIZE     = MAX_N_AI_STR_SIZE + sizeof(N_USDATA_REQUEST_RUNNER_STATIC_TAG);
 
 // Class that handles the request aka transmission of a message
 class N_USData_Request_Runner : public N_USData_Runner
 {
 public:
-    N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType, const uint8_t* messageData, uint32_t messageLength, OSInterface& osInterface,
+    N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType,
+                            const uint8_t* messageData, uint32_t messageLength, OSInterface& osInterface,
                             CANMessageACKQueue& canMessageACKQueue);
 
     ~N_USData_Request_Runner() override;
@@ -33,6 +38,8 @@ public:
     [[nodiscard]] Mtype getMtype() const override;
 
     [[nodiscard]] RunnerType getRunnerType() const override;
+
+    [[nodiscard]] const char* getTAG() const override;
 
 private:
     N_Result run_step_SF(const CANFrame* receivedFrame);
@@ -62,6 +69,7 @@ private:
     uint8_t sequenceNumber;
     Atomic_int64_t* availableMemoryForRunners;
     uint32_t messageOffset;
+    char* tag{};
     InternalStatus_t internalStatus;
     int16_t cfSentInThisBlock;
 
