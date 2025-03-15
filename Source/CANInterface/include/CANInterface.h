@@ -11,7 +11,7 @@ using N_TAtype_t = enum N_TAtype {
     N_TATYPE_6_CAN_CLASSIC_29bit_Functional = 219
 };
 
-using N_AI = union N_AI
+typedef union
 {
     struct __attribute__((packed))
     {
@@ -21,7 +21,7 @@ using N_AI = union N_AI
         uint8_t    N_SA{0};
     };
     uint32_t N_AI;
-};
+} N_AI;
 
 using CANFrame = struct CANFrame
 {
@@ -37,12 +37,49 @@ using CANFrame = struct CANFrame
                                           ISO 11898-1 */
             uint32_t reserved : 27;    /**< Reserved bits */
         };
-        uint32_t flags; /**< Deprecated: Alternate way to set bits using message flags */
+        uint32_t flags{}; /**< Deprecated: Alternate way to set bits using message flags */
     };
-    N_AI    identifier;              /**< 11 or 29 bit identifier */
-    uint8_t data_length_code;        /**< Data length code */
-    uint8_t data[CAN_FRAME_MAX_DLC]; /**< Data bytes (not relevant in RTR frame) */
+    N_AI    identifier;                /**< 11 or 29 bit identifier */
+    uint8_t data_length_code{};        /**< Data length code */
+    uint8_t data[CAN_FRAME_MAX_DLC]{}; /**< Data bytes (not relevant in RTR frame) */
 };
+
+/**
+ * @brief Convert N_TAtype to string.
+ * @param nTAtype The N_TAtype to convert.
+ * @return String representation of the N_TAtype.
+ *
+ * @note The output string is static and will be overwritten on the next call to this function.
+ */
+const char* N_TAtypeToString(N_TAtype_t nTAtype);
+
+/**
+ * @brief Convert N_AI to string.
+ * @param nAi The N_AI to convert.
+ * @return String representation of the N_AI.
+ *
+ * @note The output string is static and will be overwritten on the next call to this function.
+ */
+const char* nAiToString(const N_AI& nAi);
+
+/**
+ * @brief Convert frame data to string.
+ * @param data Pointer to the data bytes.
+ * @param data_length_code The length of the data in bytes.
+ * @return String representation of the frame data.
+ *
+ * @note The output string is static and will be overwritten on the next call to this function.
+ */
+const char* frameDataToString(const uint8_t* data, uint8_t data_length_code);
+
+/**
+ * @brief Convert CANFrame to string.
+ * @param frame The CANFrame to convert.
+ * @return String representation of the CANFrame.
+ *
+ * @note The output string is static and will be overwritten on the next call to this function.
+ */
+const char* frameToString(const CANFrame& frame);
 
 /**
  * @brief Interface for a CAN bus driver.
@@ -84,6 +121,13 @@ public:
      * function.
      */
     virtual ACKResult getWriteFrameACK() = 0;
+
+    /**
+     * @brief Convert ACKResult to string.
+     * @param ackResult The ACKResult to convert.
+     * @return String representation of the ACKResult.
+     */
+    static const char* ackResultToString(ACKResult ackResult);
 
     virtual ~CANInterface() = default;
 };
