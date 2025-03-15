@@ -1,12 +1,12 @@
-#ifndef DOCANCPP_DATA_STRUCTURES_H
-#define DOCANCPP_DATA_STRUCTURES_H
+#ifndef DOCANCPP_COMMON_H
+#define DOCANCPP_COMMON_H
 
 #define DOCANCPP_DISABLE_TIMEOUTS false
 
 #ifdef NDEBUG
-#define ASSERT_SAFE(expression, condition) expression
+    #define ASSERT_SAFE(expression, condition) expression
 #else
-#define ASSERT_SAFE(expression, condition) assert(expression condition)
+    #define ASSERT_SAFE(expression, condition) assert(expression condition)
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -23,7 +23,7 @@ using STminUnit = enum SeparationTimeMinUnit { ms, usX100 };
 
 using STmin = struct SeparationTimeMin
 {
-    uint8_t value;
+    uint8_t   value;
     STminUnit unit;
 };
 
@@ -47,4 +47,6 @@ using N_Result = enum N_Result {
 
 const char* N_Result_to_string(N_Result result);
 
-#endif // DOCANCPP_DATA_STRUCTURES_H
+uint32_t getStMinInMs(STmin stMin);
+
+#endif // DOCANCPP_COMMON_H
