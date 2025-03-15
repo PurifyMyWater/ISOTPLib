@@ -39,8 +39,8 @@ using CANFrame = struct CANFrame
         };
         uint32_t flags{}; /**< Deprecated: Alternate way to set bits using message flags */
     };
-    N_AI identifier; /**< 11 or 29 bit identifier */
-    uint8_t data_length_code{}; /**< Data length code */
+    N_AI    identifier;                /**< 11 or 29 bit identifier */
+    uint8_t data_length_code{};        /**< Data length code */
     uint8_t data[CAN_FRAME_MAX_DLC]{}; /**< Data bytes (not relevant in RTR frame) */
 };
 
