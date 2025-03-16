@@ -21,6 +21,5 @@ file(GLOB DoCANCpp_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 target_sources(DoCANCpp PRIVATE ${DoCANCpp_SOURCES})
 target_include_directories(DoCANCpp PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-#target_compile_options(DoCANCpp PRIVATE -Wall -Wextra -Werror) // TODO: Rollback to this before merging this PR
-target_compile_options(DoCANCpp PRIVATE -Wall -Wextra)
+target_compile_options(DoCANCpp PRIVATE -Wall -Wextra -Werror)
 target_link_libraries(DoCANCpp CANInterface OSInterface)

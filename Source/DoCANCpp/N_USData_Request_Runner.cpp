@@ -11,8 +11,6 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
                                                  Mtype mType, const uint8_t* messageData, uint32_t messageLength,
                                                  OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue)
 {
-    this->TAG = "DoCANCpp_RequestRunner";
-
     this->nAi                = nAi;
     this->mType              = Mtype_Unknown;
     this->osInterface        = &osInterface;

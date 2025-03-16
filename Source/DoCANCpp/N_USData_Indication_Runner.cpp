@@ -3,13 +3,10 @@
 #include <cassert>
 #include <cstring>
 
-// TODO log the creation of the runner
 N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
                                                        uint8_t blockSize, STmin stMin, OSInterface& osInterface,
                                                        CANMessageACKQueue& canMessageACKQueue)
 {
-    this->TAG = "DoCANCpp_IndicationRunner";
-
     this->mType              = Mtype_Unknown;
     this->osInterface        = &osInterface;
     this->CanMessageACKQueue = &canMessageACKQueue;

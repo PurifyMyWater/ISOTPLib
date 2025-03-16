@@ -123,8 +123,6 @@ public:
      * @param success True if the message was received successfully, false otherwise.
      */
     virtual void messageACKReceivedCallback(CANInterface::ACKResult success) = 0;
-
-    const char* TAG{};
 };
 
 #endif // N_USDATA_RUNNER_H
