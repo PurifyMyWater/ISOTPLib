@@ -480,7 +480,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(CANInterface::ACKResult
             break;
         }
         default:
-            OSInterfaceLogError(N_ERROR, "Invalid internal status %d", internalStatus);
+            OSInterfaceLogError(tag, "Invalid internal status %d", internalStatus);
             result         = N_ERROR;
             internalStatus = ERROR;
     }
