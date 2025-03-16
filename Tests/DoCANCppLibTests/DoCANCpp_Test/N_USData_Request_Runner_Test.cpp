@@ -9,11 +9,12 @@
 
 static LinuxOSInterface linuxOSInterface;
 
+constexpr int64_t DEFAULT_AVAILABLE_MEMORY_CONST = 200;
+
 TEST(N_USData_Request_Runner, constructor_arguments_set)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -37,8 +38,7 @@ TEST(N_USData_Request_Runner, constructor_arguments_set)
 TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTest)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -53,12 +53,12 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTes
 
         int64_t actualMemory;
         ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
-        ASSERT_EQ(availableMemoryConst, actualMemory + messageLen + N_USDATA_REQUEST_RUNNER_TAG_SIZE);
+        ASSERT_EQ(DEFAULT_AVAILABLE_MEMORY_CONST, actualMemory + messageLen + N_USDATA_REQUEST_RUNNER_TAG_SIZE);
         ASSERT_TRUE(result);
     }
     int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
-    ASSERT_EQ(availableMemoryConst, actualMemory);
+    ASSERT_EQ(DEFAULT_AVAILABLE_MEMORY_CONST, actualMemory);
 }
 
 TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemoryTest)
@@ -92,8 +92,7 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemory
 TEST(N_USData_Request_Runner, run_step_SF_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -127,8 +126,7 @@ TEST(N_USData_Request_Runner, run_step_SF_valid)
 TEST(N_USData_Request_Runner, run_step_SF_valid_empty)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -162,8 +160,7 @@ TEST(N_USData_Request_Runner, run_step_SF_valid_empty)
 TEST(N_USData_Request_Runner, run_step_SF_timeoutAs)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -184,8 +181,7 @@ TEST(N_USData_Request_Runner, run_step_SF_timeoutAs)
 TEST(N_USData_Request_Runner, run_step_SF_unexpectedFrame)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -205,8 +201,7 @@ TEST(N_USData_Request_Runner, run_step_SF_unexpectedFrame)
 TEST(N_USData_Request_Runner, run_step_FF_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -286,8 +281,7 @@ TEST(N_USData_Request_Runner, run_step_FF_big_valid)
 TEST(N_USData_Request_Runner, run_step_FF_unexpectedFrame)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -307,8 +301,7 @@ TEST(N_USData_Request_Runner, run_step_FF_unexpectedFrame)
 TEST(N_USData_Request_Runner, run_step_FF_wrong_frame_type)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -325,8 +318,7 @@ TEST(N_USData_Request_Runner, run_step_FF_wrong_frame_type)
 TEST(N_USData_Request_Runner, run_step_First_CF_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -382,8 +374,7 @@ TEST(N_USData_Request_Runner, run_step_First_CF_valid)
 TEST(N_USData_Request_Runner, run_step_First_Last_CF_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -443,8 +434,7 @@ TEST(N_USData_Request_Runner, run_step_First_Last_CF_valid)
 TEST(N_USData_Request_Runner, run_step_Intermediate_CF_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -510,8 +500,7 @@ TEST(N_USData_Request_Runner, run_step_Intermediate_CF_valid)
 TEST(N_USData_Request_Runner, run_step_Last_CF_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -583,8 +572,7 @@ TEST(N_USData_Request_Runner, run_step_Last_CF_valid)
 TEST(N_USData_Request_Runner, run_step_AnotherFC_valid)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -641,8 +629,7 @@ TEST(N_USData_Request_Runner, run_step_AnotherFC_valid)
 TEST(N_USData_Request_Runner, run_step_AnotherFC_NotSent)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);

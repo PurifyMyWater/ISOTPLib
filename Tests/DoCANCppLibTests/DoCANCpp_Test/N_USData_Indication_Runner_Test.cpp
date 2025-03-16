@@ -6,12 +6,13 @@
 
 static LinuxOSInterface linuxOSInterface;
 
+constexpr int64_t DEFAULT_AVAILABLE_MEMORY_CONST = 200;
+
 TEST(N_USData_Indication_Runner, constructor_getters)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -40,8 +41,7 @@ TEST(N_USData_Indication_Runner, constructor_getters)
 TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemoryTest)
 {
     LocalCANNetwork    can_network;
-    int64_t            availableMemoryConst = 200;
-    Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     N_AI               NAi   = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -54,12 +54,12 @@ TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemory
                                           canMessageACKQueue);
         int64_t                    actualMemory;
         ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
-        ASSERT_EQ(availableMemoryConst, actualMemory + N_USDATA_INDICATION_RUNNER_TAG_SIZE);
+        ASSERT_EQ(DEFAULT_AVAILABLE_MEMORY_CONST, actualMemory + N_USDATA_INDICATION_RUNNER_TAG_SIZE);
         ASSERT_TRUE(result);
     }
     int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
-    ASSERT_EQ(availableMemoryConst, actualMemory);
+    ASSERT_EQ(DEFAULT_AVAILABLE_MEMORY_CONST, actualMemory);
 }
 
 TEST(N_USData_Indication_Runner, constructor_destructor_argument_notAvailableMemoryTest)
@@ -92,8 +92,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -129,8 +128,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_valid_void)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -166,8 +164,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_Mtype_invalid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -199,8 +196,7 @@ TEST(N_USData_Indication_Runner, run_step_SF_big_invalid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -266,8 +262,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_valid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -314,8 +309,7 @@ TEST(N_USData_Indication_Runner, run_step_FF_small)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -461,8 +455,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_valid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -534,8 +527,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_variable_bs_stmin_valid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -618,8 +610,7 @@ TEST(N_USData_Indication_Runner, run_step_CF_blockSize0_valid)
 {
     LocalCANNetwork can_network;
 
-    int64_t        availableMemoryConst = 200;
-    Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
