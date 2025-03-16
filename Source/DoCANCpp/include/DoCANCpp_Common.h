@@ -45,7 +45,7 @@ using N_Result = enum N_Result {
     N_ERROR
 };
 
-const char* N_Result_to_string(N_Result result);
+const char* N_ResultToString(N_Result result);
 
 uint32_t getStMinInMs(STmin stMin);
 

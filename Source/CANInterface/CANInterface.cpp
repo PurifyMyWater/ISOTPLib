@@ -19,7 +19,7 @@ const char* N_TAtypeToString(const N_TAtype_t nTAtype)
 
 const char* nAiToString(const N_AI& nAi)
 {
-    static char buffer[71]; // 71 = 40 (N_TAtype) + 3 (N_SA) + 3 (N_TA) + 24 (for the format string) + 1 (for the null terminator)
+    static char buffer[MAX_N_AI_STR_SIZE]; // 71 = 40 (N_TAtype) + 3 (N_SA) + 3 (N_TA) + 24 (for the format string) + 1 (for the null terminator)
 
     snprintf(buffer, sizeof(buffer), "{N_SA=%u, N_TA=%u, N_TAtype=%s}", nAi.N_SA, nAi.N_TA, N_TAtypeToString(nAi.N_TAtype));
 
@@ -47,7 +47,7 @@ const char* frameDataToString(const uint8_t* data, const uint8_t data_length_cod
 
 const char* frameToString(const CANFrame& frame)
 {
-    static char buffer[178]; // 70 (N_AI) + 5 (flags) + 1 (data_length_code) + 16 (data) + 85 (format string) + 1 (null terminator) = 178
+    static char buffer[MAX_FRAME_STR_SIZE]; // 70 (N_AI) + 5 (flags) + 1 (data_length_code) + 16 (data) + 85 (format string) + 1 (null terminator) = 178
 
     snprintf(buffer, sizeof(buffer), "{N_AI=%s, flags={extd=%u, rtr=%u, ss=%u, self=%u, dlc_non_comp=%u}, data_length_code=%u, data=[0x%s]}",
              nAiToString(frame.identifier), frame.extd, frame.rtr, frame.ss, frame.self, frame.dlc_non_comp,

@@ -1,16 +1,33 @@
 #include "N_USData_Indication_Runner.h"
-
 #include <cassert>
 #include <cstring>
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
-                                                       uint8_t blockSize, STmin stMin, OSInterface& osInterface,
+N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
+                                                       Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize,
+                                                       STmin stMin, OSInterface& osInterface,
                                                        CANMessageACKQueue& canMessageACKQueue)
 {
-    this->TAG = "DoCANCpp_IndicationRunner";
+    result = false;
+
+    this->availableMemoryForRunners = &availableMemoryForRunners;
+    this->osInterface               = &osInterface;
+
+    if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(N_USDATA_INDICATION_RUNNER_TAG_SIZE))
+    {
+        this->tag = static_cast<char*>(this->osInterface->osMalloc(N_USDATA_INDICATION_RUNNER_TAG_SIZE));
+        if (this->tag == nullptr)
+        {
+            return;
+        }
+        snprintf(this->tag, N_USDATA_INDICATION_RUNNER_TAG_SIZE, "%s%s", N_USDATA_INDICATION_RUNNER_STATIC_TAG,
+                 nAiToString(nAi));
+    }
+    else
+    {
+        return;
+    }
 
     this->mType              = Mtype_Unknown;
-    this->osInterface        = &osInterface;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->messageData        = nullptr;
     this->messageLength      = 0;
@@ -36,16 +53,29 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
     this->timerN_Ar = new Timer_N(osInterface);
     this->timerN_Br = new Timer_N(osInterface);
     this->timerN_Cr = new Timer_N(osInterface);
+
+    result = true;
 }
 
+// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise,
+// the destructor may attempt a free on an invalid pointer.
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
 {
     if (this->messageData != nullptr)
     {
-        this->osInterface->osFree(messageData);
-        this->availableMemoryForRunners->add(this->messageLength * static_cast<int64_t>(sizeof(uint8_t)));
+        osInterface->osFree(this->messageData);
+        availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
 
+    if (this->tag != nullptr)
+    {
+        osInterface->osFree(this->tag);
+        availableMemoryForRunners->add(N_USDATA_INDICATION_RUNNER_TAG_SIZE);
+    }
+
+    delete timerN_Ar;
+    delete timerN_Br;
+    delete timerN_Cr;
     delete mutex;
 }
 
@@ -410,4 +440,9 @@ Mtype N_USData_Indication_Runner::getMtype() const
 N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const
 {
     return RunnerIndicationType;
+}
+
+const char* N_USData_Indication_Runner::getTAG() const
+{
+    return this->tag;
 }
