@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include "Atomic_int64_t.h"
+#include "CANMessageACKQueue.h"
 #include "DoCANCpp_Common.h"
 #include "N_USData_Runner.h"
 

@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-const char* N_Result_to_string(const N_Result result)
+const char* N_ResultToString(const N_Result result)
 {
     switch (result)
     {

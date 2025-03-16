@@ -1,19 +1,35 @@
 #include "N_USData_Request_Runner.h"
-
 #include <cassert>
-
+#include <cstring>
 #include "Atomic_int64_t.h"
 #include "CANMessageACKQueue.h"
 
-#include <cstring>
-
-N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
+N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners,
                                                  Mtype mType, const uint8_t* messageData, uint32_t messageLength,
                                                  OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue)
 {
+    result = false;
+
+    this->availableMemoryForRunners = &availableMemoryForRunners;
+    this->osInterface               = &osInterface;
+
+    if (this->availableMemoryForRunners->subIfResIsGreaterThanZero(N_USDATA_REQUEST_RUNNER_TAG_SIZE))
+    {
+        this->tag = static_cast<char*>(this->osInterface->osMalloc(N_USDATA_REQUEST_RUNNER_TAG_SIZE));
+        if (this->tag == nullptr)
+        {
+            return;
+        }
+        snprintf(this->tag, N_USDATA_REQUEST_RUNNER_TAG_SIZE, "%s%s", N_USDATA_REQUEST_RUNNER_STATIC_TAG,
+                 nAiToString(nAi));
+    }
+    else
+    {
+        return;
+    }
+
     this->nAi                = nAi;
     this->mType              = Mtype_Unknown;
-    this->osInterface        = &osInterface;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->blockSize          = 0;
     this->stMin              = {0, ms};
@@ -41,16 +57,21 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
     {
         this->messageData = static_cast<uint8_t*>(osInterface.osMalloc(this->messageLength * sizeof(uint8_t)));
 
+//<<<<<<< add-OSInterface-log-messages-to-runners
         if (this->messageData == nullptr)
         {
             OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
             *result = false;
         }
         else
+/*=======
+        if (this->messageData != nullptr)
+//>>>>>>> add-log-messages-to-runners*/
         {
             memcpy(this->messageData, messageData, this->messageLength);
             this->mType = mType;
 
+//<<<<<<< add-OSInterface-log-messages-to-runners
             if (this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                 this->messageLength > MAX_SF_MESSAGE_LENGTH)
             {
@@ -59,6 +80,10 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
                 *result = false;
             }
             else
+/*=======
+            if (!(this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
+                  this->messageLength > MAX_SF_MESSAGE_LENGTH))
+//>>>>>>> add-log-messages-to-runners*/
             {
                 this->nAi = nAi;
 
@@ -73,29 +98,41 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
                     this->internalStatus = NOT_RUNNING_FF;
                 }
 
-                *result = true;
+                result = true;
             }
         }
     }
+//<<<<<<< add-OSInterface-log-messages-to-runners
     else
     {
         OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
         *result = false;
     }
+/*=======
+//>>>>>>> add-log-messages-to-runners*/
 }
 
+// Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise,
+// the destructor may attempt a free on an invalid pointer.
 N_USData_Request_Runner::~N_USData_Request_Runner()
 {
     OSInterfaceLogDebug(tag, "Deleting runner");
 
-    if (this->messageData == nullptr)
+    if (this->messageData != nullptr)
     {
-        return;
+        osInterface->osFree(this->messageData);
+        availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
     }
 
-    osInterface->osFree(this->messageData);
-    availableMemoryForRunners->add(messageLength * static_cast<int64_t>(sizeof(uint8_t)));
+    if (this->tag != nullptr)
+    {
+        osInterface->osFree(this->tag);
+        availableMemoryForRunners->add(N_USDATA_REQUEST_RUNNER_TAG_SIZE);
+    }
 
+    delete timerN_As;
+    delete timerN_Bs;
+    delete timerN_Cs;
     delete mutex;
 }
 
@@ -571,4 +608,9 @@ Mtype N_USData_Request_Runner::getMtype() const
 N_USData_Request_Runner::RunnerType N_USData_Request_Runner::getRunnerType() const
 {
     return RunnerRequestType;
+}
+
+const char* N_USData_Request_Runner::getTAG() const
+{
+    return this->tag;
 }

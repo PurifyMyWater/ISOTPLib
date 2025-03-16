@@ -15,6 +15,7 @@ void CANMessageACKQueue::run_step()
 {
     if (CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {
+        OSInterfaceLogDebug(TAG, "ACK received: %s", CANInterface::ackResultToString(ack));
         if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
             N_USData_Runner* runner = messageQueue.front();
@@ -27,6 +28,8 @@ void CANMessageACKQueue::run_step()
 
 bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
 {
+    OSInterfaceLogDebug(TAG, "Writing frame with N_AI=%s: ", nAiToString(frame.identifier));
+    OSInterfaceLogVerbose(TAG, "Writing frame: %s", frameToString(frame));
     bool res = canInterface->writeFrame(&frame);
     if (res && mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {

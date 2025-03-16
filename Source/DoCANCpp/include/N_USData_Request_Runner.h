@@ -2,14 +2,18 @@
 #define N_USDATA_REQUEST_RUNNER_H
 
 #include "Atomic_int64_t.h"
+#include "CANMessageACKQueue.h"
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
+
+constexpr char    N_USDATA_REQUEST_RUNNER_STATIC_TAG[] = "DoCANCpp_RequestRunner_";
+constexpr int32_t N_USDATA_REQUEST_RUNNER_TAG_SIZE     = MAX_N_AI_STR_SIZE + sizeof(N_USDATA_REQUEST_RUNNER_STATIC_TAG);
 
 // Class that handles the request aka transmission of a message
 class N_USData_Request_Runner : public N_USData_Runner
 {
 public:
-    N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType,
+    N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType,
                             const uint8_t* messageData, uint32_t messageLength, OSInterface& osInterface,
                             CANMessageACKQueue& canMessageACKQueue);
 
@@ -35,6 +39,8 @@ public:
 
     [[nodiscard]] RunnerType getRunnerType() const override;
 
+    [[nodiscard]] const char* getTAG() const override;
+
 private:
     N_Result run_step_SF(const CANFrame* receivedFrame);
     N_Result run_step_FF(const CANFrame* receivedFrame);
@@ -59,26 +65,27 @@ private:
         ERROR
     };
 
-    OSInterface_Mutex* mutex;
-
     N_AI     nAi;
     Mtype    mType;
-    uint8_t* messageData;
+    uint8_t* messageData{};
     int64_t  messageLength;
     uint8_t  blockSize;
     STmin    stMin{};
 
-    N_Result         result;
-    uint32_t         lastRunTime;
-    uint8_t          sequenceNumber;
-    Atomic_int64_t*  availableMemoryForRunners;
-    uint32_t         messageOffset;
-    InternalStatus_t internalStatus;
-    int16_t          cfSentInThisBlock;
+    N_Result        result;
+    uint32_t        lastRunTime;
+    uint8_t         sequenceNumber;
+    Atomic_int64_t* availableMemoryForRunners;
+    uint32_t        messageOffset;
+    char*           tag{};
 
-    Timer_N* timerN_As; // Timer for sending a frame
-    Timer_N* timerN_Bs; // Timer that holds the time since the last FF or CF to the next CF.
-    Timer_N* timerN_Cs; // Timer that calls out once STmin has passed.
+    OSInterface_Mutex* mutex{};
+    InternalStatus_t   internalStatus;
+    int16_t            cfSentInThisBlock;
+
+    Timer_N* timerN_As{}; // Timer for sending a frame
+    Timer_N* timerN_Bs{}; // Timer that holds the time since the last FF or CF to the next CF.
+    Timer_N* timerN_Cs{}; // Timer that calls out once STmin has passed.
 
     OSInterface*        osInterface;
     CANMessageACKQueue* CanMessageACKQueue;

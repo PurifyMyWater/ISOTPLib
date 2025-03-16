@@ -17,6 +17,8 @@ public:
 
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
 
+    constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
+
 private:
     OSInterface_Mutex*          mutex;
     std::list<N_USData_Runner*> messageQueue;
