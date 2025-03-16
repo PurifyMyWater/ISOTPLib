@@ -215,8 +215,8 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
 
     fcFrame.data_length_code = FC_MESSAGE_LENGTH;
 
-    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %d, block size %d and STmin %s", fs,
-                        effectiveBlockSize, STminToString(stMin));
+    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %d, block size %d and STmin %s", fs, effectiveBlockSize,
+                        STminToString(stMin));
 
     if (CanMessageACKQueue->writeFrame(*this, fcFrame))
     {
