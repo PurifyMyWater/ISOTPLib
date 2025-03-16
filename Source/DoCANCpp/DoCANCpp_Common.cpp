@@ -1,6 +1,8 @@
 #include "DoCANCpp_Common.h"
 
-const char* N_Result_to_string(const N_Result result)
+#include <cstdio>
+
+const char* N_ResultToString(const N_Result result)
 {
     switch (result)
     {
@@ -31,6 +33,13 @@ const char* N_Result_to_string(const N_Result result)
         default:
             return "UNKNOWN";
     }
+}
+
+const char* STminToString(const STmin& stMin)
+{
+    static char buffer[MAX_STMIN_STR_SIZE];
+    snprintf(buffer, MAX_STMIN_STR_SIZE, "%u%s", stMin.value, stMin.unit == ms ? " ms" : "00 us");
+    return buffer;
 }
 
 uint32_t getStMinInMs(const STmin stMin)

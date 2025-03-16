@@ -2,9 +2,7 @@
 #define N_USDATA_RUNNER_H
 
 #include "CANInterface.h"
-#include "CANMessageACKQueue.h"
 #include "DoCANCpp_Common.h"
-#include "OSInterface.h"
 
 #define NewCANFrameDoCANCpp()                                                                                          \
     {.extd             = 1,                                                                                            \
@@ -22,9 +20,20 @@
     {                                                                                                                  \
         internalStatus = ERROR;                                                                                        \
         result         = errorCode;                                                                                    \
+        OSInterfaceLogError(tag, "Returning error %s.", N_ResultToString(errorCode));                                  \
         return result;                                                                                                 \
     }                                                                                                                  \
-    while (0)
+    while (false)
+
+#define returnErrorWithLog(errorCode, fmt, ...)                                                                        \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        internalStatus = ERROR;                                                                                        \
+        result         = errorCode;                                                                                    \
+        OSInterfaceLogError(tag, "Returning error %s. " fmt, N_ResultToString(errorCode), ##__VA_ARGS__);              \
+        return result;                                                                                                 \
+    }                                                                                                                  \
+    while (false)
 
 class N_USData_Runner
 {
@@ -113,7 +122,12 @@ public:
      */
     virtual void messageACKReceivedCallback(CANInterface::ACKResult success) = 0;
 
-    const char* TAG{};
+    /**
+     * @brief Returns the logging tag of the runner.
+     * @return The logging tag of the runner.
+     */
+    [[nodiscard]] virtual const char*
+    getTAG() const = 0; // TODO: in the future, allow DoCanCpp to set logging level of the runner.
 };
 
 #endif // N_USDATA_RUNNER_H

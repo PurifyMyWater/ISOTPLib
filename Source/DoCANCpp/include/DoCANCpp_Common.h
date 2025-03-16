@@ -19,6 +19,8 @@ constexpr uint8_t MAX_STMIN_MS_VALUE = 0x7F;
 constexpr uint8_t MIN_STMIN_US_VALUE = 0xF1;
 constexpr uint8_t MAX_STMIN_US_VALUE = 0xF9;
 
+constexpr uint8_t MAX_STMIN_STR_SIZE = 9; // 3 (value) + 5 (unit) + 1 (null terminator)
+
 using STminUnit = enum SeparationTimeMinUnit { ms, usX100 };
 
 using STmin = struct SeparationTimeMin
@@ -45,7 +47,9 @@ using N_Result = enum N_Result {
     N_ERROR
 };
 
-const char* N_Result_to_string(N_Result result);
+const char* N_ResultToString(N_Result result);
+
+const char* STminToString(const STmin& stMin);
 
 uint32_t getStMinInMs(STmin stMin);
 

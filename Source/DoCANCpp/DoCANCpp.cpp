@@ -130,7 +130,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
 {
     bool             result;
     N_AI             nAI    = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
-    N_USData_Runner* runner = new N_USData_Request_Runner(&result, nAI, availableMemoryForRunners, mType, messageData,
+    N_USData_Runner* runner = new N_USData_Request_Runner(result, nAI, availableMemoryForRunners, mType, messageData,
                                                           length, osInterface, *CanMessageACKQueue);
     if (!result)
     {
@@ -252,9 +252,16 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // new runner to handle it.
             if (frameStatus == frameAvailable)
             {
+                bool result;
+
                 N_USData_Runner* runner =
-                    new N_USData_Indication_Runner(frame.identifier, self->availableMemoryForRunners, blockSize, stMin,
-                                                   self->osInterface, *self->CanMessageACKQueue);
+                    new N_USData_Indication_Runner(result, frame.identifier, self->availableMemoryForRunners, blockSize,
+                                                   stMin, self->osInterface, *self->CanMessageACKQueue);
+                if (!result)
+                {
+                    // TODO: handle this error (Out of memory)
+                }
+
                 switch (runner->run_step(&frame))
                 {
                     case IN_PROGRESS:
