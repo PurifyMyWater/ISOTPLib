@@ -22,7 +22,6 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
     assert(this->mutex != nullptr && "Failed to create mutex");
 
     this->internalStatus            = NOT_RUNNING;
-    this->runnerType                = RunnerIndicationType;
     this->nAi                       = nAi;
     this->stMin                     = stMin;
     this->blockSize                 = blockSize;
@@ -410,5 +409,5 @@ Mtype N_USData_Indication_Runner::getMtype() const
 
 N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const
 {
-    return this->runnerType;
+    return RunnerIndicationType;
 }
