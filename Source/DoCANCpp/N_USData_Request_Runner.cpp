@@ -39,13 +39,13 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");
 
-    this->internalStatus    = ERROR;
-    this->result            = NOT_STARTED;
-    this->messageOffset     = 0;
-    this->runnerType        = RunnerRequestType;
-    this->messageData       = nullptr;
-    this->messageLength     = messageLength;
-    this->cfSentInThisBlock = 0;
+    this->internalStatus            = ERROR;
+    this->result                    = NOT_STARTED;
+    this->messageOffset             = 0;
+    this->messageData               = nullptr;
+    this->messageLength             = messageLength;
+    this->availableMemoryForRunners = &availableMemoryForRunners;
+    this->cfSentInThisBlock         = 0;
 
     this->timerN_As = new Timer_N(osInterface);
     this->timerN_Bs = new Timer_N(osInterface);
@@ -516,7 +516,7 @@ Mtype N_USData_Request_Runner::getMtype() const
 
 N_USData_Request_Runner::RunnerType N_USData_Request_Runner::getRunnerType() const
 {
-    return this->runnerType;
+    return RunnerRequestType;
 }
 
 const char* N_USData_Request_Runner::getTAG() const

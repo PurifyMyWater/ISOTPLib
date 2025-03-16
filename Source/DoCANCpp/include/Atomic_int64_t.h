@@ -10,7 +10,7 @@ class Atomic_int64_t
 {
 public:
     Atomic_int64_t(int64_t initialValue, OSInterface& OSInterface);
-    bool get(int64_t* out, uint32_t timeout = 100) const;
+    bool get(int64_t* out, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT) const;
     bool set(int64_t newValue, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);
     bool add(int64_t amount, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);
     bool sub(int64_t amount, uint32_t timeout = DEFAULT_Atomic_int64_t_TIMEOUT);

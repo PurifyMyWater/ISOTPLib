@@ -38,17 +38,17 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
     this->mutex = osInterface.osCreateMutex();
     assert(this->mutex != nullptr && "Failed to create mutex");
 
-    this->internalStatus        = NOT_RUNNING;
-    this->runnerType            = RunnerIndicationType;
-    this->nAi                   = nAi;
-    this->stMin                 = stMin;
-    this->blockSize             = blockSize;
-    this->effectiveBlockSize    = blockSize;
-    this->effectiveStMin        = stMin;
-    this->osInterface           = &osInterface;
-    this->messageData           = nullptr;
-    this->messageOffset         = 0;
-    this->cfReceivedInThisBlock = 0;
+    this->internalStatus            = NOT_RUNNING;
+    this->nAi                       = nAi;
+    this->stMin                     = stMin;
+    this->blockSize                 = blockSize;
+    this->effectiveBlockSize        = blockSize;
+    this->effectiveStMin            = stMin;
+    this->availableMemoryForRunners = &availableMemoryForRunners;
+    this->osInterface               = &osInterface;
+    this->messageData               = nullptr;
+    this->messageOffset             = 0;
+    this->cfReceivedInThisBlock     = 0;
 
     this->timerN_Ar = new Timer_N(osInterface);
     this->timerN_Br = new Timer_N(osInterface);
@@ -439,7 +439,7 @@ Mtype N_USData_Indication_Runner::getMtype() const
 
 N_USData_Indication_Runner::RunnerType N_USData_Indication_Runner::getRunnerType() const
 {
-    return this->runnerType;
+    return RunnerIndicationType;
 }
 
 const char* N_USData_Indication_Runner::getTAG() const
