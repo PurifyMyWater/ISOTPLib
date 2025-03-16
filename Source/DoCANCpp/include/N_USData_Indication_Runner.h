@@ -67,7 +67,6 @@ private:
     char* tag = strdup("N_USData_Request_Runner");
 
     N_Result         result;
-    RunnerType       runnerType;
     uint32_t         lastRunTime;
     uint8_t          sequenceNumber;
     InternalStatus_t internalStatus;
