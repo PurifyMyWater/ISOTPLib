@@ -57,33 +57,22 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     {
         this->messageData = static_cast<uint8_t*>(osInterface.osMalloc(this->messageLength * sizeof(uint8_t)));
 
-//<<<<<<< add-OSInterface-log-messages-to-runners
         if (this->messageData == nullptr)
         {
             OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
-            *result = false;
         }
         else
-/*=======
-        if (this->messageData != nullptr)
-//>>>>>>> add-log-messages-to-runners*/
         {
             memcpy(this->messageData, messageData, this->messageLength);
             this->mType = mType;
 
-//<<<<<<< add-OSInterface-log-messages-to-runners
             if (this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                 this->messageLength > MAX_SF_MESSAGE_LENGTH)
             {
                 OSInterfaceLogError(tag, "Message length %u is too long for N_TAtype %d", messageLength,
                                     this->nAi.N_TAtype);
-                *result = false;
             }
             else
-/*=======
-            if (!(this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
-                  this->messageLength > MAX_SF_MESSAGE_LENGTH))
-//>>>>>>> add-log-messages-to-runners*/
             {
                 this->nAi = nAi;
 
@@ -102,14 +91,10 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
             }
         }
     }
-//<<<<<<< add-OSInterface-log-messages-to-runners
     else
     {
         OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
-        *result = false;
     }
-/*=======
-//>>>>>>> add-log-messages-to-runners*/
 }
 
 // Be careful with the destructor. All the pointers used in the destructor need to be initialized to nullptr. Otherwise,
