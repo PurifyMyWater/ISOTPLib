@@ -49,7 +49,7 @@ const char* frameDataToString(const uint8_t* data, const uint8_t data_length_cod
 
 const char* frameToString(const CANFrame& frame)
 {
-    static char buffer[MAX_FRAME_STR_SIZE]; // 179 = 71 (N_AI) + 5 (flags) + 1 (data_length_code) + 16 (data) + 85
+    static char buffer[MAX_FRAME_STR_SIZE]; // 181 = 72 (N_AI) + 5 (flags) + 1 (data_length_code) + 17 (data) + 85
                                             // (format string) + 1 (null terminator)
 
     snprintf(buffer, sizeof(buffer),
