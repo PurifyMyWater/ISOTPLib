@@ -36,7 +36,7 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
     this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
 
     this->mutex = osInterface.osCreateMutex();
-    assert(this->mutex != nullptr && "Failed to create mutex");
+    assert(this->mutex != nullptr && "Failed to create mutex"); // TODO use result variable
 
     this->internalStatus            = NOT_RUNNING;
     this->nAi                       = nAi;
@@ -61,6 +61,8 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
 // the destructor may attempt a free on an invalid pointer.
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
 {
+    OSInterfaceLogDebug(tag, "Deleting runner");
+
     if (this->messageData != nullptr)
     {
         osInterface->osFree(this->messageData);
@@ -85,6 +87,7 @@ bool N_USData_Indication_Runner::setBlockSize(uint8_t blockSize)
     {
         this->blockSize = blockSize;
         mutex->signal();
+        OSInterfaceLogInfo(tag, "Block size set to %d", blockSize);
         return true;
     }
     return false;
@@ -96,6 +99,7 @@ bool N_USData_Indication_Runner::setSTmin(STmin stMin)
     {
         this->stMin = stMin;
         mutex->signal();
+        OSInterfaceLogInfo(tag, "STmin set to %s", STminToString(stMin));
         return true;
     }
     return false;
@@ -105,13 +109,14 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 {
     if (receivedFrame == nullptr)
     {
-        returnError(N_ERROR);
+        returnErrorWithLog(N_ERROR, "Received frame is null");
     }
 
     if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical &&
         receivedFrame->identifier.N_TAtype != N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
-        returnError(N_ERROR); // The frame is not a Mtype_Diagnostics frame.
+        returnErrorWithLog(N_ERROR,
+                           "The frame is not a Mtype_Diagnostics frame"); // The frame is not a Mtype_Diagnostics frame.
     }
     this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 &
                                      // 206 is the value used for remote diagnostics)
@@ -128,18 +133,23 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
             {
                 messageData = static_cast<uint8_t*>(osInterface->osMalloc(this->messageLength * sizeof(uint8_t)));
                 memcpy(messageData, &receivedFrame->data[1], messageLength);
+
+                OSInterfaceLogInfo(tag, "Received message with length %ld (SF)", messageLength);
                 result = N_OK;
                 return result;
             }
 
-            returnError(N_ERROR);
+            int64_t availableMemory;
+            availableMemoryForRunners->get(&availableMemory);
+            returnErrorWithLog(N_ERROR, "Message length is %ld and available memory is %ld", messageLength,
+                               availableMemory);
         }
         case FF_CODE:
         {
             timerN_Br->startTimer();
             if (nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
             {
-                returnError(N_UNEXP_PDU);
+                returnErrorWithLog(N_UNEXP_PDU, "Received FF frame with N_TAtype %d", nAi.N_TAtype);
             }
 
             messageLength =
@@ -156,8 +166,10 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
             if (messageLength <= MAX_SF_MESSAGE_LENGTH)
             {
-                returnError(N_ERROR);
+                returnErrorWithLog(N_ERROR, "FF frame with length %ld is too small", messageLength);
             }
+
+            OSInterfaceLogDebug(tag, "Received FF frame with length %ld", messageLength);
 
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(
                     this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
@@ -166,7 +178,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
                 if (this->messageData == nullptr)
                 {
-                    returnError(N_ERROR);
+                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld.", messageLength);
                 }
 
                 if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
@@ -181,26 +193,34 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
                 }
 
                 timerN_Br->stopTimer();
+                OSInterfaceLogVerbose(tag, "Timer N_Br stopped after receiving FF frame in %u ms",
+                                      timerN_Br->getElapsedTime_ms());
 
                 if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
                 {
-                    returnError(N_ERROR);
+                    returnErrorWithLog(N_ERROR, "Flow control frame could not be sent");
                 }
 
                 timerN_Ar->startTimer();
+                OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms",
+                                      timerN_Ar->getElapsedTime_ms());
 
                 result = IN_PROGRESS_FF;
                 return result;
             }
             sendFCFrame(OVERFLOW);
-            returnError(N_ERROR);
+
+            int64_t availableMemory;
+            availableMemoryForRunners->get(&availableMemory);
+            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
+                               messageLength, availableMemory);
         }
         default:
-            returnError(N_UNEXP_PDU);
+            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %d", receivedFrame->data[0] >> 4);
     }
 }
 
-N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
+N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
 {
     effectiveBlockSize = blockSize;
     effectiveStMin     = stMin;
@@ -211,9 +231,9 @@ N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
     fcFrame.identifier.N_SA     = nAi.N_TA;
 
     fcFrame.data[0] = FC_CODE << 4 | fs;
-    fcFrame.data[1] = effectiveBlockSize;
+    fcFrame.data[1] = effectiveBlockSize; // Only relevant if fs == CONTINUE_TO_SEND, otherwise ignored.
 
-    if (effectiveStMin.unit == ms)
+    if (effectiveStMin.unit == ms) // Only relevant if fs == CONTINUE_TO_SEND, otherwise ignored.
     {
         fcFrame.data[2] = effectiveStMin.value;
     }
@@ -224,12 +244,16 @@ N_Result N_USData_Indication_Runner::sendFCFrame(FlowStatus fs)
 
     fcFrame.data_length_code = FC_MESSAGE_LENGTH;
 
+    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %d, block size %d and STmin %s", fs, effectiveBlockSize,
+                        STminToString(stMin));
+
     if (CanMessageACKQueue->writeFrame(*this, fcFrame))
     {
         internalStatus = AWAITING_FC_ACK;
         return N_OK;
     }
 
+    OSInterfaceLogError(tag, "FC frame could not be sent");
     return N_ERROR;
 }
 
@@ -237,29 +261,32 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
-        returnError(N_ERROR);
+        returnErrorWithLog(N_ERROR, "Received frame is null");
     }
 
     if (nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
-        returnError(N_UNEXP_PDU);
+        returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %d", nAi.N_TAtype);
     }
 
     if (receivedFrame->data[0] >> 4 != CF_CODE)
     {
-        returnError(N_UNEXP_PDU);
+        returnErrorWithLog(N_UNEXP_PDU, "Received frame is not a CF frame");
     }
 
-    if ((receivedFrame->data[0] & 0b00001111) != sequenceNumber)
+    uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
+    if (messageSequenceNumber != sequenceNumber)
     {
-        returnError(N_WRONG_SN);
+        returnErrorWithLog(N_WRONG_SN, "Received CF frame with wrong sequence number %d. Was expecting %d",
+                           messageSequenceNumber, sequenceNumber);
     }
 
     sequenceNumber++;
 
     if (receivedFrame->data_length_code <= 1)
     {
-        returnError(N_ERROR);
+        returnErrorWithLog(N_ERROR, "Received CF frame with invalid data length code %d",
+                           receivedFrame->data_length_code);
     }
 
     uint8_t bytesToCopy =
@@ -272,9 +299,13 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
     messageOffset += bytesToCopy;
     cfReceivedInThisBlock++;
 
+    OSInterfaceLogDebug(tag, "Received CF #%d in block with %d data bytes", cfReceivedInThisBlock, bytesToCopy);
+
     if (messageOffset == messageLength)
     {
         timerN_Cr->stopTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms",
+                              timerN_Cr->getElapsedTime_ms());
         result = N_OK;
     }
     else
@@ -282,17 +313,28 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         if (effectiveBlockSize == cfReceivedInThisBlock)
         {
             timerN_Cr->stopTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms",
+                                  timerN_Cr->getElapsedTime_ms());
             timerN_Br->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Br started after receiving CF frame in %u ms",
+                                  timerN_Br->getElapsedTime_ms());
+
             if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
             {
-                returnError(N_ERROR);
+                returnErrorWithLog(N_ERROR, "Flow control frame could not be sent");
             }
             timerN_Ar->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms",
+                                  timerN_Ar->getElapsedTime_ms());
             cfReceivedInThisBlock = 0;
+
+            OSInterfaceLogDebug(tag, "CF block size reached. Waiting for FC frame");
         }
         else
         {
             timerN_Cr->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Cr started after receiving CF frame in %u ms",
+                                  timerN_Cr->getElapsedTime_ms());
         }
         result = IN_PROGRESS;
     }
@@ -305,11 +347,11 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
 
     if (timerN_Ar->getElapsedTime_ms() > N_Ar_TIMEOUT_MS)
     {
-        returnError(N_TIMEOUT_A);
+        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %u ms", timerN_Ar->getElapsedTime_ms());
     }
     if (timerN_Cr->getElapsedTime_ms() > N_Cr_TIMEOUT_MS)
     {
-        returnError(N_TIMEOUT_Cr);
+        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %u ms", timerN_Cr->getElapsedTime_ms());
     }
 #endif
     return N_OK;
@@ -317,11 +359,12 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
 
 N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
 {
+    OSInterfaceLogVerbose(tag, "Running step with frame %s",
+                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
+
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
-        result         = N_ERROR;
-        internalStatus = ERROR;
-        return result;
+        returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
 
     N_Result res = checkTimeouts();
@@ -344,7 +387,11 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
             res = result;
             break;
         default:
-            assert(false && "Invalid internal status");
+            OSInterfaceLogError(tag, "Invalid internal status %d", internalStatus);
+            result         = N_ERROR;
+            internalStatus = ERROR;
+            res            = result;
+            break;
     }
 
     lastRunTime = osInterface->osMillis();
@@ -359,9 +406,12 @@ bool N_USData_Indication_Runner::awaitingMessage() const
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
-    uint32_t timeoutAr = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
-    uint32_t timeoutCr = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
-    return MIN(timeoutAr, timeoutCr);
+    uint32_t timeoutAr  = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
+    uint32_t timeoutCr  = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
+    uint32_t minTimeout = MIN(timeoutAr, timeoutCr);
+
+    OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout - osInterface->osMillis());
+    return minTimeout;
 }
 
 uint32_t N_USData_Indication_Runner::getNextRunTime() const
@@ -376,6 +426,7 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
             break;
     }
 
+    OSInterfaceLogDebug(tag, "Next run time is in %u ms", nextRunTime - osInterface->osMillis());
     return nextRunTime;
 }
 
@@ -397,16 +448,21 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKRes
                 timerN_Ar->stopTimer();
                 timerN_Cr->startTimer();
                 this->internalStatus = AWAITING_CF;
+                OSInterfaceLogDebug(tag, "FC ACK received");
             }
             else
             {
+                OSInterfaceLogError(tag, "FC ACK failed with result %d", success);
                 result         = N_ERROR;
                 internalStatus = ERROR;
             }
         }
         break;
         default:
-            assert(false && "Invalid internal status");
+            OSInterfaceLogError(tag, "Invalid internal status %d", internalStatus);
+            result         = N_ERROR;
+            internalStatus = ERROR;
+            break;
     }
 
     mutex->signal();

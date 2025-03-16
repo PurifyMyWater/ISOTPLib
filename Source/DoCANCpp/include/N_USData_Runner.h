@@ -20,9 +20,20 @@
     {                                                                                                                  \
         internalStatus = ERROR;                                                                                        \
         result         = errorCode;                                                                                    \
+        OSInterfaceLogError(tag, "Returning error %s.", N_ResultToString(errorCode));                                  \
         return result;                                                                                                 \
     }                                                                                                                  \
-    while (0)
+    while (false)
+
+#define returnErrorWithLog(errorCode, fmt, ...)                                                                        \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        internalStatus = ERROR;                                                                                        \
+        result         = errorCode;                                                                                    \
+        OSInterfaceLogError(tag, "Returning error %s. " fmt, N_ResultToString(errorCode), ##__VA_ARGS__);              \
+        return result;                                                                                                 \
+    }                                                                                                                  \
+    while (false)
 
 class N_USData_Runner
 {
