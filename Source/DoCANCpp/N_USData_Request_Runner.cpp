@@ -28,7 +28,6 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool* result, N_AI nAi, Atomic_
     this->internalStatus            = ERROR;
     this->result                    = NOT_STARTED;
     this->messageOffset             = 0;
-    this->runnerType                = RunnerRequestType;
     this->messageData               = nullptr;
     this->messageLength             = messageLength;
     this->availableMemoryForRunners = &availableMemoryForRunners;
@@ -506,5 +505,5 @@ Mtype N_USData_Request_Runner::getMtype() const
 
 N_USData_Request_Runner::RunnerType N_USData_Request_Runner::getRunnerType() const
 {
-    return this->runnerType;
+    return RunnerRequestType;
 }
