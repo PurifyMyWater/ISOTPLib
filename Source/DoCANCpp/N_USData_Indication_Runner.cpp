@@ -42,6 +42,7 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(N_AI nAi, Atomic_int64_t&
 N_USData_Indication_Runner::~N_USData_Indication_Runner()
 {
     OSInterfaceLogDebug(tag, "Deleting runner");
+
     if (this->messageData != nullptr)
     {
         this->osInterface->osFree(messageData);
@@ -69,7 +70,7 @@ bool N_USData_Indication_Runner::setSTmin(STmin stMin)
     {
         this->stMin = stMin;
         mutex->signal();
-        OSInterfaceLogInfo(tag, "STmin set to %d%s", stMin.value, stMin.unit == ms ? " ms" : "00 us");
+        OSInterfaceLogInfo(tag, "STmin set to %s", STminToString(stMin));
         return true;
     }
     return false;
@@ -141,9 +142,6 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
             OSInterfaceLogDebug(tag, "Received FF frame with length %ld", messageLength);
 
-            int64_t availableMemory;
-            availableMemoryForRunners->get(&availableMemory);
-
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(
                     this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
             {
@@ -151,8 +149,7 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
 
                 if (this->messageData == nullptr)
                 {
-                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld", messageLength,
-                                availableMemory);
+                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld.", messageLength);
                 }
 
                 if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
@@ -167,7 +164,8 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
                 }
 
                 timerN_Br->stopTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_Br stopped after receiving FF frame in %u ms", timerN_Br->getElapsedTime_ms());
+                OSInterfaceLogVerbose(tag, "Timer N_Br stopped after receiving FF frame in %u ms",
+                                      timerN_Br->getElapsedTime_ms());
 
                 if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
                 {
@@ -175,14 +173,18 @@ N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receive
                 }
 
                 timerN_Ar->startTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms", timerN_Ar->getElapsedTime_ms());
+                OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms",
+                                      timerN_Ar->getElapsedTime_ms());
 
                 result = IN_PROGRESS_FF;
                 return result;
             }
             sendFCFrame(OVERFLOW);
-            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld", messageLength,
-                                availableMemory);
+
+            int64_t availableMemory;
+            availableMemoryForRunners->get(&availableMemory);
+            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
+                               messageLength, availableMemory);
         }
         default:
             returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %d", receivedFrame->data[0] >> 4);
@@ -213,8 +215,8 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
 
     fcFrame.data_length_code = FC_MESSAGE_LENGTH;
 
-    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %d, block size %d and STmin %d%s", fs,
-                        effectiveBlockSize, effectiveStMin.value, effectiveStMin.unit == ms ? " ms" : "00 us");
+    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %d, block size %d and STmin %s", fs,
+                        effectiveBlockSize, STminToString(stMin));
 
     if (CanMessageACKQueue->writeFrame(*this, fcFrame))
     {
@@ -246,14 +248,16 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
     uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
     if (messageSequenceNumber != sequenceNumber)
     {
-        returnErrorWithLog(N_WRONG_SN, "Received CF frame with wrong sequence number %d. Was expecting %d", messageSequenceNumber, sequenceNumber);
+        returnErrorWithLog(N_WRONG_SN, "Received CF frame with wrong sequence number %d. Was expecting %d",
+                           messageSequenceNumber, sequenceNumber);
     }
 
     sequenceNumber++;
 
     if (receivedFrame->data_length_code <= 1)
     {
-        returnErrorWithLog(N_ERROR, "Received CF frame with invalid data length code %d", receivedFrame->data_length_code);
+        returnErrorWithLog(N_ERROR, "Received CF frame with invalid data length code %d",
+                           receivedFrame->data_length_code);
     }
 
     uint8_t bytesToCopy =
@@ -271,7 +275,8 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
     if (messageOffset == messageLength)
     {
         timerN_Cr->stopTimer();
-        OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms", timerN_Cr->getElapsedTime_ms());
+        OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms",
+                              timerN_Cr->getElapsedTime_ms());
         result = N_OK;
     }
     else
@@ -279,16 +284,19 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         if (effectiveBlockSize == cfReceivedInThisBlock)
         {
             timerN_Cr->stopTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms", timerN_Cr->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms",
+                                  timerN_Cr->getElapsedTime_ms());
             timerN_Br->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Br started after receiving CF frame in %u ms", timerN_Br->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Br started after receiving CF frame in %u ms",
+                                  timerN_Br->getElapsedTime_ms());
 
             if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
             {
                 returnErrorWithLog(N_ERROR, "Flow control frame could not be sent");
             }
             timerN_Ar->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms", timerN_Ar->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms",
+                                  timerN_Ar->getElapsedTime_ms());
             cfReceivedInThisBlock = 0;
 
             OSInterfaceLogDebug(tag, "CF block size reached. Waiting for FC frame");
@@ -296,7 +304,8 @@ N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
         else
         {
             timerN_Cr->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Cr started after receiving CF frame in %u ms", timerN_Cr->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Cr started after receiving CF frame in %u ms",
+                                  timerN_Cr->getElapsedTime_ms());
         }
         result = IN_PROGRESS;
     }
@@ -323,6 +332,7 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
 {
     OSInterfaceLogVerbose(tag, "Running step with frame %s",
                           receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
+
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
@@ -367,8 +377,8 @@ bool N_USData_Indication_Runner::awaitingMessage() const
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
-    uint32_t timeoutAr = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
-    uint32_t timeoutCr = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
+    uint32_t timeoutAr  = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
+    uint32_t timeoutCr  = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
     uint32_t minTimeout = MIN(timeoutAr, timeoutCr);
 
     OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout - osInterface->osMillis());
