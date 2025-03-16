@@ -64,11 +64,10 @@ private:
     STmin    stMin{};
     STmin    effectiveStMin{};
 
-    N_Result   result;
-    RunnerType runnerType;
-    uint32_t   lastRunTime;
-    uint8_t    sequenceNumber;
-    char*      tag{};
+    N_Result result;
+    uint32_t lastRunTime;
+    uint8_t  sequenceNumber;
+    char*    tag{};
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t   internalStatus;
