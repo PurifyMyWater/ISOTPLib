@@ -7,7 +7,6 @@
 #include "N_USData_Indication_Runner.h"
 #include "N_USData_Request_Runner.h"
 
-
 DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners,
                    const N_USData_confirm_cb_t       N_USData_confirm_cb,
                    const N_USData_indication_cb_t    N_USData_indication_cb,
@@ -170,8 +169,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
     this->finishedRunners.clear();
 }
 
-template <std::ranges::input_range R>
-void DoCANCpp::runErrorCallbacks(R&& runners) // TODO test this function
+template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runners) // TODO test this function
 {
     for (const auto runner : runners)
     {
@@ -187,8 +185,7 @@ void DoCANCpp::runErrorCallbacks(R&& runners) // TODO test this function
         {
             if (this->N_USData_indication_cb != nullptr)
             {
-                this->N_USData_indication_cb(runner->getN_AI(), nullptr, 0,
-                                             N_ERROR, Mtype_Unknown);
+                this->N_USData_indication_cb(runner->getN_AI(), nullptr, 0, N_ERROR, Mtype_Unknown);
             }
         }
         else
@@ -370,7 +367,8 @@ void DoCANCpp::runStep(DoCANCpp* self)
         }
         else
         {
-            self->runStepCanInactive(); // TODO: avoid calling this function always, do it only once until can is active again.
+            self->runStepCanInactive(); // TODO: avoid calling this function always, do it only once until can is active
+                                        // again.
         }
     }
 }
