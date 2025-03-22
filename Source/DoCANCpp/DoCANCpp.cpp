@@ -276,7 +276,6 @@ void DoCANCpp::run_step(DoCANCpp* self)
             // activeRunners and finishedRunners.
             for (const auto runner : self->finishedRunners)
             {
-                assert(runner->getRunnerType() != N_USData_Runner::RunnerUnknownType);
                 // Call the callbacks.
                 if (runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
                 {
@@ -293,6 +292,10 @@ void DoCANCpp::run_step(DoCANCpp* self)
                         self->N_USData_indication_cb(runner->getN_AI(), messageData, runner->getMessageLength(),
                                                      runner->getResult(), runner->getMtype());
                     }
+                }
+                else
+                {
+                    OSInterfaceLogError(DoCANCpp::TAG, "Runner type is unknown");
                 }
 
                 // Remove the runner from activeRunners.
