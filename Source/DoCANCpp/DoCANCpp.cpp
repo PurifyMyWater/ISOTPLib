@@ -56,13 +56,6 @@ typeof(N_AI::N_SA) DoCANCpp::getN_SA() const
     return NSA;
 }
 
-void DoCANCpp::setN_SA(const typeof(N_AI::N_SA) nSA)
-{
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->nSA = nSA;
-    configMutex->signal();
-}
-
 void DoCANCpp::addAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
     configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
@@ -156,7 +149,6 @@ void DoCANCpp::run_step(DoCANCpp* self)
         {
             // Get the configuration used in this run_step.
             self->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-            typeof(N_AI::N_SA)                     nSA                     = self->nSA;
             std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs = self->acceptedFunctionalN_TAs;
             STmin                                  stMin                   = self->stMin;
             uint8_t                                blockSize               = self->blockSize;
@@ -198,11 +190,11 @@ void DoCANCpp::run_step(DoCANCpp* self)
             CANFrame    frame;
             if (self->canInterface.frameAvailable())
             {
-                self->canInterface.readFrame(&frame); // TODO que pasa si cambias N_SA y tienes mensajes pendientes
+                self->canInterface.readFrame(&frame);
                 if (frame.extd == 1 && frame.data_length_code > 0 && frame.data_length_code <= CAN_FRAME_MAX_DLC)
                 {
                     if ((frame.identifier.N_TAtype == N_TATYPE_5_CAN_CLASSIC_29bit_Physical &&
-                         frame.identifier.N_TA == nSA) ||
+                         frame.identifier.N_TA == self->nSA) ||
                         (frame.identifier.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                          self->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
                     {

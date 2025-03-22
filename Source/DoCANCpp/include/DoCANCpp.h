@@ -87,14 +87,6 @@ public:
     typeof(N_AI::N_SA) getN_SA() const;
 
     /**
-     * This function is used to set the N_SA for this DoCANCpp object.
-     * From this point on, all messages sent or received by this object will have this N_SA.
-     * Messages that are being received or sent before setting the new N_SA will not be affected and have the old N_SA.
-     * @param nSA The N_SA to set for this DoCANCpp object.
-     */
-    void setN_SA(typeof(N_AI::N_SA) nSA);
-
-    /**
      * This function is used to add a N_TA into the functional accepted N_TAs for this DoCANCpp object.
      * From this point on, all messages sent or received by this object will have this N_TA.
      * Messages that are being received or sent before setting the new N_TA will not be affected and have the old N_TA.
