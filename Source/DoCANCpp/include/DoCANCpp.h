@@ -54,7 +54,7 @@ using N_USData_FF_indication_cb_t = void (*)(N_AI nAi, uint32_t messageLength, M
 class DoCANCpp
 {
 public:
-    static const char* TAG;
+    constexpr static const char* TAG = "DoCANCpp";
 
     /**
      * This function is used to queue a message to be sent to an N_TA from the current DoCANCpp object N_SA.

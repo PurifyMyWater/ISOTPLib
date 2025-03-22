@@ -7,7 +7,6 @@
 #include "N_USData_Indication_Runner.h"
 #include "N_USData_Request_Runner.h"
 
-const char* DoCANCpp::TAG = "DoCANCpp";
 
 DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners,
                    const N_USData_confirm_cb_t       N_USData_confirm_cb,
