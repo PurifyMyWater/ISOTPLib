@@ -37,7 +37,11 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
 
     this->mutex = osInterface.osCreateMutex();
-    assert(this->mutex != nullptr && "Failed to create mutex");
+    if (this->mutex == nullptr)
+    {
+        OSInterfaceLogError(tag, AT "Failed to create mutex");
+        return;
+    }
 
     this->internalStatus            = ERROR;
     this->result                    = NOT_STARTED;
