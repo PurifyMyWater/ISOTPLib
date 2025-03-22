@@ -78,7 +78,7 @@ public:
      * There are no limitations on the frequency of this function, timing is handled internally.
      * @param self The DoCANCpp object to run.
      */
-    static void run_step(DoCANCpp* self);
+    static void runStep(DoCANCpp* self);
 
     /**
      * This function is used to get the N_SA for this DoCANCpp object.
@@ -176,6 +176,11 @@ private:
     // Functions
     bool updateRunners();
     bool updateRunner(N_USData_Runner* runner) const;
+
+    void runStepCanActive();
+    void runStepCanInactive();
+    void runFinishedRunnerCallbacks();
+    template <std::ranges::input_range R> void runErrorCallbacks(R&& runners);
 };
 
 #endif // DoCANCpp_H
