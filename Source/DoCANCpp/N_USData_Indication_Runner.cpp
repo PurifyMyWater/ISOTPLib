@@ -36,7 +36,11 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
     this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
 
     this->mutex = osInterface.osCreateMutex();
-    assert(this->mutex != nullptr && "Failed to create mutex"); // TODO use result variable
+    if (this->mutex == nullptr)
+    {
+        OSInterfaceLogError(tag, AT "Failed to create mutex");
+        return;
+    }
 
     this->internalStatus            = NOT_RUNNING;
     this->nAi                       = nAi;
