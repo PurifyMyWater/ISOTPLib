@@ -136,8 +136,6 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
 
 void DoCANCpp::runFinishedRunnerCallbacks()
 {
-    // The sixth part of the runStep is to run the callbacks for the finished runners and remove them from
-    // activeRunners and finishedRunners.
     for (const auto runner : this->finishedRunners)
     {
         // Call the callbacks.
@@ -197,37 +195,13 @@ template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runne
     }
 }
 
-void DoCANCpp::runStepCanInactive()
+void DoCANCpp::startRunners()
 {
-    this->notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-
-    runErrorCallbacks(this->notStartedRunners);
-    this->notStartedRunners.clear();
-
-    this->notStartedRunnersMutex->signal();
-    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-
-    runErrorCallbacks(this->activeRunners | std::views::values);
-    this->activeRunners.clear();
-
-    runFinishedRunnerCallbacks();
-
-    this->runnersMutex->signal();
-}
-
-void DoCANCpp::runStepCanActive()
-{
-    // Get the configuration used in this runStep.
-    this->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs = this->acceptedFunctionalN_TAs;
-    STmin                                  stMin                   = this->stMin;
-    uint8_t                                blockSize               = this->blockSize;
-    this->configMutex->signal();
-
     // The second part of the runStep is to check if there are any runners in notStartedRunners, and move them
     // to activeRunners. ISO 15765-2 specifies that there should not be more than one message with the same N_AI
     // being transmitted or received at the same time. If that happens, leave the message in the
     // notStartedRunners queue until the current message with this N_AI is processed.
+    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
     this->notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
 
     auto it = this->notStartedRunners.begin();
@@ -245,18 +219,13 @@ void DoCANCpp::runStepCanActive()
     }
 
     this->notStartedRunnersMutex->signal();
+    this->runnersMutex->signal();
+}
 
-    // The third part of the runStep is to check if a message is available, read it and check if this DoCANCpp
-    // object is interested in it.
-    enum FrameStatus
-    {
-        frameNotAvailable = 0,
-        frameAvailable,
-        frameProcessed
-    };
-    FrameStatus frameStatus = frameNotAvailable;
-    CANFrame    frame;
-    if (this->canInterface.frameAvailable()) // FIXME Time of check vs time of use problem
+void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame)
+{
+    frameStatus = frameNotAvailable;
+    if (this->canInterface.frameAvailable())
     {
         this->canInterface.readFrame(&frame);
         if (frame.extd == 1 && frame.data_length_code > 0 && frame.data_length_code <= CAN_FRAME_MAX_DLC)
@@ -270,16 +239,12 @@ void DoCANCpp::runStepCanActive()
             }
         }
     }
+}
 
-    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForRunnersSync_MS);
-
-    // The fourth part of the runStep is to walk through all activeRunners checking if they need to run. If
-    // they do, run them passing them the frame if it applies.
-    for (auto runnerPair : this->activeRunners)
+void DoCANCpp::runRunners(DoCANCpp::FrameStatus& frameStatus, CANFrame frame)
+{
+    for (auto runner : this->activeRunners | std::views::values)
     {
-        auto runner = runnerPair.second;
-        assert(runner != nullptr);
-
         N_Result result = IN_PROGRESS; // If the runner does not run, do nothing in the switch below.
 
         if (frameStatus == frameAvailable && runner->awaitingMessage() &&
@@ -309,9 +274,10 @@ void DoCANCpp::runStepCanActive()
                 break;
         }
     }
+}
 
-    // The fifth part of the runStep is to check if a runner processed a message, and if no one did, start a
-    // new runner to handle it.
+void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::FrameStatus frameStatus, CANFrame frame)
+{
     if (frameStatus == frameAvailable)
     {
         bool result;
@@ -319,27 +285,86 @@ void DoCANCpp::runStepCanActive()
         N_USData_Runner* runner =
             new N_USData_Indication_Runner(result, frame.identifier, this->availableMemoryForRunners, blockSize, stMin,
                                            this->osInterface, *this->CanMessageACKQueue);
-        if (!result)
+        if (runner == nullptr)
         {
-            // TODO: handle this error (Out of memory)
+            OSInterfaceLogError(DoCANCpp::TAG, "Failed to create a new runner");
         }
-
-        switch (runner->run_step(&frame))
+        else if (!result)
         {
-            case IN_PROGRESS:
-                assert(false && "N_Result::IN_PROGRESS should not happen, as the runner was just created");
-            case IN_PROGRESS_FF:
-                if (this->N_USData_FF_indication_cb != nullptr)
-                {
-                    this->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(), runner->getMtype());
-                }
-                this->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
-                break;
-            default: // Single frame or error
-                this->finishedRunners.push_front(runner);
-                break;
+            OSInterfaceLogError(DoCANCpp::TAG, "Failed to create a new runner");
+            delete runner;
+        }
+        else
+        {
+            switch (runner->run_step(&frame))
+            {
+                case IN_PROGRESS:
+                    assert(false && "N_Result::IN_PROGRESS should not happen, as the runner was just created");
+                case IN_PROGRESS_FF:
+                    if (this->N_USData_FF_indication_cb != nullptr)
+                    {
+                        this->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(),
+                                                        runner->getMtype());
+                    }
+                    this->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
+                    break;
+                default: // Single frame or error
+                    this->finishedRunners.push_front(runner);
+                    break;
+            }
         }
     }
+}
+void DoCANCpp::runStepCanActive()
+{
+    // Get the configuration used in this runStep.
+    this->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs = this->acceptedFunctionalN_TAs;
+    STmin                                  stMin                   = this->stMin;
+    uint8_t                                blockSize               = this->blockSize;
+    this->configMutex->signal();
+
+    // The second part of the runStep is to check if there are any runners in notStartedRunners, and move them
+    // to activeRunners. ISO 15765-2 specifies that there should not be more than one message with the same N_AI
+    // being transmitted or received at the same time. If that happens, leave the message in the
+    // notStartedRunners queue until the current message with this N_AI is processed.
+    startRunners();
+
+    // The third part of the runStep is to check if a message is available, read it and check if this DoCANCpp
+    // object is interested in it.
+    FrameStatus frameStatus;
+    CANFrame    frame;
+    getFrameIfAvailable(frameStatus, frame);
+
+    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForRunnersSync_MS);
+
+    // The fourth part of the runStep is to walk through all activeRunners checking if they need to run. If
+    // they do, run them passing them the frame if it applies.
+    runRunners(frameStatus, frame);
+
+    // The fifth part of the runStep is to check if a runner processed a message, and if no one did, start a
+    // new runner to handle it.
+    createRunnerForMessage(stMin, blockSize, frameStatus, frame);
+
+    // The sixth part of the runStep is to run the callbacks for the finished runners and remove them from
+    // activeRunners and finishedRunners.
+    runFinishedRunnerCallbacks();
+
+    this->runnersMutex->signal();
+}
+
+void DoCANCpp::runStepCanInactive()
+{
+    this->notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+
+    runErrorCallbacks(this->notStartedRunners);
+    this->notStartedRunners.clear();
+
+    this->notStartedRunnersMutex->signal();
+    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+
+    runErrorCallbacks(this->activeRunners | std::views::values);
+    this->activeRunners.clear();
 
     runFinishedRunnerCallbacks();
 
@@ -360,8 +385,7 @@ void DoCANCpp::runStep(DoCANCpp* self)
     {
         self->lastRunTime = self->osInterface.osMillis();
 
-        if (self->canInterface
-                .active()) // TODO what happens if the CAN is not active and we have messages mid-transmission (in/out)?
+        if (self->canInterface.active())
         {
             self->runStepCanActive();
         }

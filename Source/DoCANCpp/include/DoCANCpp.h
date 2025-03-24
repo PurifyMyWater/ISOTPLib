@@ -145,6 +145,13 @@ public:
              STmin stMin = DoCANCpp_DefaultSTmin);
 
 private:
+    enum FrameStatus
+    {
+        frameNotAvailable = 0,
+        frameAvailable,
+        frameProcessed
+    };
+
     // Interfaces
     OSInterface&  osInterface;
     CANInterface& canInterface;
@@ -177,8 +184,13 @@ private:
     bool updateRunners();
     bool updateRunner(N_USData_Runner* runner) const;
 
+    void runRunners(FrameStatus& frameStatus, CANFrame frame);
+    void createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
+    bool createNewRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
     void runStepCanActive();
     void runStepCanInactive();
+    void startRunners();
+    void getFrameIfAvailable(__resharper_unknown_type& frameStatus, CANFrame& frame);
     void runFinishedRunnerCallbacks();
 
     template <std::ranges::input_range R> void runErrorCallbacks(R&& runners);
