@@ -190,7 +190,7 @@ private:
     void runStepCanActive();
     void runStepCanInactive();
     void startRunners();
-    void getFrameIfAvailable(__resharper_unknown_type& frameStatus, CANFrame& frame);
+    void getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame);
     void runFinishedRunnerCallbacks();
 
     template <std::ranges::input_range R> void runErrorCallbacks(R&& runners);
