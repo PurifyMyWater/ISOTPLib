@@ -371,27 +371,21 @@ void DoCANCpp::runStepCanInactive()
     this->runnersMutex->signal();
 }
 
-void DoCANCpp::runStep(DoCANCpp* self)
+void DoCANCpp::runStep()
 {
-    if (self == nullptr)
-    {
-        OSInterfaceLogError(DoCANCpp::TAG, "DoCANCpp is null");
-        return;
-    }
-
     // The first part of the runStep is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed
     // since the last run.
-    if (self->osInterface.osMillis() - self->lastRunTime > DoCANCpp_RunPeriod_MS)
+    if (this->osInterface.osMillis() - this->lastRunTime > DoCANCpp_RunPeriod_MS)
     {
-        self->lastRunTime = self->osInterface.osMillis();
+        this->lastRunTime = this->osInterface.osMillis();
 
-        if (self->canInterface.active())
+        if (this->canInterface.active())
         {
-            self->runStepCanActive();
+            this->runStepCanActive();
         }
         else
         {
-            self->runStepCanInactive(); // TODO: avoid calling this function always, do it only once until can is active
+            this->runStepCanInactive(); // TODO: avoid calling this function always, do it only once until can is active
                                         // again.
         }
     }

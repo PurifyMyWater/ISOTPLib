@@ -19,7 +19,7 @@ constexpr STmin    DoCANCpp_DefaultSTmin                   = {20, ms};
 constexpr uint8_t  DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
 /**
- * This function is used to confirm the reception of a message.
+ * This function is used to confirm the sending of a message.
  * @param nAi The N_AI of the message.
  * @param nResult The result of the reception.
  * @param mtype The Mtype of the message.
@@ -76,9 +76,8 @@ public:
      * This function is used to run the DoCAN service.
      * It needs to be called periodically to allow the DoCAN service to run.
      * There are no limitations on the frequency of this function, timing is handled internally.
-     * @param self The DoCANCpp object to run.
      */
-    static void runStep(DoCANCpp* self);
+    void runStep();
 
     /**
      * This function is used to get the N_SA for this DoCANCpp object.
