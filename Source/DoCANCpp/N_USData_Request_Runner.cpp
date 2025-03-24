@@ -199,7 +199,7 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
         case NOT_RUNNING_FF:
             res = runStep_FF(receivedFrame);
             break;
-        case AWAITING_FirstFC:                      // We got the message or timeout.
+        case AWAITING_FirstFC:                     // We got the message or timeout.
             res = runStep_FC(receivedFrame, true); // First FC
             break;
         case SEND_CF:
