@@ -252,13 +252,13 @@ void DoCANCpp::runRunners(DoCANCpp::FrameStatus& frameStatus, CANFrame frame)
                 frame.identifier.N_AI) // If the runner has a message to process, do it immediately.
         {
             // Run the runner with the frame.
-            result      = runner->run_step(&frame);
+            result      = runner->runStep(&frame);
             frameStatus = frameProcessed;
         }
         else if (this->lastRunTime - runner->getNextRunTime() > 0) // If the runner is ready to run, do it.
         {
             // Run the runner without the frame.
-            result = runner->run_step(nullptr);
+            result = runner->runStep(nullptr);
         }
 
         // Check if the runner has finished
@@ -296,7 +296,7 @@ void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::
         }
         else
         {
-            switch (runner->run_step(&frame))
+            switch (runner->runStep(&frame))
             {
                 case IN_PROGRESS:
                     assert(false && "N_Result::IN_PROGRESS should not happen, as the runner was just created");

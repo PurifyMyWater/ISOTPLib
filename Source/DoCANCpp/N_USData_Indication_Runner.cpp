@@ -109,7 +109,7 @@ bool N_USData_Indication_Runner::setSTmin(STmin stMin)
     return false;
 }
 
-N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
@@ -261,7 +261,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
     return N_ERROR;
 }
 
-N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
@@ -361,7 +361,7 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     return N_OK;
 }
 
-N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
     OSInterfaceLogVerbose(tag, "Running step with frame %s",
                           receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
@@ -382,10 +382,10 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
     switch (internalStatus)
     {
         case NOT_RUNNING:
-            res = run_step_notRunning(receivedFrame);
+            res = runStep_notRunning(receivedFrame);
             break;
         case AWAITING_CF:
-            res = run_step_CF(receivedFrame);
+            res = runStep_CF(receivedFrame);
             break;
         case ERROR:
             res = result;

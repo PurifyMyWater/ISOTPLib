@@ -66,7 +66,7 @@ public:
      * @param receivedFrame Pointer to the received frame. If nullptr, no frame is received.
      * @return The result of the run.
      */
-    virtual N_Result run_step(CANFrame* receivedFrame) = 0;
+    virtual N_Result runStep(CANFrame* receivedFrame) = 0;
 
     /**
      * @brief Returns if the runner is awaiting a message.
@@ -99,7 +99,7 @@ public:
     [[nodiscard]] virtual uint32_t getMessageLength() const = 0;
 
     /**
-     * @brief Returns the result of the last run_step().
+     * @brief Returns the result of the last runStep().
      * @return The result of the runner.
      */
     [[nodiscard]] virtual N_Result getResult() const = 0;

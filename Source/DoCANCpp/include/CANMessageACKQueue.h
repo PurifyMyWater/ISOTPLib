@@ -13,7 +13,7 @@ public:
     explicit CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface);
     ~CANMessageACKQueue();
 
-    void run_step();
+    void runStep();
 
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
 

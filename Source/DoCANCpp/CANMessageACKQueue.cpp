@@ -11,7 +11,7 @@ CANMessageACKQueue::~CANMessageACKQueue()
     delete mutex;
 }
 
-void CANMessageACKQueue::run_step()
+void CANMessageACKQueue::runStep()
 {
     if (CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {

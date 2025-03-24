@@ -173,7 +173,7 @@ N_Result N_USData_Request_Runner::checkTimeouts()
     return N_OK;
 }
 
-N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
+N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
 {
     OSInterfaceLogVerbose(tag, "Running step with frame %s",
                           receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
@@ -194,19 +194,19 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
     switch (internalStatus)
     {
         case NOT_RUNNING_SF:
-            res = run_step_SF(receivedFrame);
+            res = runStep_SF(receivedFrame);
             break;
         case NOT_RUNNING_FF:
-            res = run_step_FF(receivedFrame);
+            res = runStep_FF(receivedFrame);
             break;
         case AWAITING_FirstFC:                      // We got the message or timeout.
-            res = run_step_FC(receivedFrame, true); // First FC
+            res = runStep_FC(receivedFrame, true); // First FC
             break;
         case SEND_CF:
-            res = run_step_CF(receivedFrame);
+            res = runStep_CF(receivedFrame);
             break;
         case AWAITING_FC:
-            res = run_step_FC(receivedFrame);
+            res = runStep_FC(receivedFrame);
             break;
         case MESSAGE_SENT:
             result = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
@@ -229,7 +229,7 @@ N_Result N_USData_Request_Runner::run_step(CANFrame* receivedFrame)
     return res;
 }
 
-N_Result N_USData_Request_Runner::run_step_CF(const CANFrame* receivedFrame)
+N_Result N_USData_Request_Runner::runStep_CF(const CANFrame* receivedFrame)
 {
     if (receivedFrame != nullptr)
     {
@@ -240,7 +240,7 @@ N_Result N_USData_Request_Runner::run_step_CF(const CANFrame* receivedFrame)
     return result;
 }
 
-N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
+N_Result N_USData_Request_Runner::runStep_FF(const CANFrame* receivedFrame)
 {
     if (receivedFrame != nullptr)
     {
@@ -292,7 +292,7 @@ N_Result N_USData_Request_Runner::run_step_FF(const CANFrame* receivedFrame)
     returnErrorWithLog(N_ERROR, "FF frame could not be sent");
 }
 
-N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
+N_Result N_USData_Request_Runner::runStep_SF(const CANFrame* receivedFrame)
 {
     if (receivedFrame != nullptr)
     {
@@ -322,7 +322,7 @@ N_Result N_USData_Request_Runner::run_step_SF(const CANFrame* receivedFrame)
     return result;
 }
 
-N_Result N_USData_Request_Runner::run_step_FC(const CANFrame* receivedFrame, const bool firstFC)
+N_Result N_USData_Request_Runner::runStep_FC(const CANFrame* receivedFrame, const bool firstFC)
 {
     FlowStatus fs;
     uint8_t    bs;
