@@ -61,6 +61,14 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     {
         this->messageData = static_cast<uint8_t*>(osInterface.osMalloc(this->messageLength * sizeof(uint8_t)));
 
+        if (this->messageLength == 0)
+        {
+            this->messageData = static_cast<uint8_t*>(osInterface.osMalloc(1 * sizeof(uint8_t)));
+            if (this->messageData != nullptr)
+            {
+                this->messageData[0] = '\0';
+            }
+        }
         if (this->messageData == nullptr)
         {
             OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
