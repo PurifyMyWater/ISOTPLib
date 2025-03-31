@@ -410,12 +410,13 @@ bool N_USData_Indication_Runner::awaitingMessage() const
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
-    uint32_t timeoutAr  = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
-    uint32_t timeoutCr  = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
-    uint32_t minTimeout = MIN(timeoutAr, timeoutCr);
+    int32_t timeoutAr  = timerN_Ar->isTimerRunning() ? (N_Ar_TIMEOUT_MS - static_cast<int32_t>(timerN_Ar->getElapsedTime_ms())) : INT32_MAX;
+    int32_t timeoutCr  = timerN_Cr->isTimerRunning() ? (N_Cr_TIMEOUT_MS - static_cast<int32_t>(timerN_Cr->getElapsedTime_ms())) : INT32_MAX;
 
-    OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout - osInterface->osMillis());
-    return minTimeout;
+    int32_t minTimeout = MIN(timeoutAr, timeoutCr);
+
+    OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout);
+    return minTimeout + osInterface->osMillis();
 }
 
 uint32_t N_USData_Indication_Runner::getNextRunTime() const

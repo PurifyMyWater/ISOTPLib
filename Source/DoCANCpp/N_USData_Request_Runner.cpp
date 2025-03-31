@@ -32,7 +32,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
     this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->blockSize          = 0;
-    this->stMin              = {0, ms};
+    this->stMin              = DEFAULT_STMIN;
     this->lastRunTime        = 0;
     this->sequenceNumber = 1; // The first sequence number that is being sent is 1. (0 is reserved for the first frame)
 
@@ -383,14 +383,15 @@ bool N_USData_Request_Runner::awaitingMessage() const
 
 uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
 {
-    uint32_t timeoutAs      = timerN_As->getStartTimeStamp() + N_As_TIMEOUT_MS;
-    uint32_t timeoutBs      = timerN_Bs->getStartTimeStamp() + N_Bs_TIMEOUT_MS;
-    uint32_t timeoutCs      = timerN_Cs->getStartTimeStamp() + getStMinInMs(stMin);
-    uint32_t minTimeoutAsBs = MIN(timeoutAs, timeoutBs);
-    uint32_t minTimeout     = MIN(minTimeoutAsBs, timeoutCs);
+    int32_t timeoutAs      = timerN_As->isTimerRunning() ? (N_As_TIMEOUT_MS - static_cast<int32_t>(timerN_As->getElapsedTime_ms())) : INT32_MAX;
+    int32_t timeoutBs      = timerN_Bs->isTimerRunning() ? (N_Bs_TIMEOUT_MS - static_cast<int32_t>(timerN_Bs->getElapsedTime_ms())) : INT32_MAX;
+    int32_t timeoutCs      = timerN_Cs->isTimerRunning() ? (static_cast<int32_t>(getStMinInMs(stMin)) - static_cast<int32_t>(timerN_Cs->getElapsedTime_ms())) : INT32_MAX;
 
-    OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout - osInterface->osMillis());
-    return minTimeout;
+    int32_t minTimeoutAsBs = MIN(timeoutAs, timeoutBs);
+    int32_t minTimeout     = MIN(minTimeoutAsBs, timeoutCs);
+
+    OSInterfaceLogVerbose(tag, "Next timeout is in %d ms", minTimeout);
+    return minTimeout + osInterface->osMillis();
 }
 
 uint32_t N_USData_Request_Runner::getNextRunTime() const

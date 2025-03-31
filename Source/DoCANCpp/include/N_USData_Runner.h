@@ -47,12 +47,14 @@ public:
     constexpr static uint8_t  FC_MESSAGE_LENGTH              = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-    constexpr static uint32_t N_As_TIMEOUT_MS = 1000;
-    constexpr static uint32_t N_Ar_TIMEOUT_MS = 1000;
-    constexpr static uint32_t N_Bs_TIMEOUT_MS = 1000;
-    // constexpr static uint32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
-    constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
-    // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_As_TIMEOUT_MS = 1000;
+    constexpr static int32_t N_Ar_TIMEOUT_MS = 1000;
+    constexpr static int32_t N_Bs_TIMEOUT_MS = 1000;
+    // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_Cr_TIMEOUT_MS = 1000;
+    // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+
+    constexpr static STmin DEFAULT_STMIN = {20, ms};
 
     N_USData_Runner()          = default;
     virtual ~N_USData_Runner() = default;
