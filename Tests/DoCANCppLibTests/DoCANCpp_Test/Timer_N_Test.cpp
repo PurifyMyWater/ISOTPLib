@@ -19,9 +19,12 @@ TEST(Timer_N, startTimer)
 TEST(Timer_N, stopTimer)
 {
     Timer_N timer(linuxOSInterface);
+    ASSERT_FALSE(timer.isTimerRunning());
     timer.startTimer();
+    ASSERT_TRUE(timer.isTimerRunning());
     linuxOSInterface.osSleep(10);
     timer.stopTimer();
+    ASSERT_FALSE(timer.isTimerRunning());
     ASSERT_GE(15, timer.getElapsedTime_ms());
     ASSERT_LE(9, timer.getElapsedTime_ms());
     linuxOSInterface.osSleep(10);
