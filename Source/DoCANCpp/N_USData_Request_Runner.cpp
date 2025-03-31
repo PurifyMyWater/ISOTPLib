@@ -95,7 +95,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_
                 }
                 else
                 {
-                    OSInterfaceLogDebug(tag, "Message type is First Frame");
+                    OSInterfaceLogDebug(tag, "Message type is Multiple Frame");
                     this->internalStatus = NOT_RUNNING_FF;
                 }
 
@@ -308,7 +308,7 @@ N_Result N_USData_Request_Runner::runStep_SF(const CANFrame* receivedFrame)
     }
 
     timerN_As->startTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_As started after sending SF frame in %u ms", timerN_As->getElapsedTime_ms());
+    OSInterfaceLogVerbose(tag, "Timer N_As started before sending SF frame");
 
     CANFrame sfFrame   = NewCANFrameDoCANCpp();
     sfFrame.identifier = nAi;

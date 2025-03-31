@@ -138,11 +138,14 @@ void DoCANCpp::runFinishedRunnerCallbacks()
 {
     for (const auto runner : this->finishedRunners)
     {
+        OSInterfaceLogInfo(TAG, "Runner %s finished with result %s", runner->getTAG(),
+                                   N_ResultToString(runner->getResult()));
         // Call the callbacks.
         if (runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
         {
             if (this->N_USData_confirm_cb != nullptr)
             {
+                OSInterfaceLogInfo(TAG, "Calling N_USData_confirm_cb of runner %s", runner->getTAG());
                 this->N_USData_confirm_cb(runner->getN_AI(), runner->getResult(), runner->getMtype());
             }
         }
@@ -150,6 +153,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
         {
             if (this->N_USData_indication_cb != nullptr)
             {
+                OSInterfaceLogInfo(TAG, "Calling N_USData_indication_cb of runner %s", runner->getTAG());
                 const uint8_t* messageData = runner->getMessageData();
                 this->N_USData_indication_cb(runner->getN_AI(), messageData, runner->getMessageLength(),
                                              runner->getResult(), runner->getMtype());
@@ -222,7 +226,7 @@ void DoCANCpp::startRunners()
     this->runnersMutex->signal();
 }
 
-void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame)
+void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) const
 {
     frameStatus = frameNotAvailable;
     if (this->canInterface.frameAvailable())
@@ -241,7 +245,7 @@ void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame)
     }
 }
 
-void DoCANCpp::runRunners(DoCANCpp::FrameStatus& frameStatus, CANFrame frame)
+void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
 {
     for (auto runner : this->activeRunners | std::views::values)
     {
@@ -255,7 +259,7 @@ void DoCANCpp::runRunners(DoCANCpp::FrameStatus& frameStatus, CANFrame frame)
             result      = runner->runStep(&frame);
             frameStatus = frameProcessed;
         }
-        else if (this->lastRunTime - runner->getNextRunTime() > 0) // If the runner is ready to run, do it.
+        else if (this->lastRunTime > runner->getNextRunTime()) // If the runner is ready to run, do it.
         {
             // Run the runner without the frame.
             result = runner->runStep(nullptr);
@@ -303,6 +307,7 @@ void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::
                 case IN_PROGRESS_FF:
                     if (this->N_USData_FF_indication_cb != nullptr)
                     {
+                        OSInterfaceLogInfo(TAG, "Calling N_USData_FF_indication_cb of runner %s", runner->getTAG());
                         this->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(),
                                                         runner->getMtype());
                     }
@@ -375,9 +380,9 @@ void DoCANCpp::runStep()
 {
     // The first part of the runStep is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed
     // since the last run.
-    if (this->osInterface.osMillis() - this->lastRunTime > DoCANCpp_RunPeriod_MS)
+    if (const uint32_t millis = this->osInterface.osMillis(); millis - this->lastRunTime > DoCANCpp_RunPeriod_MS)
     {
-        this->lastRunTime = this->osInterface.osMillis();
+        this->lastRunTime = millis;
 
         if (this->canInterface.active())
         {
@@ -387,6 +392,18 @@ void DoCANCpp::runStep()
         {
             this->runStepCanInactive(); // TODO: avoid calling this function always, do it only once until can is active
                                         // again.
+        }
+    }
+}
+void DoCANCpp::canMessageACKQueueRunStep() const
+{
+    static uint32_t ACKlastRunTime = 0;
+    if (this->osInterface.osMillis() - ACKlastRunTime > DoCANCpp_RunPeriod_ACKQueue_MS)
+    {
+        ACKlastRunTime = this->osInterface.osMillis();
+        if (CanMessageACKQueue != nullptr)
+        {
+            CanMessageACKQueue->runStep();
         }
     }
 }

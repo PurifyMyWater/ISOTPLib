@@ -15,6 +15,7 @@
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForRunnersSync_MS = 1000;
 constexpr uint32_t DoCANCpp_RunPeriod_MS                   = 100;
+constexpr uint32_t DoCANCpp_RunPeriod_ACKQueue_MS          = 20;
 constexpr STmin    DoCANCpp_DefaultSTmin                   = {20, ms};
 constexpr uint8_t  DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
@@ -78,6 +79,13 @@ public:
      * There are no limitations on the frequency of this function, timing is handled internally.
      */
     void runStep();
+
+    /**
+     * This function is used to run the DoCAN service.
+     * It needs to be called periodically to allow the DoCAN service to run.
+     * There are no limitations on the frequency of this function, timing is handled internally.
+     */
+    void canMessageACKQueueRunStep() const;
 
     /**
      * This function is used to get the N_SA for this DoCANCpp object.
@@ -189,7 +197,7 @@ private:
     void runStepCanActive();
     void runStepCanInactive();
     void startRunners();
-    void getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame);
+    void getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) const;
     void runFinishedRunnerCallbacks();
 
     template <std::ranges::input_range R> void runErrorCallbacks(R&& runners);
