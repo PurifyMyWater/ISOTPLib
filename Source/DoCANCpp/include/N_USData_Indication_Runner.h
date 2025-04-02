@@ -19,7 +19,7 @@ public:
 
     ~N_USData_Indication_Runner() override;
 
-    N_Result run_step(CANFrame* receivedFrame) override;
+    N_Result runStep(CANFrame* receivedFrame) override;
 
     [[nodiscard]] bool awaitingMessage() const override;
 
@@ -46,8 +46,8 @@ public:
     [[nodiscard]] const char* getTAG() const override;
 
 private:
-    N_Result run_step_notRunning(const CANFrame* receivedFrame);
-    N_Result run_step_CF(const CANFrame* receivedFrame);
+    N_Result runStep_notRunning(const CANFrame* receivedFrame);
+    N_Result runStep_CF(const CANFrame* receivedFrame);
 
     N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;

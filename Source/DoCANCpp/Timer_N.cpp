@@ -5,12 +5,12 @@ Timer_N::Timer_N(OSInterface& osInterface)
     this->osInterface = &osInterface;
     elapsedTime       = 0;
     startTime         = 0;
-    isTimerRunning    = false;
+    timerRunning    = false;
 }
 
 void Timer_N::stopTimer()
 {
-    isTimerRunning = false;
+    timerRunning = false;
     elapsedTime += osInterface->osMillis() - startTime;
 }
 
@@ -18,7 +18,12 @@ void Timer_N::startTimer()
 {
     elapsedTime    = 0;
     startTime      = osInterface->osMillis();
-    isTimerRunning = true;
+    timerRunning = true;
+}
+
+bool Timer_N::isTimerRunning() const
+{
+    return timerRunning;
 }
 
 uint32_t Timer_N::getStartTimeStamp() const
@@ -28,5 +33,5 @@ uint32_t Timer_N::getStartTimeStamp() const
 
 uint32_t Timer_N::getElapsedTime_ms() const
 {
-    return isTimerRunning ? osInterface->osMillis() - startTime : elapsedTime;
+    return timerRunning ? osInterface->osMillis() - startTime : elapsedTime;
 }

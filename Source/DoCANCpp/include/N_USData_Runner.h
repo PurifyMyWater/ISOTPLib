@@ -47,12 +47,14 @@ public:
     constexpr static uint8_t  FC_MESSAGE_LENGTH              = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-    constexpr static uint32_t N_As_TIMEOUT_MS = 1000;
-    constexpr static uint32_t N_Ar_TIMEOUT_MS = 1000;
-    constexpr static uint32_t N_Bs_TIMEOUT_MS = 1000;
-    // constexpr static uint32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
-    constexpr static uint32_t N_Cr_TIMEOUT_MS = 1000;
-    // constexpr static uint32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_As_TIMEOUT_MS = 1000;
+    constexpr static int32_t N_Ar_TIMEOUT_MS = 1000;
+    constexpr static int32_t N_Bs_TIMEOUT_MS = 1000;
+    // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_Cr_TIMEOUT_MS = 1000;
+    // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+
+    constexpr static STmin DEFAULT_STMIN = {20, ms};
 
     N_USData_Runner()          = default;
     virtual ~N_USData_Runner() = default;
@@ -66,7 +68,7 @@ public:
      * @param receivedFrame Pointer to the received frame. If nullptr, no frame is received.
      * @return The result of the run.
      */
-    virtual N_Result run_step(CANFrame* receivedFrame) = 0;
+    virtual N_Result runStep(CANFrame* receivedFrame) = 0;
 
     /**
      * @brief Returns if the runner is awaiting a message.
@@ -99,7 +101,7 @@ public:
     [[nodiscard]] virtual uint32_t getMessageLength() const = 0;
 
     /**
-     * @brief Returns the result of the last run_step().
+     * @brief Returns the result of the last runStep().
      * @return The result of the runner.
      */
     [[nodiscard]] virtual N_Result getResult() const = 0;

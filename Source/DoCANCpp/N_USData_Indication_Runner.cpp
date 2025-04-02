@@ -109,7 +109,7 @@ bool N_USData_Indication_Runner::setSTmin(STmin stMin)
     return false;
 }
 
-N_Result N_USData_Indication_Runner::run_step_notRunning(const CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
@@ -261,7 +261,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
     return N_ERROR;
 }
 
-N_Result N_USData_Indication_Runner::run_step_CF(const CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
 {
     if (receivedFrame == nullptr)
     {
@@ -361,7 +361,7 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     return N_OK;
 }
 
-N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
     OSInterfaceLogVerbose(tag, "Running step with frame %s",
                           receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
@@ -382,10 +382,10 @@ N_Result N_USData_Indication_Runner::run_step(CANFrame* receivedFrame)
     switch (internalStatus)
     {
         case NOT_RUNNING:
-            res = run_step_notRunning(receivedFrame);
+            res = runStep_notRunning(receivedFrame);
             break;
         case AWAITING_CF:
-            res = run_step_CF(receivedFrame);
+            res = runStep_CF(receivedFrame);
             break;
         case ERROR:
             res = result;
@@ -410,12 +410,13 @@ bool N_USData_Indication_Runner::awaitingMessage() const
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
-    uint32_t timeoutAr  = timerN_Ar->getStartTimeStamp() + N_Ar_TIMEOUT_MS;
-    uint32_t timeoutCr  = timerN_Cr->getStartTimeStamp() + N_Cr_TIMEOUT_MS;
-    uint32_t minTimeout = MIN(timeoutAr, timeoutCr);
+    int32_t timeoutAr  = timerN_Ar->isTimerRunning() ? (N_Ar_TIMEOUT_MS - static_cast<int32_t>(timerN_Ar->getElapsedTime_ms())) : INT32_MAX;
+    int32_t timeoutCr  = timerN_Cr->isTimerRunning() ? (N_Cr_TIMEOUT_MS - static_cast<int32_t>(timerN_Cr->getElapsedTime_ms())) : INT32_MAX;
 
-    OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout - osInterface->osMillis());
-    return minTimeout;
+    int32_t minTimeout = MIN(timeoutAr, timeoutCr);
+
+    OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout);
+    return minTimeout + osInterface->osMillis();
 }
 
 uint32_t N_USData_Indication_Runner::getNextRunTime() const

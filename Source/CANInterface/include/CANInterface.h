@@ -95,14 +95,14 @@ public:
 
     /**
      * @brief Check if a frame is available to read.
-     * @return Number of frames available to read.
+     * @return Number of frames available to read. or 0 if no frames are available, or the bus is not active.
      */
     virtual uint32_t frameAvailable() = 0;
 
     /**
      * @brief Read a frame from the CAN bus.
      * @param frame Pointer to a CANFrame struct to store the read frame.
-     * @return True if a frame was read, false if no frame was available.
+     * @return True if a frame was read, false if no frame was available, or the bus is not active.
      */
     virtual bool readFrame(CANFrame* frame) = 0;
 
@@ -122,7 +122,7 @@ public:
     /**
      * @brief Get the ACK result of the last message sent.
      * @return The result of the last ACK or ACK_NONE if no message finished transmission since the last call to this
-     * function.
+     * function, or the bus is not active.
      */
     virtual ACKResult getWriteFrameACK() = 0;
 
