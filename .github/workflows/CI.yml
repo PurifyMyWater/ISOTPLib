@@ -20,8 +20,15 @@ jobs:
         runs-on: ubuntu-latest
         env:
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
+            GH_USER_NAME: vacmg
 
         steps:
+            -   name: "Import GitHub credentials" # ~/.gitconfig
+                run: |
+                    git config --global --replace-all "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" ssh://git@github.com:
+                    git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" git@github.com:
+                    git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" https://github.com/
+
             -   name: "Checkout repository"
                 uses: actions/checkout@v4
 
@@ -104,12 +111,19 @@ jobs:
         needs: Build
         env:
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
+            GH_USER_NAME: vacmg
 
         permissions:
             contents: write
             pull-requests: write
 
         steps:
+            -   name: "Import GitHub credentials" # ~/.gitconfig
+                run: |
+                    git config --global --replace-all "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" ssh://git@github.com:
+                    git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" git@github.com:
+                    git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" https://github.com/
+
             -   name: "Checkout repository"
                 uses: actions/checkout@v4
 
@@ -152,6 +166,8 @@ jobs:
         env:
             BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
+            GH_USER_NAME: vacmg
+
         steps:
             -   name: Restore cached Coverage Report
                 uses: actions/cache/restore@v4
@@ -166,6 +182,12 @@ jobs:
                     key: "${{ runner.os }}-valgrind-${{ github.sha }}"
                     path: '${{runner.workspace}}/valgrind.xml'
                     fail-on-cache-miss: true
+
+            -   name: "Import GitHub credentials" # ~/.gitconfig
+                run: |
+                    git config --global --replace-all "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" ssh://git@github.com:
+                    git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" git@github.com:
+                    git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" https://github.com/
 
             -   name: "Checkout repository"
                 uses: actions/checkout@v4

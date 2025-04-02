@@ -5,15 +5,9 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     include(FetchContent)
     set(FETCHCONTENT_QUIET OFF)
 
-    if(DEFINED ENV{GITHUB_ACTION})
-        set(GIT_REPO https://vacmg:$ENV{GH_PAT}@github.com/vacmg/LinuxOSInterface.git)
-    else()
-        set(GIT_REPO git@github.com:vacmg/LinuxOSInterface.git)
-    endif()
-
     FetchContent_Declare(
             LinuxOSInterface
-            GIT_REPOSITORY  ${GIT_REPO}
+            GIT_REPOSITORY  git@github.com:vacmg/LinuxOSInterface.git
             GIT_TAG         main
     )
 
