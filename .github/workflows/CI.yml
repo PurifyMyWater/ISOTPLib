@@ -214,8 +214,9 @@ jobs:
                         --define sonar.coverageReportPaths=${{runner.workspace}}/coverage.xml
                         --define sonar.cfamily.valgrind.reportsPaths=${{runner.workspace}}/valgrind.xml
                         --define sonar.analysis.cache.enabled=false
+
     merge-gatekeeper:
-        if: always()
+        if: ${{ always() && github.event_name == 'pull_request' }}
         runs-on: ubuntu-latest
         needs:
             - Build
@@ -230,10 +231,24 @@ jobs:
             statuses: read
         steps:
             -   name: Run Merge Gatekeeper
-                  # NOTE: v1 is updated to reflect the latest v1.x.y. Please use any tag/branch that suits your needs:
-                  #       https://github.com/upsidr/merge-gatekeeper/tags
+                # NOTE: v1 is updated to reflect the latest v1.x.y. Please use any tag/branch that suits your needs:
+                #       https://github.com/upsidr/merge-gatekeeper/tags
                 #       https://github.com/upsidr/merge-gatekeeper/branches
                 uses: upsidr/merge-gatekeeper@v1
                 with:
                     ignored: 'SonarCloud Code Analysis'
                     token: ${{ secrets.GITHUB_TOKEN }}
+
+    success:
+        runs-on: ubuntu-latest
+        needs:
+            - merge-gatekeeper
+        if: always()
+        steps:
+            -   name: Check merge-gatekeeper result
+                run: |
+                    if [ "${{ needs.merge-gatekeeper.result }}" = "failure" ]; then
+                      echo "Merge Gatekeeper failed."
+                      exit 1
+                    fi
+                    echo "CI passed."
