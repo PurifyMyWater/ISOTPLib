@@ -139,7 +139,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
     for (const auto runner : this->finishedRunners)
     {
         OSInterfaceLogInfo(TAG, "Runner %s finished with result %s", runner->getTAG(),
-                                   N_ResultToString(runner->getResult()));
+                           N_ResultToString(runner->getResult()));
         // Call the callbacks.
         if (runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
         {
