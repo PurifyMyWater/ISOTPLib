@@ -58,6 +58,11 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
     ASSERT_EQ(network.readFrame(id + 1, &frame), true);
     ASSERT_EQ(network.getWriteFrameACK(), CANInterface::ACK_SUCCESS);
     ASSERT_EQ(network.getWriteFrameACK(), CANInterface::ACK_NONE);
+
+    for (auto can : rcan)
+    {
+        delete can;
+    }
 }
 
 TEST(LocalCANNetwork, network_read_write_peek_available_0_node)
@@ -173,6 +178,8 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_to_N_node)
 
         delete can;
     }
+
+    delete wcan;
 }
 
 TEST(LocalCANNetwork, active_test_0_nodes)

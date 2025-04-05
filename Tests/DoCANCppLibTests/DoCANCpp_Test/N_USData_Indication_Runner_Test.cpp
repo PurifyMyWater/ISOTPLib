@@ -36,6 +36,8 @@ TEST(N_USData_Indication_Runner, constructor_getters)
     ASSERT_EQ(0, runner.getMessageLength());
     ASSERT_EQ(NOT_STARTED, runner.getResult());
     ASSERT_EQ(Mtype_Unknown, runner.getMtype());
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemoryTest)
@@ -60,6 +62,8 @@ TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemory
     int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
     ASSERT_EQ(DEFAULT_AVAILABLE_MEMORY_CONST, actualMemory);
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, constructor_destructor_argument_notAvailableMemoryTest)
@@ -86,6 +90,8 @@ TEST(N_USData_Indication_Runner, constructor_destructor_argument_notAvailableMem
     int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
     ASSERT_EQ(availableMemoryConst, actualMemory);
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_SF_valid)
@@ -122,6 +128,8 @@ TEST(N_USData_Indication_Runner, runStep_SF_valid)
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
     ASSERT_EQ(messageLen, runner.getMessageLength());
     ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), messageLen);
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_SF_valid_void)
@@ -158,6 +166,7 @@ TEST(N_USData_Indication_Runner, runStep_SF_valid_void)
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
     ASSERT_EQ(messageLen, runner.getMessageLength());
     ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), messageLen);
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_SF_Mtype_invalid)
@@ -190,6 +199,8 @@ TEST(N_USData_Indication_Runner, runStep_SF_Mtype_invalid)
 
     ASSERT_EQ(N_ERROR, runner.runStep(&sentFrame));
     ASSERT_EQ(N_ERROR, runner.getResult());
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_SF_big_invalid)
@@ -221,6 +232,8 @@ TEST(N_USData_Indication_Runner, runStep_SF_big_invalid)
 
     ASSERT_EQ(N_ERROR, runner.runStep(&sentFrame));
     ASSERT_EQ(N_ERROR, runner.getResult());
+
+    delete canInterface;
 }
 
 void parseFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs, uint8_t blockSize, STmin stMin)
@@ -303,6 +316,9 @@ TEST(N_USData_Indication_Runner, runStep_FF_valid)
     ASSERT_EQ(NAi.N_TA, receivedFrame.identifier.N_SA);
 
     parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    delete canInterface;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_FF_small)
@@ -333,10 +349,13 @@ TEST(N_USData_Indication_Runner, runStep_FF_small)
     sentFrame.data[1]    = messageLen & 0xFF;
     memcpy(&sentFrame.data[2], testMessage, 6);
 
-    can_network.newCANInterfaceConnection();
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
 
     ASSERT_EQ(N_ERROR, runner.runStep(&sentFrame));
     ASSERT_EQ(N_ERROR, runner.getResult());
+
+    delete canInterface;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_FF_big_valid)
@@ -389,6 +408,9 @@ TEST(N_USData_Indication_Runner, runStep_FF_big_valid)
     ASSERT_EQ(NAi.N_TA, receivedFrame.identifier.N_SA);
 
     parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    delete canInterface;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_FF_invalid_no_memory)
@@ -426,6 +448,8 @@ TEST(N_USData_Indication_Runner, runStep_FF_invalid_no_memory)
 
     ASSERT_EQ(N_ERROR, runner.runStep(&sentFrame));
     ASSERT_EQ(N_ERROR, runner.getResult());
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_FF_nullptr)
@@ -449,6 +473,8 @@ TEST(N_USData_Indication_Runner, runStep_FF_nullptr)
 
     ASSERT_EQ(N_ERROR, runner.runStep(nullptr));
     ASSERT_EQ(N_ERROR, runner.getResult());
+
+    delete canInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_CF_valid)
@@ -521,6 +547,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
     memcpy(&cfFrame.data[1], &testMessage[27], 3);
 
     ASSERT_EQ(N_OK, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
@@ -604,6 +633,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
     memcpy(&cfFrame.data[1], &testMessage[27], 3);
 
     ASSERT_EQ(N_OK, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
@@ -673,4 +705,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
     memcpy(&cfFrame.data[1], &testMessage[27], 3);
 
     ASSERT_EQ(N_OK, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
 }

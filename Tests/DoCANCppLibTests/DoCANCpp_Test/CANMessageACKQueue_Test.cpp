@@ -46,4 +46,7 @@ TEST(CANMessageACKQueue, writeFrame)
 
     ASSERT_EQ(expected_result, res);
     ASSERT_EQ_FRAMES(frame, realFrame);
+
+    delete canInterface;
+    delete receivedCanInterface;
 }

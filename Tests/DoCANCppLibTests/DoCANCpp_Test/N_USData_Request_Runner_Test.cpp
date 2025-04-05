@@ -33,6 +33,8 @@ TEST(N_USData_Request_Runner, constructor_arguments_set)
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
     ASSERT_EQ(messageLen, runner.getMessageLength());
     ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), messageLen);
+
+    delete canInterface;
 }
 
 TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTest)
@@ -59,6 +61,8 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTes
     int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
     ASSERT_EQ(DEFAULT_AVAILABLE_MEMORY_CONST, actualMemory);
+
+    delete canInterface;
 }
 
 TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemoryTest)
@@ -87,6 +91,8 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemory
     int64_t actualMemory;
     ASSERT_TRUE(availableMemoryMock.get(&actualMemory));
     ASSERT_EQ(availableMemoryConst, actualMemory);
+
+    delete canInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_SF_valid)
@@ -121,6 +127,9 @@ TEST(N_USData_Request_Runner, runStep_SF_valid)
     ASSERT_EQ(N_USData_Runner::SF_CODE, receivedFrame.data[0] >> 4);
     ASSERT_EQ(messageLen, receivedFrame.data[0] & 0x0F);
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[1], messageLen));
+
+    delete canInterface;
+    delete canInterfaceRunner;
 }
 
 TEST(N_USData_Request_Runner, runStep_SF_valid_empty)
@@ -155,6 +164,9 @@ TEST(N_USData_Request_Runner, runStep_SF_valid_empty)
     ASSERT_EQ(N_USData_Runner::SF_CODE, receivedFrame.data[0] >> 4);
     ASSERT_EQ(messageLen, receivedFrame.data[0] & 0x0F);
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[1], messageLen));
+
+    delete canInterface;
+    delete canInterfaceRunner;
 }
 
 TEST(N_USData_Request_Runner, runStep_SF_timeoutAs)
@@ -171,11 +183,14 @@ TEST(N_USData_Request_Runner, runStep_SF_timeoutAs)
 
     N_USData_Request_Runner runner(result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen,
                                    linuxOSInterface, canMessageACKQueue);
-    can_network.newCANInterfaceConnection();
+    CANInterface* canInterface = can_network.newCANInterfaceConnection();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
     linuxOSInterface.osSleep(N_USData_Runner::N_As_TIMEOUT_MS + 1);
     ASSERT_EQ(N_TIMEOUT_A, runner.runStep(nullptr));
+
+    delete canInterfaceRunner;
+    delete canInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_SF_unexpectedFrame)
@@ -196,6 +211,8 @@ TEST(N_USData_Request_Runner, runStep_SF_unexpectedFrame)
     CANFrame receivedFrame;
 
     ASSERT_EQ(N_ERROR, runner.runStep(&receivedFrame));
+
+    delete canInterfaceRunner;
 }
 
 TEST(N_USData_Request_Runner, runStep_FF_valid)
@@ -229,6 +246,9 @@ TEST(N_USData_Request_Runner, runStep_FF_valid)
     length          = length | receivedFrame.data[1];
     ASSERT_EQ(10, length);
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[2], 6));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_FF_big_valid)
@@ -276,6 +296,9 @@ TEST(N_USData_Request_Runner, runStep_FF_big_valid)
             .data[5]; // unpack the message length (32 bits) 8 in data[2], 8 in data[3], 8 in data[4] and 8 in data[5]
     ASSERT_EQ(5000, length);
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[6], 2));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_FF_unexpectedFrame)
@@ -296,6 +319,8 @@ TEST(N_USData_Request_Runner, runStep_FF_unexpectedFrame)
     CANFrame receivedFrame = NewCANFrameDoCANCpp();
     ASSERT_EQ(N_ERROR, runner.runStep(&receivedFrame));
     ASSERT_EQ(N_ERROR, runner.getResult());
+
+    delete canInterfaceRunner;
 }
 
 TEST(N_USData_Request_Runner, runStep_FF_wrong_frame_type)
@@ -313,6 +338,8 @@ TEST(N_USData_Request_Runner, runStep_FF_wrong_frame_type)
     N_USData_Request_Runner runner(result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen,
                                    linuxOSInterface, canMessageACKQueue);
     ASSERT_FALSE(result);
+
+    delete canInterfaceRunner;
 }
 
 TEST(N_USData_Request_Runner, runStep_First_CF_valid)
@@ -369,6 +396,9 @@ TEST(N_USData_Request_Runner, runStep_First_CF_valid)
     uint8_t sequenceNumber = receivedFrame.data[0] & 0x0F;
     ASSERT_EQ(1, sequenceNumber);
     ASSERT_EQ(0, memcmp(&testMessage[6], &receivedFrame.data[1], 7));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_First_Last_CF_valid)
@@ -429,6 +459,9 @@ TEST(N_USData_Request_Runner, runStep_First_Last_CF_valid)
     uint8_t sequenceNumber = receivedFrame.data[0] & 0x0F;
     ASSERT_EQ(1, sequenceNumber);
     ASSERT_EQ(0, memcmp(&testMessage[6], &receivedFrame.data[1], 4));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_Intermediate_CF_valid)
@@ -495,6 +528,9 @@ TEST(N_USData_Request_Runner, runStep_Intermediate_CF_valid)
     ASSERT_EQ(0, memcmp(&testMessage[13], &receivedFrame.data[1], 7));
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_Last_CF_valid)
@@ -567,6 +603,9 @@ TEST(N_USData_Request_Runner, runStep_Last_CF_valid)
     ASSERT_EQ(0, memcmp(&testMessage[20], &receivedFrame.data[1], 5));
 
     ASSERT_EQ(N_OK, runner.runStep(nullptr));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
@@ -624,6 +663,9 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
     receiverCanInterface->readFrame(&receivedFrame);
     canMessageACKQueue.runStep(); // Get ACK
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
 
 TEST(N_USData_Request_Runner, runStep_AnotherFC_NotSent)
@@ -677,4 +719,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_NotSent)
     }
 
     ASSERT_EQ(N_ERROR, runner.runStep(nullptr));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
 }
