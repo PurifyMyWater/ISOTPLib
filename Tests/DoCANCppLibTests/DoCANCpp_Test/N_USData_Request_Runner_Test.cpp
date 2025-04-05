@@ -297,6 +297,7 @@ TEST(N_USData_Request_Runner, runStep_FF_big_valid)
     ASSERT_EQ(5000, length);
     ASSERT_EQ(0, memcmp(testMessage, &receivedFrame.data[6], 2));
 
+    free(testMessageString);
     delete canInterfaceRunner;
     delete receiverCanInterface;
 }
