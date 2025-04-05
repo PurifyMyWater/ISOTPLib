@@ -231,6 +231,7 @@ TEST(LocalCANNetwork, CANInterface_active_test_N)
         ASSERT_EQ(can1->active(), true);
         delete can;
     }
+    delete can1;
 }
 
 TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_node)
@@ -296,7 +297,6 @@ TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_to_N_node)
 
     for (auto can : rcan)
     {
-        uint32_t id = can->getNodeID();
         ASSERT_EQ(can->frameAvailable(), 2);
 
         ASSERT_EQ(can->readFrame(&fr), true);
@@ -311,4 +311,6 @@ TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_to_N_node)
         ASSERT_EQ(can->frameAvailable(), 0);
         delete can;
     }
+
+    delete wcan;
 }

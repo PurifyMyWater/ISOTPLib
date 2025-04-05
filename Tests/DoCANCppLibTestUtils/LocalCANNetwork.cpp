@@ -49,7 +49,7 @@ LocalCANNetworkCANInterface* LocalCANNetwork::newCANInterfaceConnection()
     return nullptr;
 }
 
-bool LocalCANNetwork::writeFrame(uint32_t emitterID, CANFrame* frame)
+bool LocalCANNetwork::writeFrame(const uint32_t emitterID, CANFrame* frame)
 {
     if (active() && accessMutex->wait(maxSyncTimeMS))
     {
