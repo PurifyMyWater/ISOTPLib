@@ -45,7 +45,7 @@ private:
     N_Result runStep_SF(const CANFrame* receivedFrame);
     N_Result runStep_FF(const CANFrame* receivedFrame);
     N_Result runStep_CF(const CANFrame* receivedFrame);
-    N_Result runStep_FC(const CANFrame* receivedFrame, bool firstFC = false);
+    N_Result runStep_FC(const CANFrame* receivedFrame, bool firstFc = false);
 
     N_Result               parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;

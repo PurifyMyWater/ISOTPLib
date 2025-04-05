@@ -2,10 +2,10 @@
 #include <cassert>
 #include <cstring>
 
-N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, N_AI nAi,
-                                                       Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize,
-                                                       STmin stMin, OSInterface& osInterface,
-                                                       CANMessageACKQueue& canMessageACKQueue)
+N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, const N_AI nAi,
+                                                       Atomic_int64_t& availableMemoryForRunners,
+                                                       const uint8_t blockSize, const STmin stMin,
+                                                       OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue)
 {
     result = false;
 
@@ -85,7 +85,7 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
     delete mutex;
 }
 
-bool N_USData_Indication_Runner::setBlockSize(uint8_t blockSize)
+bool N_USData_Indication_Runner::setBlockSize(const uint8_t blockSize)
 {
     if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
@@ -97,7 +97,7 @@ bool N_USData_Indication_Runner::setBlockSize(uint8_t blockSize)
     return false;
 }
 
-bool N_USData_Indication_Runner::setSTmin(STmin stMin)
+bool N_USData_Indication_Runner::setSTmin(const STmin stMin)
 {
     if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
@@ -410,8 +410,12 @@ bool N_USData_Indication_Runner::awaitingMessage() const
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
-    int32_t timeoutAr  = timerN_Ar->isTimerRunning() ? (N_Ar_TIMEOUT_MS - static_cast<int32_t>(timerN_Ar->getElapsedTime_ms())) : INT32_MAX;
-    int32_t timeoutCr  = timerN_Cr->isTimerRunning() ? (N_Cr_TIMEOUT_MS - static_cast<int32_t>(timerN_Cr->getElapsedTime_ms())) : INT32_MAX;
+    int32_t timeoutAr = timerN_Ar->isTimerRunning()
+                            ? (N_Ar_TIMEOUT_MS - static_cast<int32_t>(timerN_Ar->getElapsedTime_ms()))
+                            : MAX_TIMEOUT_MS;
+    int32_t timeoutCr = timerN_Cr->isTimerRunning()
+                            ? (N_Cr_TIMEOUT_MS - static_cast<int32_t>(timerN_Cr->getElapsedTime_ms()))
+                            : MAX_TIMEOUT_MS;
 
     int32_t minTimeout = MIN(timeoutAr, timeoutCr);
 
@@ -426,16 +430,16 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
     {
         case NOT_RUNNING:
             nextRunTime = 0; // Execute as soon as possible
+            OSInterfaceLogDebug(tag, "Next run time is in %u ms", nextRunTime);
             break;
         default:
+            OSInterfaceLogDebug(tag, "Next run time is in %u ms", nextRunTime - osInterface->osMillis());
             break;
     }
-
-    OSInterfaceLogDebug(tag, "Next run time is in %u ms", nextRunTime - osInterface->osMillis());
     return nextRunTime;
 }
 
-void N_USData_Indication_Runner::messageACKReceivedCallback(CANInterface::ACKResult success)
+void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::ACKResult success)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
