@@ -7,6 +7,11 @@ Atomic_int64_t::Atomic_int64_t(const int64_t initialValue, OSInterface& OSInterf
     this->mutex       = this->osInterface->osCreateMutex();
 }
 
+Atomic_int64_t::~Atomic_int64_t()
+{
+    delete mutex;
+}
+
 bool Atomic_int64_t::get(int64_t* out, const uint32_t timeout) const
 {
     if (mutex->wait(timeout))
