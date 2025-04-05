@@ -38,6 +38,16 @@ uint32_t LocalCANNetworkCANInterface::getNodeID() const
     return nodeID;
 }
 
+LocalCANNetwork::LocalCANNetwork()
+{
+    this->accessMutex = LinuxOSInterface().osCreateMutex();
+}
+
+LocalCANNetwork::~LocalCANNetwork()
+{
+    delete accessMutex;
+}
+
 LocalCANNetworkCANInterface* LocalCANNetwork::newCANInterfaceConnection()
 {
     if (accessMutex->wait(maxSyncTimeMS))

@@ -16,6 +16,10 @@ class LocalCANNetworkCANInterface;
 class LocalCANNetwork
 {
 public:
+    LocalCANNetwork();
+
+    ~LocalCANNetwork();
+
     /**
      * @brief Create a new CANInterface instance connected to the network
      * @return A new CANInterface instance connected to the network
@@ -75,7 +79,7 @@ private:
     std::vector<std::list<CANFrame>> network;
     uint32_t                         nextNodeID      = 0;
     bool                             allowActiveFlag = true;
-    OSInterface_Mutex*               accessMutex     = LinuxOSInterface().osCreateMutex();
+    OSInterface_Mutex*               accessMutex     = nullptr;
 };
 
 /**
