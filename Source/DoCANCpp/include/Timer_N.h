@@ -10,7 +10,7 @@ public:
     void stopTimer();
     void startTimer();
 
-    [[nodiscard]] bool isTimerRunning() const;
+    [[nodiscard]] bool     isTimerRunning() const;
     [[nodiscard]] uint32_t getStartTimeStamp() const;
     [[nodiscard]] uint32_t getElapsedTime_ms() const;
 

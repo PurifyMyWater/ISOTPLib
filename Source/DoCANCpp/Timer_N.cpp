@@ -5,7 +5,7 @@ Timer_N::Timer_N(OSInterface& osInterface)
     this->osInterface = &osInterface;
     elapsedTime       = 0;
     startTime         = 0;
-    timerRunning    = false;
+    timerRunning      = false;
 }
 
 void Timer_N::stopTimer()
@@ -16,8 +16,8 @@ void Timer_N::stopTimer()
 
 void Timer_N::startTimer()
 {
-    elapsedTime    = 0;
-    startTime      = osInterface->osMillis();
+    elapsedTime  = 0;
+    startTime    = osInterface->osMillis();
     timerRunning = true;
 }
 
