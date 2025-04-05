@@ -71,7 +71,9 @@ void SimpleSendReceiveTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* mes
 
 static uint32_t SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls = 0;
 void SimpleSendReceiveTestSF_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength, const Mtype mtype)
-{}
+{
+    SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls++;
+}
 
 TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
 {
