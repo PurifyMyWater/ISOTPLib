@@ -1,7 +1,7 @@
 #ifndef DOCANCPP_COMMON_H
 #define DOCANCPP_COMMON_H
 
-#define DOCANCPP_DISABLE_TIMEOUTS false
+#define DOCANCPP_USE_DEBUG_TIMEOUTS false
 
 #ifdef NDEBUG
     #define ASSERT_SAFE(expression, condition) expression

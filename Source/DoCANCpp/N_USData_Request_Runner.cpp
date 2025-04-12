@@ -168,7 +168,6 @@ N_Result N_USData_Request_Runner::sendCFFrame()
 
 N_Result N_USData_Request_Runner::checkTimeouts()
 {
-#if !DOCANCPP_DISABLE_TIMEOUTS
     if (timerN_As->getElapsedTime_ms() > N_As_TIMEOUT_MS)
     {
         returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %u ms", timerN_As->getElapsedTime_ms());
@@ -178,7 +177,6 @@ N_Result N_USData_Request_Runner::checkTimeouts()
         returnErrorWithLog(N_TIMEOUT_Bs, "Elapsed time is %u ms", timerN_Bs->getElapsedTime_ms());
         returnError(N_TIMEOUT_Bs);
     }
-#endif
     return N_OK;
 }
 

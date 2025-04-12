@@ -347,8 +347,6 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
 
 N_Result N_USData_Indication_Runner::checkTimeouts()
 {
-#if !DOCANCPP_DISABLE_TIMEOUTS
-
     if (timerN_Ar->getElapsedTime_ms() > N_Ar_TIMEOUT_MS)
     {
         returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %u ms", timerN_Ar->getElapsedTime_ms());
@@ -357,7 +355,6 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     {
         returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %u ms", timerN_Cr->getElapsedTime_ms());
     }
-#endif
     return N_OK;
 }
 
