@@ -8,13 +8,13 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     FetchContent_Declare(
             LinuxOSInterface
             GIT_REPOSITORY  git@github.com:vacmg/LinuxOSInterface.git
-            GIT_TAG         main
+            GIT_TAG         v1.0.0
     )
 
     FetchContent_Declare(
             googletest
             GIT_REPOSITORY  https://github.com/google/googletest.git
-            GIT_TAG         main
+            GIT_TAG         v1.17.0
     )
 
     FetchContent_MakeAvailable(LinuxOSInterface)
