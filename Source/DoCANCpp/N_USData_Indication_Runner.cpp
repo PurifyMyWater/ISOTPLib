@@ -508,3 +508,8 @@ const char* N_USData_Indication_Runner::getTAG() const
 {
     return this->tag;
 }
+
+bool N_USData_Indication_Runner::isThisFrameForMe(const CANFrame& frame) const
+{
+    return getN_AI().N_AI == frame.identifier.N_AI;
+}

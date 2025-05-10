@@ -618,3 +618,17 @@ const char* N_USData_Request_Runner::getTAG() const
 {
     return this->tag;
 }
+
+bool N_USData_Request_Runner::isThisFrameForMe(const CANFrame& frame) const
+{
+    N_AI runnerN_AI = getN_AI();
+    N_AI frameN_AI  = frame.identifier;
+
+    bool res = runnerN_AI.N_NFA_Header == frameN_AI.N_NFA_Header;
+    res &= runnerN_AI.N_NFA_Padding == frameN_AI.N_NFA_Padding;
+    res &= runnerN_AI.N_TAtype == frameN_AI.N_TAtype;
+    res &= runnerN_AI.N_TA == frameN_AI.N_SA;
+    res &= runnerN_AI.N_SA == frameN_AI.N_TA;
+
+    return res;
+}
