@@ -41,6 +41,8 @@ public:
 
     [[nodiscard]] const char* getTAG() const override;
 
+    [[nodiscard]] bool isThisFrameForMe(const CANFrame& frame) const override;
+
 private:
     N_Result runStep_SF(const CANFrame* receivedFrame);
     N_Result runStep_FF(const CANFrame* receivedFrame);

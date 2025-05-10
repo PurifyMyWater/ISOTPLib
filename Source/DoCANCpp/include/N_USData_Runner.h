@@ -11,7 +11,11 @@
      .self             = 0,                                                                                            \
      .dlc_non_comp     = 0,                                                                                            \
      .reserved         = 0,                                                                                            \
-     .identifier       = {.N_AI = 0},                                                                                  \
+     .identifier       = {.N_NFA_Header  = N_NFA_Header_Value,                                                         \
+                          .N_NFA_Padding = N_NFA_Padding_Value,                                                        \
+                          .N_TAtype      = CAN_UNKNOWN,                                                                \
+                          .N_TA          = 0,                                                                          \
+                          .N_SA          = 0},                                                                                  \
      .data_length_code = 0,                                                                                            \
      .data             = {0}}
 
@@ -47,23 +51,23 @@ public:
     constexpr static uint8_t  FC_MESSAGE_LENGTH              = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-    #if DOCANCPP_USE_DEBUG_TIMEOUTS
-        constexpr static int32_t N_As_TIMEOUT_MS = 100000;
-        constexpr static int32_t N_Ar_TIMEOUT_MS = 100000;
-        constexpr static int32_t N_Bs_TIMEOUT_MS = 100000;
-        // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
-        constexpr static int32_t N_Cr_TIMEOUT_MS = 100000;
-        // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
-        constexpr static int32_t MAX_TIMEOUT_MS = 3000000;
-    #else
-        constexpr static int32_t N_As_TIMEOUT_MS = 1000;
-        constexpr static int32_t N_Ar_TIMEOUT_MS = 1000;
-        constexpr static int32_t N_Bs_TIMEOUT_MS = 1000;
-        // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
-        constexpr static int32_t N_Cr_TIMEOUT_MS = 1000;
-        // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
-        constexpr static int32_t MAX_TIMEOUT_MS = 30000;
-    #endif
+#if DOCANCPP_USE_DEBUG_TIMEOUTS
+    constexpr static int32_t N_As_TIMEOUT_MS = 100000000;
+    constexpr static int32_t N_Ar_TIMEOUT_MS = 100000000;
+    constexpr static int32_t N_Bs_TIMEOUT_MS = 100000000;
+    // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_Cr_TIMEOUT_MS = 100000000;
+    // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t MAX_TIMEOUT_MS = 300000000;
+#else
+    constexpr static int32_t N_As_TIMEOUT_MS = 1000;
+    constexpr static int32_t N_Ar_TIMEOUT_MS = 1000;
+    constexpr static int32_t N_Bs_TIMEOUT_MS = 1000;
+    // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_Cr_TIMEOUT_MS = 1000;
+    // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t MAX_TIMEOUT_MS = 30000;
+#endif
 
     constexpr static STmin DEFAULT_STMIN = {20, ms};
 
@@ -141,6 +145,13 @@ public:
      */
     [[nodiscard]] virtual const char*
     getTAG() const = 0; // TODO: in the future, allow DoCanCpp to set logging level of the runner.
+
+    /**
+     * @brief Returns if the frame is for this runner.
+     * @param frame The frame to check.
+     * @return True if the frame is for this runner, false otherwise.
+     */
+    [[nodiscard]] virtual bool isThisFrameForMe(const CANFrame& frame) const = 0;
 };
 
 #endif // N_USDATA_RUNNER_H
