@@ -3,12 +3,6 @@
 
 #define DOCANCPP_USE_DEBUG_TIMEOUTS false
 
-#ifdef NDEBUG
-    #define ASSERT_SAFE(expression, condition) expression
-#else
-    #define ASSERT_SAFE(expression, condition) assert(expression condition)
-#endif
-
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #include <cstdint>
