@@ -10,35 +10,11 @@
 LinuxOSInterface   osInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
-volatile bool senderKeepRunning   = true;
-volatile bool receiverKeepRunning = true;
-
 // TODO Tests Single Frame, Tests Multiple Frame, Tests with multiple nulls in data, Tests with low memory, Tests with
 // different messages to the same N_TA
 
-void runStep(DoCANCpp& doCanCpp, const volatile bool& keepRunning, const uint32_t timeout = DEFAULT_TIMEOUT)
-{
-    uint32_t initialTime = osInterface.osMillis();
-    OSInterfaceLogInfo(doCanCpp.getTag(), "Starting runStep with timeout %u ms at %u ms", timeout, initialTime);
-    while (keepRunning && osInterface.osMillis() - initialTime < timeout)
-    {
-        doCanCpp.runStep();
-    }
-    OSInterfaceLogInfo(doCanCpp.getTag(), "%s", !keepRunning ? "runStep finished successfully" : "runStep timed out");
-}
-
-void runStepACKQueue(const DoCANCpp& doCanCpp, const volatile bool& keepRunning,
-                     const uint32_t timeout = DEFAULT_TIMEOUT)
-{
-    uint32_t initialTime = osInterface.osMillis();
-    OSInterfaceLogInfo(doCanCpp.getTag(), "Starting runStepACKQueue with timeout %u ms at %u ms", timeout, initialTime);
-    while (keepRunning && osInterface.osMillis() - initialTime < timeout)
-    {
-        doCanCpp.canMessageACKQueueRunStep();
-    }
-    OSInterfaceLogInfo(doCanCpp.getTag(), "%s",
-                       !keepRunning ? "runStepACKQueue finished successfully" : "runStepACKQueue timed out");
-}
+volatile bool senderKeepRunning   = true;
+volatile bool receiverKeepRunning = true;
 
 // SimpleSendReceiveTestSF
 constexpr char     SimpleSendReceiveTestSF_message[]     = "patata";
@@ -53,6 +29,9 @@ void            SimpleSendReceiveTestSF_N_USData_confirm_cb(N_AI nAi, N_Result n
     EXPECT_EQ_N_AI(expectedNAi, nAi);
     EXPECT_EQ(N_OK, nResult);
     EXPECT_EQ(Mtype_Diagnostics, mtype);
+
+    OSInterfaceLogInfo("SimpleSendReceiveTestSF_N_USData_confirm_cb", "SenderKeepRunning set to false");
+    senderKeepRunning = false;
 }
 
 static uint32_t SimpleSendReceiveTestSF_N_USData_indication_cb_calls = 0;
@@ -68,8 +47,7 @@ void SimpleSendReceiveTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* mes
     ASSERT_NE(nullptr, messageData);
     EXPECT_EQ_ARRAY(SimpleSendReceiveTestSF_message, messageData, SimpleSendReceiveTestSF_messageLength);
 
-    osInterface.osSleep(1000); // Wait for the sender to finish running the callback.
-    senderKeepRunning   = false;
+    OSInterfaceLogInfo("SimpleSendReceiveTestSF_N_USData_indication_cb", "ReceiverKeepRunning set to false");
     receiverKeepRunning = false;
 }
 
@@ -97,26 +75,30 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
                      SimpleSendReceiveTestSF_N_USData_indication_cb, SimpleSendReceiveTestSF_N_USData_FF_indication_cb,
                      osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
 
-    std::future<void> senderFuture =
-        std::async(std::launch::async, [&]() { runStep(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
-    std::future<void> senderACKFuture =
-        std::async(std::launch::async, [&]() { runStepACKQueue(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step = 0;
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp->runStep();
+        senderDoCANCpp->canMessageACKQueueRunStep();
+        receiverDoCANCpp->runStep();
+        receiverDoCANCpp->canMessageACKQueueRunStep();
 
-    std::future<void> receiverFuture =
-        std::async(std::launch::async, [&]() { runStep(*receiverDoCANCpp, receiverKeepRunning, TIMEOUT); });
-    std::future<void> receiverACKFuture =
-        std::async(std::launch::async, [&]() { runStepACKQueue(*receiverDoCANCpp, receiverKeepRunning, TIMEOUT); });
-
-    EXPECT_TRUE(senderDoCANCpp->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+        if (step == 5)
+        {
+            EXPECT_TRUE(senderDoCANCpp->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
                                                  reinterpret_cast<const uint8_t*>("patata"), 7, Mtype_Diagnostics));
-    senderFuture.wait();
-    senderACKFuture.wait();
-    receiverFuture.wait();
-    receiverACKFuture.wait();
+        }
+
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_confirm_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
 
     delete senderDoCANCpp;
     delete receiverDoCANCpp;
@@ -174,45 +156,44 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestFF)
     return; // TODO: Fix this test
 
     // constexpr uint32_t TIMEOUT = 10000;
-    constexpr uint32_t TIMEOUT = 1000000000;
-    senderKeepRunning          = true;
-    receiverKeepRunning        = true;
-
-    LocalCANNetwork network;
-    CANInterface*   senderInterface   = network.newCANInterfaceConnection();
-    CANInterface*   receiverInterface = network.newCANInterfaceConnection();
-    DoCANCpp*       senderDoCANCpp    = new DoCANCpp(
-        1, 2000, SimpleSendReceiveTestFF_N_USData_confirm_cb, SimpleSendReceiveTestFF_N_USData_indication_cb,
-        SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2);
-    DoCANCpp* receiverDoCANCpp = new DoCANCpp(
-        2, 2000, SimpleSendReceiveTestFF_N_USData_confirm_cb, SimpleSendReceiveTestFF_N_USData_indication_cb,
-        SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2);
-
-    std::future<void> senderFuture =
-        std::async(std::launch::async, [&]() { runStep(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
-    std::future<void> senderACKFuture =
-        std::async(std::launch::async, [&]() { runStepACKQueue(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
-
-    std::future<void> receiverFuture =
-        std::async(std::launch::async, [&]() { runStep(*receiverDoCANCpp, receiverKeepRunning, TIMEOUT); });
-    std::future<void> receiverACKFuture =
-        std::async(std::launch::async, [&]() { runStepACKQueue(*receiverDoCANCpp, receiverKeepRunning, TIMEOUT); });
-
-    EXPECT_TRUE(senderDoCANCpp->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
-                                                 reinterpret_cast<const uint8_t*>(SimpleSendReceiveTestFF_message),
-                                                 SimpleSendReceiveTestFF_messageLength, Mtype_Diagnostics));
-    senderFuture.wait();
-    senderACKFuture.wait();
-    receiverFuture.wait();
-    receiverACKFuture.wait();
-
-    EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls);
-    EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_confirm_cb_calls);
-    EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_indication_cb_calls);
-
-    delete senderDoCANCpp;
-    delete receiverDoCANCpp;
-    delete senderInterface;
-    delete receiverInterface;
+    // senderKeepRunning          = true;
+    // receiverKeepRunning        = true;
+    //
+    // LocalCANNetwork network;
+    // CANInterface*   senderInterface   = network.newCANInterfaceConnection();
+    // CANInterface*   receiverInterface = network.newCANInterfaceConnection();
+    // DoCANCpp*       senderDoCANCpp    = new DoCANCpp(
+    //     1, 2000, SimpleSendReceiveTestFF_N_USData_confirm_cb, SimpleSendReceiveTestFF_N_USData_indication_cb,
+    //     SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2);
+    // DoCANCpp* receiverDoCANCpp = new DoCANCpp(
+    //     2, 2000, SimpleSendReceiveTestFF_N_USData_confirm_cb, SimpleSendReceiveTestFF_N_USData_indication_cb,
+    //     SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2);
+    //
+    // std::future<void> senderFuture =
+    //     std::async(std::launch::async, [&]() { runStep(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
+    // std::future<void> senderACKFuture =
+    //     std::async(std::launch::async, [&]() { runStepACKQueue(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
+    //
+    // std::future<void> receiverFuture =
+    //     std::async(std::launch::async, [&]() { runStep(*receiverDoCANCpp, receiverKeepRunning, TIMEOUT); });
+    // std::future<void> receiverACKFuture =
+    //     std::async(std::launch::async, [&]() { runStepACKQueue(*receiverDoCANCpp, receiverKeepRunning, TIMEOUT); });
+    //
+    // EXPECT_TRUE(senderDoCANCpp->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+    //                                              reinterpret_cast<const uint8_t*>(SimpleSendReceiveTestFF_message),
+    //                                              SimpleSendReceiveTestFF_messageLength, Mtype_Diagnostics));
+    // senderFuture.wait();
+    // senderACKFuture.wait();
+    // receiverFuture.wait();
+    // receiverACKFuture.wait();
+    //
+    // EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls);
+    // EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_confirm_cb_calls);
+    // EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_indication_cb_calls);
+    //
+    // delete senderDoCANCpp;
+    // delete receiverDoCANCpp;
+    // delete senderInterface;
+    // delete receiverInterface;
 }
 // END SimpleSendReceiveTestFF
