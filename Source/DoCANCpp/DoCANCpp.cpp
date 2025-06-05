@@ -80,7 +80,7 @@ DoCANCpp::~DoCANCpp()
 bool DoCANCpp::populateQueueTag()
 {
     int queueTagSize = snprintf(nullptr, 0, "%s-%s", tag, "ACKQueue");
-    this->queueTag = static_cast<char*>(osInterface.osMalloc(queueTagSize + 1));
+    this->queueTag   = static_cast<char*>(osInterface.osMalloc(queueTagSize + 1));
     if (this->queueTag == nullptr)
     {
         OSInterfaceLogError(tag, "Failed to allocate memory for CANMessageACKQueue tag");
@@ -352,7 +352,8 @@ void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::
                 case IN_PROGRESS_FF:
                     if (this->N_USData_FF_indication_cb != nullptr)
                     {
-                        OSInterfaceLogInfo(this->tag, "Calling N_USData_FF_indication_cb of runner %s", runner->getTAG());
+                        OSInterfaceLogInfo(this->tag, "Calling N_USData_FF_indication_cb of runner %s",
+                                           runner->getTAG());
                         this->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(),
                                                         runner->getMtype());
                     }

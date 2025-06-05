@@ -74,12 +74,12 @@ public:
     void overrideActive(bool forceDisable);
 
 private:
-    std::vector<CANInterface::ACKResult>          lastACKList;
-    [[nodiscard]] bool               checkNodeID(uint32_t nodeID) const;
-    std::vector<std::list<CANFrame>> network;
-    uint32_t                         nextNodeID      = 0;
-    bool                             allowActiveFlag = true;
-    OSInterface_Mutex*               accessMutex     = nullptr;
+    std::vector<CANInterface::ACKResult> lastACKList;
+    [[nodiscard]] bool                   checkNodeID(uint32_t nodeID) const;
+    std::vector<std::list<CANFrame>>     network;
+    uint32_t                             nextNodeID      = 0;
+    bool                                 allowActiveFlag = true;
+    OSInterface_Mutex*                   accessMutex     = nullptr;
 };
 
 /**
@@ -97,10 +97,11 @@ public:
 
     [[nodiscard]] uint32_t getNodeID() const;
 
-    LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID, const char* tag = "LocalCANNetworkCANInterface");
+    LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID,
+                                const char* tag = "LocalCANNetworkCANInterface");
 
 private:
-    const char* tag;
+    const char*      tag;
     LocalCANNetwork* network;
     uint32_t         nodeID;
 };

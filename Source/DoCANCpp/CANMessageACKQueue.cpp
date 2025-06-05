@@ -3,7 +3,7 @@
 
 CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface, const char* tag)
 {
-    this->tag = tag;
+    this->tag          = tag;
     mutex              = osInterface.osCreateMutex();
     this->canInterface = &canInterface;
 }

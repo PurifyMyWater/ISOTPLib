@@ -147,10 +147,11 @@ CANInterface::ACKResult LocalCANNetwork::getWriteFrameACK(uint32_t nodeID)
     CANInterface::ACKResult res = CANInterface::ACK_NONE;
     if (accessMutex->wait(maxSyncTimeMS))
     {
-        res     = lastACKList[nodeID];
+        res                 = lastACKList[nodeID];
         lastACKList[nodeID] = CANInterface::ACK_NONE;
         accessMutex->signal();
-        // OSInterfaceLogVerbose("LocalCANNetwork", "Last ACK for node %u: %s", nodeID, CANInterface::ackResultToString(res));
+        // OSInterfaceLogVerbose("LocalCANNetwork", "Last ACK for node %u: %s", nodeID,
+        // CANInterface::ackResultToString(res));
     }
     return res;
 }

@@ -20,7 +20,7 @@ public:
     constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
 
 private:
-    const char*               tag;
+    const char*                 tag;
     OSInterface_Mutex*          mutex;
     std::list<N_USData_Runner*> messageQueue;
     CANInterface*               canInterface;

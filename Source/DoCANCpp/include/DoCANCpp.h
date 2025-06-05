@@ -162,7 +162,7 @@ private:
     };
 
     const char* tag;
-    char* queueTag;
+    char*       queueTag;
 
     // Interfaces
     OSInterface&  osInterface;
