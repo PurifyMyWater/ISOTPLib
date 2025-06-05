@@ -1,6 +1,8 @@
 #ifndef DOCANCPP_COMMON_H
 #define DOCANCPP_COMMON_H
 
+#define DOCANCPP_USE_DEBUG_TIMEOUTS false
+
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #include <cstdint>

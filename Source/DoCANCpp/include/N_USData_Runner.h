@@ -51,7 +51,7 @@ public:
     constexpr static uint8_t  FC_MESSAGE_LENGTH              = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-#if DOCANCPP_USE_DEBUG_TIMEOUTS == 1
+#if DOCANCPP_USE_DEBUG_TIMEOUTS
     constexpr static int32_t N_As_TIMEOUT_MS = 100000000;
     constexpr static int32_t N_Ar_TIMEOUT_MS = 100000000;
     constexpr static int32_t N_Bs_TIMEOUT_MS = 100000000;
