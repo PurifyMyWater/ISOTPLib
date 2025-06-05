@@ -71,7 +71,7 @@ bool LocalCANNetwork::writeFrame(const uint32_t emitterID, CANFrame* frame)
     {
         if (checkNodeID(emitterID))
         {
-            for (int i = 0; i<network.size(); i++)
+            for (size_t i = 0; i < network.size(); i++)
             {
                 auto* frames = &network[i];
                 if (frames != &network[emitterID])
