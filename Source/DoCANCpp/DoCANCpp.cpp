@@ -281,11 +281,13 @@ void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) co
         this->canInterface.readFrame(&frame);
         if (frame.extd == 1 && frame.data_length_code > 0 && frame.data_length_code <= CAN_FRAME_MAX_DLC)
         {
+            OSInterfaceLogVerbose(this->tag, "Received frame: %s", frameToString(frame));
             if ((frame.identifier.N_TAtype == N_TATYPE_5_CAN_CLASSIC_29bit_Physical &&
                  frame.identifier.N_TA == this->nSA) ||
                 (frame.identifier.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                  this->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
             {
+                OSInterfaceLogDebug(this->tag, "Received frame for this DoCANCpp instance: %s", frameToString(frame));
                 frameStatus = frameAvailable;
             }
         }
