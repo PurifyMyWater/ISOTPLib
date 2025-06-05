@@ -23,6 +23,7 @@ void runStep(DoCANCpp& doCanCpp, const volatile bool& keepRunning, const uint32_
     {
         doCanCpp.runStep();
     }
+    OSInterfaceLogInfo(doCanCpp.getTag(), "%s", !keepRunning ? "runStep finished successfully" : "runStep timed out");
 }
 
 void runStepACKQueue(const DoCANCpp& doCanCpp, const volatile bool& keepRunning,
@@ -33,6 +34,8 @@ void runStepACKQueue(const DoCANCpp& doCanCpp, const volatile bool& keepRunning,
     {
         doCanCpp.canMessageACKQueueRunStep();
     }
+    OSInterfaceLogInfo(doCanCpp.getTag(), "%s",
+                       !keepRunning ? "runStepACKQueue finished successfully" : "runStepACKQueue timed out");
 }
 
 // SimpleSendReceiveTestSF
@@ -48,6 +51,8 @@ void            SimpleSendReceiveTestSF_N_USData_confirm_cb(N_AI nAi, N_Result n
     EXPECT_EQ_N_AI(expectedNAi, nAi);
     EXPECT_EQ(N_OK, nResult);
     EXPECT_EQ(Mtype_Diagnostics, mtype);
+
+    senderKeepRunning   = false;
 }
 
 static uint32_t SimpleSendReceiveTestSF_N_USData_indication_cb_calls = 0;
@@ -63,9 +68,6 @@ void SimpleSendReceiveTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* mes
     ASSERT_NE(nullptr, messageData);
     EXPECT_EQ_ARRAY(SimpleSendReceiveTestSF_message, messageData, SimpleSendReceiveTestSF_messageLength);
 
-    osInterface.osSleep(1000); // Wait for the sender to finish running the callback.
-
-    senderKeepRunning   = false;
     receiverKeepRunning = false;
 }
 

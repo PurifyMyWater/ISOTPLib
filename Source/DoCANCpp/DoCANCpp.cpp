@@ -51,6 +51,11 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
     }
 }
 
+const char* DoCANCpp::getTag() const
+{
+    return this->tag;
+}
+
 DoCANCpp::~DoCANCpp()
 {
     if (this->queueTag != nullptr)

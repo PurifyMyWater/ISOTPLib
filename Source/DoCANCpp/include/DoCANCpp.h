@@ -151,6 +151,8 @@ public:
              OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize,
              STmin stMin = DoCANCpp_DefaultSTmin, const char* tag = TAG);
 
+    const char* getTag() const;
+
     ~DoCANCpp();
 
 private:
