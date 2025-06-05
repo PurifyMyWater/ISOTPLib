@@ -195,6 +195,7 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
     if (res != N_OK)
     {
         mutex->signal();
+        OSInterfaceLogError(tag, "Timeout occurred: %s", N_ResultToString(res));
         return res;
     }
 

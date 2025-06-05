@@ -149,7 +149,11 @@ public:
     DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb,
              N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb,
              OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize,
-             STmin stMin = DoCANCpp_DefaultSTmin);
+             STmin stMin = DoCANCpp_DefaultSTmin, const char* tag = TAG);
+
+    const char* getTag() const;
+
+    ~DoCANCpp();
 
 private:
     enum FrameStatus
@@ -158,6 +162,9 @@ private:
         frameAvailable,
         frameProcessed
     };
+
+    const char* tag;
+    char*       queueTag;
 
     // Interfaces
     OSInterface&  osInterface;
@@ -188,12 +195,13 @@ private:
     CANMessageACKQueue*                                      CanMessageACKQueue;
 
     // Functions
+    bool populateQueueTag();
+
     bool updateRunners();
     bool updateRunner(N_USData_Runner* runner) const;
 
     void runRunners(FrameStatus& frameStatus, CANFrame frame);
     void createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
-    bool createNewRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
     void runStepCanActive();
     void runStepCanInactive();
     void startRunners();

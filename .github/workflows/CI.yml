@@ -98,7 +98,7 @@ jobs:
                     path: 'build'
 
             -   name: Valgrind Memory Check Report Generation
-                run: valgrind --error-exitcode=1 --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTestsExe
+                run: valgrind --error-exitcode=1 --tool=helgrind --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTestsExe
 
             -   name: Cache Valgrind Report
                 uses: actions/cache/save@v4

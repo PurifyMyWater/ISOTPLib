@@ -10,7 +10,7 @@ class N_USData_Runner;
 class CANMessageACKQueue
 {
 public:
-    explicit CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface);
+    explicit CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface, const char* tag = TAG);
     ~CANMessageACKQueue();
 
     void runStep();
@@ -20,6 +20,7 @@ public:
     constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
 
 private:
+    const char*                 tag;
     OSInterface_Mutex*          mutex;
     std::list<N_USData_Runner*> messageQueue;
     CANInterface*               canInterface;
