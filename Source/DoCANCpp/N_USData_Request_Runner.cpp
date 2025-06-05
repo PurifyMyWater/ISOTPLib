@@ -92,12 +92,12 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
                 if (messageLength <= MAX_SF_MESSAGE_LENGTH)
                 {
                     OSInterfaceLogDebug(tag, "Message type is Single Frame");
-                    updateInternalStatus(NOT_RUNNING_SF);
+                    internalStatus = NOT_RUNNING_SF;
                 }
                 else
                 {
                     OSInterfaceLogDebug(tag, "Message type is Multiple Frame");
-                    updateInternalStatus(NOT_RUNNING_FF);
+                    internalStatus = NOT_RUNNING_FF;
                 }
 
                 result = true;
