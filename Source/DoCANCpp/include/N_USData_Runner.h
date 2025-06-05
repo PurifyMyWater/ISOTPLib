@@ -51,7 +51,7 @@ public:
     constexpr static uint8_t  FC_MESSAGE_LENGTH              = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-#if DOCANCPP_USE_DEBUG_TIMEOUTS
+#if DOCANCPP_USE_DEBUG_TIMEOUTS == 1
     constexpr static int32_t N_As_TIMEOUT_MS = 100000000;
     constexpr static int32_t N_Ar_TIMEOUT_MS = 100000000;
     constexpr static int32_t N_Bs_TIMEOUT_MS = 100000000;
@@ -59,6 +59,14 @@ public:
     constexpr static int32_t N_Cr_TIMEOUT_MS = 100000000;
     // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
     constexpr static int32_t MAX_TIMEOUT_MS = 300000000;
+#elif DOCANCPP_USE_DEBUG_TIMEOUTS == 2 // Valgrind testing is slow, so we need to increase the timeouts.
+    constexpr static int32_t N_As_TIMEOUT_MS = 60000;
+    constexpr static int32_t N_Ar_TIMEOUT_MS = 60000;
+    constexpr static int32_t N_Bs_TIMEOUT_MS = 60000;
+    // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_Cr_TIMEOUT_MS = 60000;
+    // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t MAX_TIMEOUT_MS = 300000;
 #else
     constexpr static int32_t N_As_TIMEOUT_MS = 1000;
     constexpr static int32_t N_Ar_TIMEOUT_MS = 1000;
