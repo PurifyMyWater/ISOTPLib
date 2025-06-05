@@ -57,6 +57,8 @@ private:
 
     using InternalStatus_t = enum { NOT_RUNNING, AWAITING_FC_ACK, AWAITING_CF, ERROR };
 
+    [[nodiscard]] static const char* internalStatusToString(InternalStatus_t status);
+
     N_AI     nAi;
     Mtype    mType;
     uint8_t* messageData{};

@@ -19,11 +19,20 @@
      .data_length_code = 0,                                                                                            \
      .data             = {0}}
 
+#define updateInternalStatus(newStatus)                                                                                \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        auto oldStatus = internalStatus;                                                                               \
+        internalStatus = newStatus;                                                                                    \
+        OSInterfaceLogDebug(tag, "Internal status changed from %d to %d", oldStatus, internalStatus);                  \
+    }                                                                                                                  \
+    while (0)
+
 #define returnError(errorCode)                                                                                         \
     do                                                                                                                 \
     {                                                                                                                  \
-        internalStatus = ERROR;                                                                                        \
-        result         = errorCode;                                                                                    \
+        updateInternalStatus(ERROR);                                                                                   \
+        result = errorCode;                                                                                            \
         OSInterfaceLogError(tag, "Returning error %s.", N_ResultToString(errorCode));                                  \
         return result;                                                                                                 \
     }                                                                                                                  \
@@ -32,8 +41,8 @@
 #define returnErrorWithLog(errorCode, fmt, ...)                                                                        \
     do                                                                                                                 \
     {                                                                                                                  \
-        internalStatus = ERROR;                                                                                        \
-        result         = errorCode;                                                                                    \
+        updateInternalStatus(ERROR);                                                                                   \
+        result = errorCode;                                                                                            \
         OSInterfaceLogError(tag, "Returning error %s. " fmt, N_ResultToString(errorCode), ##__VA_ARGS__);              \
         return result;                                                                                                 \
     }                                                                                                                  \

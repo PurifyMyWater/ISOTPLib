@@ -173,7 +173,7 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                 returnErrorWithLog(N_ERROR, "FF frame with length %ld is too small", messageLength);
             }
 
-            OSInterfaceLogDebug(tag, "Received FF frame with length %ld", messageLength);
+            OSInterfaceLogDebug(tag, "Received FF frame with full message length = %ld", messageLength);
 
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(
                     this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
@@ -253,7 +253,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
 
     if (CanMessageACKQueue->writeFrame(*this, fcFrame))
     {
-        internalStatus = AWAITING_FC_ACK;
+        updateInternalStatus(AWAITING_FC_ACK);
         return N_OK;
     }
 
@@ -360,7 +360,8 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
 
 N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
-    OSInterfaceLogVerbose(tag, "Running step with frame %s",
+    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
+                          internalStatusToString(internalStatus), internalStatus,
                           receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
 
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
@@ -388,10 +389,11 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
             res = result;
             break;
         default:
-            OSInterfaceLogError(tag, "Invalid internal status %d", internalStatus);
-            result         = N_ERROR;
-            internalStatus = ERROR;
-            res            = result;
+            OSInterfaceLogError(tag, "Invalid internal status %s (%d)", internalStatusToString(internalStatus),
+                                internalStatus);
+            result = N_ERROR;
+            updateInternalStatus(ERROR);
+            res = result;
             break;
     }
 
@@ -440,10 +442,15 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
-        result         = N_ERROR;
-        internalStatus = ERROR;
+        OSInterfaceLogError(tag, "Failed to acquire mutex");
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
         return;
     }
+
+    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%d) success = %s",
+                        internalStatusToString(internalStatus), internalStatus,
+                        CANInterface::ackResultToString(success));
 
     switch (internalStatus)
     {
@@ -453,21 +460,22 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
             {
                 timerN_Ar->stopTimer();
                 timerN_Cr->startTimer();
-                this->internalStatus = AWAITING_CF;
+                updateInternalStatus(AWAITING_CF);
                 OSInterfaceLogDebug(tag, "FC ACK received");
             }
             else
             {
                 OSInterfaceLogError(tag, "FC ACK failed with result %d", success);
-                result         = N_ERROR;
-                internalStatus = ERROR;
+                result = N_ERROR;
+                updateInternalStatus(ERROR);
             }
         }
         break;
         default:
-            OSInterfaceLogError(tag, "Invalid internal status %d", internalStatus);
-            result         = N_ERROR;
-            internalStatus = ERROR;
+            OSInterfaceLogError(tag, "Invalid internal status %s (%d)", internalStatusToString(internalStatus),
+                                internalStatus);
+            result = N_ERROR;
+            updateInternalStatus(ERROR);
             break;
     }
 
@@ -512,4 +520,21 @@ const char* N_USData_Indication_Runner::getTAG() const
 bool N_USData_Indication_Runner::isThisFrameForMe(const CANFrame& frame) const
 {
     return getN_AI().N_AI == frame.identifier.N_AI;
+}
+
+const char* N_USData_Indication_Runner::internalStatusToString(const InternalStatus_t status)
+{
+    switch (status)
+    {
+        case NOT_RUNNING:
+            return "NOT_RUNNING";
+        case AWAITING_FC_ACK:
+            return "AWAITING_FC_ACK";
+        case AWAITING_CF:
+            return "AWAITING_CF";
+        case ERROR:
+            return "ERROR";
+        default:
+            return "UNKNOWN_STATUS";
+    }
 }
