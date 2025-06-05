@@ -193,14 +193,13 @@ private:
     CANMessageACKQueue*                                      CanMessageACKQueue;
 
     // Functions
-    void populateQueueTag();
+    bool populateQueueTag();
 
     bool updateRunners();
     bool updateRunner(N_USData_Runner* runner) const;
 
     void runRunners(FrameStatus& frameStatus, CANFrame frame);
     void createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
-    bool createNewRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
     void runStepCanActive();
     void runStepCanInactive();
     void startRunners();

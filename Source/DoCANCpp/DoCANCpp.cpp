@@ -16,8 +16,9 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
     availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface)
 {
     this->tag = tag;
+
     this->queueTag = nullptr;
-    populateQueueTag();
+    ASSERT_SAFE(populateQueueTag(), == true);
 
     this->CanMessageACKQueue = new CANMessageACKQueue(canInterface, osInterface, this->queueTag);
     this->nSA                = nSA;
@@ -76,21 +77,17 @@ DoCANCpp::~DoCANCpp()
     delete this->runnersMutex;
 }
 
-void DoCANCpp::populateQueueTag()
+bool DoCANCpp::populateQueueTag()
 {
     int queueTagSize = snprintf(nullptr, 0, "%s-%s", tag, "ACKQueue");
-    if (queueTagSize < 0)
-    {
-        OSInterfaceLogError(tag, "Failed to create tag for CANMessageACKQueue");
-        return;
-    }
     this->queueTag = static_cast<char*>(osInterface.osMalloc(queueTagSize + 1));
     if (this->queueTag == nullptr)
     {
         OSInterfaceLogError(tag, "Failed to allocate memory for CANMessageACKQueue tag");
-        return;
+        return false;
     }
     snprintf(this->queueTag, queueTagSize + 1, "%s-%s", tag, "ACKQueue");
+    return true;
 }
 
 typeof(N_AI::N_SA) DoCANCpp::getN_SA() const

@@ -111,6 +111,11 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
     EXPECT_EQ(0, SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_confirm_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_indication_cb_calls);
+
+    delete senderDoCANCpp;
+    delete receiverDoCANCpp;
+    delete senderInterface;
+    delete receiverInterface;
 }
 // END SimpleSendReceiveTestSF
 
@@ -198,5 +203,10 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestFF)
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_confirm_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_indication_cb_calls);
+
+    delete senderDoCANCpp;
+    delete receiverDoCANCpp;
+    delete senderInterface;
+    delete receiverInterface;
 }
 // END SimpleSendReceiveTestFF
