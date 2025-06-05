@@ -164,10 +164,10 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestFF)
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     DoCANCpp*       senderDoCANCpp    = new DoCANCpp(
         1, 2000, SimpleSendReceiveTestFF_N_USData_confirm_cb, SimpleSendReceiveTestFF_N_USData_indication_cb,
-        SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2);
+        SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp");
     DoCANCpp* receiverDoCANCpp = new DoCANCpp(
         2, 2000, SimpleSendReceiveTestFF_N_USData_confirm_cb, SimpleSendReceiveTestFF_N_USData_indication_cb,
-        SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2);
+        SimpleSendReceiveTestFF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
 
     uint32_t initialTime = osInterface.osMillis();
     uint32_t step        = 0;
