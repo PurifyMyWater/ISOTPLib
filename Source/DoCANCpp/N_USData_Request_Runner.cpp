@@ -1,6 +1,8 @@
 #include "N_USData_Request_Runner.h"
 #include <cassert>
 #include <cstring>
+#include <ctime>
+
 #include "Atomic_int64_t.h"
 #include "CANMessageACKQueue.h"
 
@@ -225,7 +227,7 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
             res = result;
             break;
         default:
-            OSInterfaceLogError(tag, "Invalid internal status %s (%d)", internalStatusToString(internalStatus),
+            OSInterfaceLogError(tag, "Invalid internalStatus %s (%d)", internalStatusToString(internalStatus),
                                 internalStatus);
             result = N_ERROR;
             updateInternalStatus(ERROR);
@@ -291,8 +293,7 @@ N_Result N_USData_Request_Runner::runStep_FF(const CANFrame* receivedFrame)
     if (CanMessageACKQueue->writeFrame(*this, ffFrame))
     {
         timerN_As->startTimer();
-        OSInterfaceLogVerbose(tag, "Timer N_As started after sending FF frame in %u ms",
-                              timerN_As->getElapsedTime_ms());
+        OSInterfaceLogVerbose(tag, "Timer N_As started after sending FF frame");
 
         updateInternalStatus(AWAITING_FF_ACK);
         result = IN_PROGRESS;
@@ -355,8 +356,7 @@ N_Result N_USData_Request_Runner::runStep_FC(const CANFrame* receivedFrame, cons
             OSInterfaceLogVerbose(tag, "Timer N_Bs stopped after receiving FC frame in %u ms",
                                   timerN_Bs->getElapsedTime_ms());
             timerN_Cs->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving FC frame in %u ms",
-                                  timerN_Cs->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving FC frame");
 
             result = IN_PROGRESS;
             updateInternalStatus(SEND_CF);
@@ -367,8 +367,7 @@ N_Result N_USData_Request_Runner::runStep_FC(const CANFrame* receivedFrame, cons
             OSInterfaceLogDebug(tag, "Received FC frame with flow status WAIT");
             // Restart N_Bs timer
             timerN_Bs->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FC frame in %u ms",
-                                  timerN_Bs->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FC frame");
             updateInternalStatus(AWAITING_FC);
             result = IN_PROGRESS;
             return result;
@@ -407,7 +406,19 @@ uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
     int32_t minTimeoutAsBs = MIN(timeoutAs, timeoutBs);
     int32_t minTimeout     = MIN(minTimeoutAsBs, timeoutCs);
 
-    OSInterfaceLogVerbose(tag, "Next timeout is in %d ms", minTimeout);
+    if (minTimeout == timeoutAs)
+    {
+        OSInterfaceLogVerbose(tag, "Next timeout is N_As with %d ms remaining", minTimeout);
+    }
+    else if (minTimeout == timeoutBs)
+    {
+        OSInterfaceLogVerbose(tag, "Next timeout is N_Bs with %d ms remaining", minTimeout);
+    }
+    else if (minTimeout == timeoutCs)
+    {
+        OSInterfaceLogVerbose(tag, "Next timeout is N_Cs with %d ms remaining", minTimeout);
+    }
+
     return minTimeout + osInterface->osMillis();
 }
 
@@ -441,7 +452,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
         return;
     }
 
-    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%d) success = %s",
+    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%d) and success = %s",
                         internalStatusToString(internalStatus), internalStatus,
                         CANInterface::ackResultToString(success));
 
@@ -475,8 +486,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
                 OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
                                       timerN_As->getElapsedTime_ms());
                 timerN_Bs->startTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK in %u ms",
-                                      timerN_Bs->getElapsedTime_ms());
+                OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK");
             }
             else
             {
@@ -506,14 +516,12 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
                 {
                     updateInternalStatus(AWAITING_FC);
                     timerN_Bs->startTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK in %u ms",
-                                          timerN_Bs->getElapsedTime_ms());
+                    OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK");
                 }
                 else
                 {
                     timerN_Cs->startTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving CF ACK in %u ms",
-                                          timerN_Cs->getElapsedTime_ms());
+                    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving CF ACK");
                     updateInternalStatus(SEND_CF);
                 }
             }
@@ -526,7 +534,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
             break;
         }
         default:
-            OSInterfaceLogError(tag, "Invalid internal status %s (%d)", internalStatusToString(internalStatus),
+            OSInterfaceLogError(tag, "Invalid internalStatus %s (%d)", internalStatusToString(internalStatus),
                                 internalStatus);
             result = N_ERROR;
             updateInternalStatus(ERROR);
@@ -547,7 +555,7 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
     timerN_Bs->stopTimer();
     OSInterfaceLogVerbose(tag, "Timer N_Bs stopped after receiving FC frame in %u ms", timerN_Bs->getElapsedTime_ms());
     timerN_Cs->startTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving FC frame in %u ms", timerN_Cs->getElapsedTime_ms());
+    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving FC frame");
 
     if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical)
     {

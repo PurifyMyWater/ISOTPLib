@@ -206,8 +206,7 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                 }
 
                 timerN_Ar->startTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms",
-                                      timerN_Ar->getElapsedTime_ms());
+                OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame");
 
                 result = IN_PROGRESS_FF;
                 return result;
@@ -320,16 +319,14 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
             OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms",
                                   timerN_Cr->getElapsedTime_ms());
             timerN_Br->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Br started after receiving CF frame in %u ms",
-                                  timerN_Br->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Br started after receiving CF frame");
 
             if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
             {
                 returnErrorWithLog(N_ERROR, "Flow control frame could not be sent");
             }
             timerN_Ar->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame in %u ms",
-                                  timerN_Ar->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Ar started after sending FC frame");
             cfReceivedInThisBlock = 0;
 
             OSInterfaceLogDebug(tag, "CF block size reached. Waiting for FC frame");
@@ -337,8 +334,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
         else
         {
             timerN_Cr->startTimer();
-            OSInterfaceLogVerbose(tag, "Timer N_Cr started after receiving CF frame in %u ms",
-                                  timerN_Cr->getElapsedTime_ms());
+            OSInterfaceLogVerbose(tag, "Timer N_Cr started after receiving CF frame");
         }
         result = IN_PROGRESS;
     }
@@ -389,7 +385,7 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
             res = result;
             break;
         default:
-            OSInterfaceLogError(tag, "Invalid internal status %s (%d)", internalStatusToString(internalStatus),
+            OSInterfaceLogError(tag, "Invalid internalStatus %s (%d)", internalStatusToString(internalStatus),
                                 internalStatus);
             result = N_ERROR;
             updateInternalStatus(ERROR);
@@ -417,6 +413,15 @@ uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
                             : MAX_TIMEOUT_MS;
 
     int32_t minTimeout = MIN(timeoutAr, timeoutCr);
+
+    if (minTimeout == timeoutAr)
+    {
+        OSInterfaceLogVerbose(tag, "Next timeout is N_Ar with %d ms remaining", minTimeout);
+    }
+    else if (minTimeout == timeoutCr)
+    {
+        OSInterfaceLogVerbose(tag, "Next timeout is N_Cr with %d ms remaining", minTimeout);
+    }
 
     OSInterfaceLogVerbose(tag, "Next timeout is in %u ms", minTimeout);
     return minTimeout + osInterface->osMillis();
@@ -448,7 +453,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
         return;
     }
 
-    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%d) success = %s",
+    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%d) and success = %s",
                         internalStatusToString(internalStatus), internalStatus,
                         CANInterface::ackResultToString(success));
 
@@ -472,7 +477,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
         }
         break;
         default:
-            OSInterfaceLogError(tag, "Invalid internal status %s (%d)", internalStatusToString(internalStatus),
+            OSInterfaceLogError(tag, "Invalid internalStatus %s (%d)", internalStatusToString(internalStatus),
                                 internalStatus);
             result = N_ERROR;
             updateInternalStatus(ERROR);
