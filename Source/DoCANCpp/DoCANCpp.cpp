@@ -11,11 +11,15 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
                    const N_USData_confirm_cb_t       N_USData_confirm_cb,
                    const N_USData_indication_cb_t    N_USData_indication_cb,
                    const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface,
-                   CANInterface& canInterface, const uint8_t blockSize, const STmin stMin) :
+                   CANInterface& canInterface, const uint8_t blockSize, const STmin stMin, const char* tag) :
     osInterface(osInterface), canInterface(canInterface),
     availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface)
 {
-    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface, osInterface);
+    this->tag = tag;
+    this->queueTag = nullptr;
+    populateQueueTag();
+
+    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface, osInterface, this->queueTag);
     this->nSA                = nSA;
     this->availableMemoryForRunners.set(totalAvailableMemoryForRunners);
     this->N_USData_confirm_cb       = N_USData_confirm_cb;
@@ -34,16 +38,59 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
 
     if (this->N_USData_confirm_cb == nullptr)
     {
-        OSInterfaceLogWarning(DoCANCpp::TAG, "N_USData_confirm_cb is nullptr");
+        OSInterfaceLogWarning(this->tag, "N_USData_confirm_cb is nullptr");
     }
     if (this->N_USData_indication_cb == nullptr)
     {
-        OSInterfaceLogWarning(DoCANCpp::TAG, "N_USData_indication_cb is nullptr");
+        OSInterfaceLogWarning(this->tag, "N_USData_indication_cb is nullptr");
     }
     if (this->N_USData_FF_indication_cb == nullptr)
     {
-        OSInterfaceLogWarning(DoCANCpp::TAG, "N_USData_FF_indication_cb is nullptr");
+        OSInterfaceLogWarning(this->tag, "N_USData_FF_indication_cb is nullptr");
     }
+}
+
+DoCANCpp::~DoCANCpp()
+{
+    if (this->queueTag != nullptr)
+    {
+        this->osInterface.osFree(this->queueTag);
+    }
+    delete this->CanMessageACKQueue;
+
+    for (auto& runner : this->notStartedRunners)
+    {
+        delete runner;
+    }
+    for (auto& runner : this->activeRunners | std::views::values)
+    {
+        delete runner;
+    }
+    for (auto& runner : this->finishedRunners)
+    {
+        delete runner;
+    }
+
+    delete this->configMutex;
+    delete this->notStartedRunnersMutex;
+    delete this->runnersMutex;
+}
+
+void DoCANCpp::populateQueueTag()
+{
+    int queueTagSize = snprintf(nullptr, 0, "%s-%s", tag, "ACKQueue");
+    if (queueTagSize < 0)
+    {
+        OSInterfaceLogError(tag, "Failed to create tag for CANMessageACKQueue");
+        return;
+    }
+    this->queueTag = static_cast<char*>(osInterface.osMalloc(queueTagSize + 1));
+    if (this->queueTag == nullptr)
+    {
+        OSInterfaceLogError(tag, "Failed to allocate memory for CANMessageACKQueue tag");
+        return;
+    }
+    snprintf(this->queueTag, queueTagSize + 1, "%s-%s", tag, "ACKQueue");
 }
 
 typeof(N_AI::N_SA) DoCANCpp::getN_SA() const
@@ -138,14 +185,14 @@ void DoCANCpp::runFinishedRunnerCallbacks()
 {
     for (const auto runner : this->finishedRunners)
     {
-        OSInterfaceLogInfo(TAG, "Runner %s finished with result %s", runner->getTAG(),
+        OSInterfaceLogInfo(this->tag, "Runner %s finished with result %s", runner->getTAG(),
                            N_ResultToString(runner->getResult()));
         // Call the callbacks.
         if (runner->getRunnerType() == N_USData_Runner::RunnerRequestType)
         {
             if (this->N_USData_confirm_cb != nullptr)
             {
-                OSInterfaceLogInfo(TAG, "Calling N_USData_confirm_cb of runner %s", runner->getTAG());
+                OSInterfaceLogInfo(this->tag, "Calling N_USData_confirm_cb of runner %s", runner->getTAG());
                 this->N_USData_confirm_cb(runner->getN_AI(), runner->getResult(), runner->getMtype());
             }
         }
@@ -153,7 +200,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
         {
             if (this->N_USData_indication_cb != nullptr)
             {
-                OSInterfaceLogInfo(TAG, "Calling N_USData_indication_cb of runner %s", runner->getTAG());
+                OSInterfaceLogInfo(this->tag, "Calling N_USData_indication_cb of runner %s", runner->getTAG());
                 const uint8_t* messageData = runner->getMessageData();
                 this->N_USData_indication_cb(runner->getN_AI(), messageData, runner->getMessageLength(),
                                              runner->getResult(), runner->getMtype());
@@ -161,7 +208,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
         }
         else
         {
-            OSInterfaceLogError(DoCANCpp::TAG, "Runner type is unknown");
+            OSInterfaceLogError(this->tag, "Runner type is unknown");
         }
 
         // Remove the runner from activeRunners.
@@ -192,7 +239,7 @@ template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runne
         }
         else
         {
-            OSInterfaceLogError(DoCANCpp::TAG, "Runner type is unknown");
+            OSInterfaceLogError(this->tag, "Runner type is unknown");
         }
 
         delete runner;
@@ -290,11 +337,11 @@ void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::
                                            this->osInterface, *this->CanMessageACKQueue);
         if (runner == nullptr)
         {
-            OSInterfaceLogError(DoCANCpp::TAG, "Failed to create a new runner");
+            OSInterfaceLogError(this->tag, "Failed to create a new runner");
         }
         else if (!result)
         {
-            OSInterfaceLogError(DoCANCpp::TAG, "Failed to create a new runner");
+            OSInterfaceLogError(this->tag, "Failed to create a new runner");
             delete runner;
         }
         else
@@ -306,7 +353,7 @@ void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::
                 case IN_PROGRESS_FF:
                     if (this->N_USData_FF_indication_cb != nullptr)
                     {
-                        OSInterfaceLogInfo(TAG, "Calling N_USData_FF_indication_cb of runner %s", runner->getTAG());
+                        OSInterfaceLogInfo(this->tag, "Calling N_USData_FF_indication_cb of runner %s", runner->getTAG());
                         this->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(),
                                                         runner->getMtype());
                     }

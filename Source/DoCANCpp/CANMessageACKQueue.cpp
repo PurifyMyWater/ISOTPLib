@@ -1,8 +1,9 @@
 #include "CANMessageACKQueue.h"
 #include <N_USData_Runner.h>
 
-CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface)
+CANMessageACKQueue::CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface, const char* tag)
 {
+    this->tag = tag;
     mutex              = osInterface.osCreateMutex();
     this->canInterface = &canInterface;
 }
@@ -15,7 +16,7 @@ void CANMessageACKQueue::runStep()
 {
     if (CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {
-        OSInterfaceLogDebug(TAG, "ACK received: %s", CANInterface::ackResultToString(ack));
+        OSInterfaceLogDebug(this->tag, "ACK received: %s", CANInterface::ackResultToString(ack));
         if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
             N_USData_Runner* runner = messageQueue.front();
@@ -28,8 +29,8 @@ void CANMessageACKQueue::runStep()
 
 bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
 {
-    OSInterfaceLogDebug(TAG, "Writing frame with N_AI=%s: ", nAiToString(frame.identifier));
-    OSInterfaceLogVerbose(TAG, "Writing frame: %s", frameToString(frame));
+    OSInterfaceLogDebug(this->tag, "Writing frame with N_AI=%s: ", nAiToString(frame.identifier));
+    OSInterfaceLogVerbose(this->tag, "Writing frame: %s", frameToString(frame));
     bool res = canInterface->writeFrame(&frame);
     if (res && mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {

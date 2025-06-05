@@ -88,10 +88,10 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     DoCANCpp*       senderDoCANCpp    = new DoCANCpp(
         1, 2000, SimpleSendReceiveTestSF_N_USData_confirm_cb, SimpleSendReceiveTestSF_N_USData_indication_cb,
-        SimpleSendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2);
+        SimpleSendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp");
     DoCANCpp* receiverDoCANCpp = new DoCANCpp(
         2, 2000, SimpleSendReceiveTestSF_N_USData_confirm_cb, SimpleSendReceiveTestSF_N_USData_indication_cb,
-        SimpleSendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2);
+        SimpleSendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
 
     std::future<void> senderFuture =
         std::async(std::launch::async, [&]() { runStep(*senderDoCANCpp, senderKeepRunning, TIMEOUT); });
