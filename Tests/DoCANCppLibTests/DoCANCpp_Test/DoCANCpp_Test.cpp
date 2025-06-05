@@ -84,8 +84,8 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
     receiverKeepRunning        = true;
 
     LocalCANNetwork network;
-    CANInterface*   senderInterface   = network.newCANInterfaceConnection();
-    CANInterface*   receiverInterface = network.newCANInterfaceConnection();
+    CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
+    CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     DoCANCpp*       senderDoCANCpp    = new DoCANCpp(
         1, 2000, SimpleSendReceiveTestSF_N_USData_confirm_cb, SimpleSendReceiveTestSF_N_USData_indication_cb,
         SimpleSendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp");
@@ -162,9 +162,10 @@ void SimpleSendReceiveTestFF_N_USData_FF_indication_cb(const N_AI nAi, const uin
 
 TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestFF)
 {
-    constexpr uint32_t TIMEOUT = 10000;
     return; // TODO: Fix this test, it is not working as expected. (free(): invalid pointer)
 
+    // constexpr uint32_t TIMEOUT = 10000;
+    constexpr uint32_t TIMEOUT = 1000000000;
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 

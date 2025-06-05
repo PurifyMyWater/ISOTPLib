@@ -24,7 +24,7 @@ public:
      * @brief Create a new CANInterface instance connected to the network
      * @return A new CANInterface instance connected to the network
      */
-    LocalCANNetworkCANInterface* newCANInterfaceConnection();
+    LocalCANNetworkCANInterface* newCANInterfaceConnection(const char* tag = "CANInterface");
 
     /**
      * @brief Write a frame to the network (Internal use only)
@@ -97,9 +97,10 @@ public:
 
     [[nodiscard]] uint32_t getNodeID() const;
 
-    LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID);
+    LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID, const char* tag = "LocalCANNetworkCANInterface");
 
 private:
+    const char* tag;
     LocalCANNetwork* network;
     uint32_t         nodeID;
 };

@@ -1,9 +1,11 @@
 #include "LocalCANNetwork.h"
+#include "OSInterface.h"
 
 constexpr uint32_t maxSyncTimeMS = 100;
 
-LocalCANNetworkCANInterface::LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID)
+LocalCANNetworkCANInterface::LocalCANNetworkCANInterface(LocalCANNetwork* network, uint32_t nodeID, const char* tag)
 {
+    this->tag     = tag;
     this->network = network;
     this->nodeID  = nodeID;
 }
@@ -30,6 +32,7 @@ bool LocalCANNetworkCANInterface::active()
 
 CANInterface::ACKResult LocalCANNetworkCANInterface::getWriteFrameACK()
 {
+    OSInterfaceLogVerbose(tag, "Getting write frame ACK");
     return network->getWriteFrameACK();
 }
 
@@ -48,13 +51,13 @@ LocalCANNetwork::~LocalCANNetwork()
     delete accessMutex;
 }
 
-LocalCANNetworkCANInterface* LocalCANNetwork::newCANInterfaceConnection()
+LocalCANNetworkCANInterface* LocalCANNetwork::newCANInterfaceConnection(const char* tag)
 {
     if (accessMutex->wait(maxSyncTimeMS))
     {
         network.emplace_back();
         accessMutex->signal();
-        return new LocalCANNetworkCANInterface(this, nextNodeID++);
+        return new LocalCANNetworkCANInterface(this, nextNodeID++, tag);
     }
     return nullptr;
 }
@@ -140,6 +143,7 @@ CANInterface::ACKResult LocalCANNetwork::getWriteFrameACK()
         res     = lastACK;
         lastACK = CANInterface::ACK_NONE;
         accessMutex->signal();
+        OSInterfaceLogVerbose("LocalCANNetwork", "Last ACK result: %s", CANInterface::ackResultToString(res));
     }
     return res;
 }
