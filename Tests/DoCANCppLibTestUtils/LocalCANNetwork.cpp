@@ -91,13 +91,13 @@ bool LocalCANNetwork::writeFrame(const uint32_t emitterID, CANFrame* frame)
     return false;
 }
 
-bool LocalCANNetwork::peekFrame(uint32_t receiverID, CANFrame* frame) const
+bool LocalCANNetwork::peekFrame(uint32_t nodeID, CANFrame* frame) const
 {
     if (active() && accessMutex->wait(maxSyncTimeMS))
     {
-        if (checkNodeID(receiverID) && !network[receiverID].empty())
+        if (checkNodeID(nodeID) && !network[nodeID].empty())
         {
-            *frame = network[receiverID].front();
+            *frame = network[nodeID].front();
             accessMutex->signal();
             return true;
         }
@@ -106,25 +106,25 @@ bool LocalCANNetwork::peekFrame(uint32_t receiverID, CANFrame* frame) const
     return false;
 }
 
-bool LocalCANNetwork::readFrame(uint32_t receiverID, CANFrame* frame)
+bool LocalCANNetwork::readFrame(uint32_t nodeID, CANFrame* frame)
 {
-    if (peekFrame(receiverID, frame) && accessMutex->wait(maxSyncTimeMS))
+    if (peekFrame(nodeID, frame) && accessMutex->wait(maxSyncTimeMS))
     {
-        network[receiverID].pop_front();
+        network[nodeID].pop_front();
         accessMutex->signal();
         return true;
     }
     return false;
 }
 
-uint32_t LocalCANNetwork::frameAvailable(uint32_t receiverID) const
+uint32_t LocalCANNetwork::frameAvailable(uint32_t nodeID) const
 {
     uint32_t res = 0;
     if (active() && accessMutex->wait(maxSyncTimeMS))
     {
-        if (checkNodeID(receiverID))
+        if (checkNodeID(nodeID))
         {
-            res = network[receiverID].size();
+            res = network[nodeID].size();
         }
         accessMutex->signal();
     }
