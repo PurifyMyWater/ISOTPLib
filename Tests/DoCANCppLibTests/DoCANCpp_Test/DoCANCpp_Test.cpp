@@ -76,7 +76,7 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
                      osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
 
     uint32_t initialTime = osInterface.osMillis();
-    uint32_t step = 0;
+    uint32_t step        = 0;
     while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderDoCANCpp->runStep();
@@ -87,7 +87,8 @@ TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestSF)
         if (step == 5)
         {
             EXPECT_TRUE(senderDoCANCpp->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
-                                                 reinterpret_cast<const uint8_t*>("patata"), 7, Mtype_Diagnostics));
+                                                         reinterpret_cast<const uint8_t*>("patata"), 7,
+                                                         Mtype_Diagnostics));
         }
 
         step++;
