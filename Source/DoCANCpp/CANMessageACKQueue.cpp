@@ -19,10 +19,17 @@ void CANMessageACKQueue::runStep()
         OSInterfaceLogDebug(this->tag, "ACK received: %s", CANInterface::ackResultToString(ack));
         if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
-            N_USData_Runner* runner = messageQueue.front();
-            messageQueue.pop_front();
-            mutex->signal();
-            runner->messageACKReceivedCallback(ack);
+            if (!messageQueue.empty())
+            {
+                N_USData_Runner* runner = messageQueue.front();
+                messageQueue.pop_front();
+                mutex->signal();
+                runner->messageACKReceivedCallback(ack);
+            }
+            else
+            {
+                mutex->signal();
+            }
         }
     }
 }
