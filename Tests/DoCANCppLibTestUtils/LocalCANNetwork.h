@@ -36,26 +36,26 @@ public:
 
     /**
      * @brief Read a frame from the network (Internal use only)
-     * @param receiverID The ID of the node that is receiving the frame
+     * @param nodeID The ID of the node that is receiving the frame
      * @param frame The frame to read
      * @return True if a frame was read successfully, false otherwise
      */
-    bool readFrame(uint32_t receiverID, CANFrame* frame);
+    bool readFrame(uint32_t nodeID, CANFrame* frame);
 
     /**
      * @brief Peek a frame from the network (Internal use only)
-     * @param receiverID The ID of the node that is receiving the frame
+     * @param nodeID The ID of the node that is receiving the frame
      * @param frame The frame to peek
      * @return True if a frame was peeked successfully, false otherwise
      */
-    bool peekFrame(uint32_t receiverID, CANFrame* frame) const;
+    bool peekFrame(uint32_t nodeID, CANFrame* frame) const;
 
     /**
      * @brief Check if a frame is available for a node (Internal use only)
-     * @param receiverID The ID of the node that is receiving the frame
+     * @param nodeID The ID of the node that is receiving the frame
      * @return The number of frames available for the node
      */
-    [[nodiscard]] uint32_t frameAvailable(uint32_t receiverID) const;
+    [[nodiscard]] uint32_t frameAvailable(uint32_t nodeID) const;
 
     /**
      * @brief Check if the network is active (Internal use only)
@@ -69,12 +69,12 @@ public:
      * @return The result of the last ACK or ACK_NONE if no message was transmitted since the last call to this
      * function.
      */
-    CANInterface::ACKResult getWriteFrameACK();
+    CANInterface::ACKResult getWriteFrameACK(uint32_t nodeID);
 
     void overrideActive(bool forceDisable);
 
 private:
-    CANInterface::ACKResult          lastACK = CANInterface::ACK_NONE;
+    std::vector<CANInterface::ACKResult>          lastACKList;
     [[nodiscard]] bool               checkNodeID(uint32_t nodeID) const;
     std::vector<std::list<CANFrame>> network;
     uint32_t                         nextNodeID      = 0;
