@@ -17,13 +17,13 @@ uint32_t LocalCANNetworkCANInterface::frameAvailable()
 
 bool LocalCANNetworkCANInterface::readFrame(CANFrame* frame)
 {
-    OSInterfaceLogDebug(tag, "Reading frame");
+    // OSInterfaceLogDebug(tag, "Reading frame");
     return network->readFrame(nodeID, frame);
 }
 
 bool LocalCANNetworkCANInterface::writeFrame(CANFrame* frame)
 {
-    OSInterfaceLogDebug(tag, "Writing frame with N_AI=%s: ", nAiToString(frame->identifier));
+    // OSInterfaceLogDebug(tag, "Writing frame with N_AI=%s: ", nAiToString(frame->identifier));
     return network->writeFrame(nodeID, frame);
 }
 
@@ -34,8 +34,8 @@ bool LocalCANNetworkCANInterface::active()
 
 CANInterface::ACKResult LocalCANNetworkCANInterface::getWriteFrameACK()
 {
-    // OSInterfaceLogVerbose(tag, "Getting write frame ACK");
-    return network->getWriteFrameACK();
+    // OSInterfaceLogVerbose(tag, "Getting write frame ACK for node ID %u", nodeID);
+    return network->getWriteFrameACK(nodeID);
 }
 
 uint32_t LocalCANNetworkCANInterface::getNodeID() const
@@ -73,10 +73,13 @@ bool LocalCANNetwork::writeFrame(const uint32_t emitterID, CANFrame* frame)
         {
             for (int i = 0; i<network.size(); i++)
             {
-                auto frames = network[i];
-                if (&frames != &network[emitterID])
+                auto* frames = &network[i];
+                if (frames != &network[emitterID])
                 {
-                    frames.push_back(*frame);
+                    frames->push_back(*frame);
+                }
+                else
+                {
                     lastACKList[i] = CANInterface::ACK_SUCCESS; // Simulate successful write
                 }
             }
@@ -147,7 +150,7 @@ CANInterface::ACKResult LocalCANNetwork::getWriteFrameACK(uint32_t nodeID)
         res     = lastACKList[nodeID];
         lastACKList[nodeID] = CANInterface::ACK_NONE;
         accessMutex->signal();
-        // OSInterfaceLogVerbose("LocalCANNetwork", "Last ACK result: %s", CANInterface::ackResultToString(res));
+        // OSInterfaceLogVerbose("LocalCANNetwork", "Last ACK for node %u: %s", nodeID, CANInterface::ackResultToString(res));
     }
     return res;
 }
