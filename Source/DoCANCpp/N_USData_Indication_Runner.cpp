@@ -309,6 +309,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
         timerN_Cr->stopTimer();
         OSInterfaceLogVerbose(tag, "Timer N_Cr stopped after receiving CF frame in %u ms",
                               timerN_Cr->getElapsedTime_ms());
+        OSInterfaceLogInfo(tag, "Received message with length %ld (MF)", messageLength);
         result = N_OK;
     }
     else
