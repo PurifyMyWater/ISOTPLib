@@ -304,6 +304,9 @@ TEST(N_USData_Indication_Runner, runStep_FF_valid)
     ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
     ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
 
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
     ASSERT_EQ(messageLen, runner.getMessageLength());
@@ -395,6 +398,9 @@ TEST(N_USData_Indication_Runner, runStep_FF_big_valid)
 
     ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
     ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
 
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
@@ -510,6 +516,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
     ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
     ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
 
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
     ASSERT_EQ(messageLen, runner.getMessageLength());
@@ -533,6 +542,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
     memcpy(&cfFrame.data[1], &testMessage[13], 7);
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
@@ -585,6 +597,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
     ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
     ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
 
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
     ASSERT_EQ(messageLen, runner.getMessageLength());
@@ -616,6 +631,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
 
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
     parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
@@ -624,6 +642,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
     memcpy(&cfFrame.data[1], &testMessage[20], 7);
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
@@ -670,6 +691,9 @@ TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
 
     ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
     ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
 
     ASSERT_EQ_N_AI(NAi, runner.getN_AI());
     ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
