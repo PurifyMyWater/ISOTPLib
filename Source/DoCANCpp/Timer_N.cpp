@@ -23,7 +23,7 @@ void Timer_N::startTimer()
 void Timer_N::clearTimer()
 {
     timerRunning = false;
-    elapsedTime = 0;
+    elapsedTime  = 0;
 }
 
 bool Timer_N::isTimerRunning() const
