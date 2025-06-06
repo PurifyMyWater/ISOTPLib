@@ -236,7 +236,7 @@ TEST(N_USData_Indication_Runner, runStep_SF_big_invalid)
     delete canInterface;
 }
 
-void parseFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs, uint8_t blockSize, STmin stMin)
+void assertFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs, uint8_t blockSize, STmin stMin)
 {
     ASSERT_NE(nullptr, receivedFrame);
     ASSERT_EQ(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, receivedFrame->identifier.N_TAtype);
@@ -318,7 +318,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_valid)
     ASSERT_EQ(NAi.N_SA, receivedFrame.identifier.N_TA);
     ASSERT_EQ(NAi.N_TA, receivedFrame.identifier.N_SA);
 
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     delete canInterface;
     delete receiverCanInterface;
@@ -413,7 +413,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_big_valid)
     ASSERT_EQ(NAi.N_SA, receivedFrame.identifier.N_TA);
     ASSERT_EQ(NAi.N_TA, receivedFrame.identifier.N_SA);
 
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     delete canInterface;
     delete receiverCanInterface;
@@ -528,7 +528,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
 
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     CANFrame cfFrame         = NewCANFrameDoCANCpp();
     cfFrame.identifier       = NAi;
@@ -548,7 +548,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
     memcpy(&cfFrame.data[1], &testMessage[20], 7);
@@ -609,7 +609,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
 
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     CANFrame cfFrame         = NewCANFrameDoCANCpp();
     cfFrame.identifier       = NAi;
@@ -636,7 +636,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
     memcpy(&cfFrame.data[1], &testMessage[20], 7);
@@ -648,7 +648,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 4; // sequence number
     memcpy(&cfFrame.data[1], &testMessage[27], 3);
@@ -704,7 +704,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
 
-    parseFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     CANFrame cfFrame         = NewCANFrameDoCANCpp();
     cfFrame.identifier       = NAi;
