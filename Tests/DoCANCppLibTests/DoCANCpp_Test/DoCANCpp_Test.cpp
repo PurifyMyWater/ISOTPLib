@@ -43,7 +43,7 @@ void SimpleSendReceiveTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* mes
     EXPECT_EQ(N_OK, nResult);
     EXPECT_EQ(Mtype_Diagnostics, mtype);
     EXPECT_EQ_N_AI(expectedNAi, nAi);
-    EXPECT_EQ(SimpleSendReceiveTestSF_messageLength, messageLength);
+    ASSERT_EQ(SimpleSendReceiveTestSF_messageLength, messageLength);
     ASSERT_NE(nullptr, messageData);
     EXPECT_EQ_ARRAY(SimpleSendReceiveTestSF_message, messageData, SimpleSendReceiveTestSF_messageLength);
 
@@ -148,7 +148,7 @@ void ManySendReceiveTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* messa
     EXPECT_EQ_N_AI(expectedNAi, nAi);
     if (ManySendReceiveTestSF_N_USData_indication_cb_calls == 1)
     {
-        EXPECT_EQ(ManySendReceiveTestSF_messageLength1, messageLength);
+        ASSERT_EQ(ManySendReceiveTestSF_messageLength1, messageLength);
         ASSERT_NE(nullptr, messageData);
         EXPECT_EQ_ARRAY(ManySendReceiveTestSF_message1, messageData, ManySendReceiveTestSF_messageLength1);
 
@@ -156,7 +156,7 @@ void ManySendReceiveTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* messa
     }
     else if (ManySendReceiveTestSF_N_USData_indication_cb_calls == 2)
     {
-        EXPECT_EQ(ManySendReceiveTestSF_messageLength2, messageLength);
+        ASSERT_EQ(ManySendReceiveTestSF_messageLength2, messageLength);
         ASSERT_NE(nullptr, messageData);
         EXPECT_EQ_ARRAY(ManySendReceiveTestSF_message2, messageData, ManySendReceiveTestSF_messageLength2);
 
@@ -254,7 +254,7 @@ void SimpleSendReceiveTestMF_N_USData_indication_cb(N_AI nAi, const uint8_t* mes
     EXPECT_EQ(N_OK, nResult);
     EXPECT_EQ(Mtype_Diagnostics, mtype);
     EXPECT_EQ_N_AI(expectedNAi, nAi);
-    EXPECT_EQ(SimpleSendReceiveTestMF_messageLength, messageLength);
+    ASSERT_EQ(SimpleSendReceiveTestMF_messageLength, messageLength);
     ASSERT_NE(nullptr, messageData);
     ASSERT_EQ_ARRAY(SimpleSendReceiveTestMF_message, messageData, SimpleSendReceiveTestMF_messageLength);
 
@@ -268,7 +268,7 @@ void SimpleSendReceiveTestMF_N_USData_FF_indication_cb(const N_AI nAi, const uin
     SimpleSendReceiveTestMF_N_USData_FF_indication_cb_calls++;
     N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
     EXPECT_EQ_N_AI(expectedNAi, nAi);
-    EXPECT_EQ(SimpleSendReceiveTestMF_messageLength, messageLength);
+    ASSERT_EQ(SimpleSendReceiveTestMF_messageLength, messageLength);
     EXPECT_EQ(Mtype_Diagnostics, mtype);
 }
 
@@ -362,7 +362,7 @@ void ManySendReceiveTestMF_N_USData_indication_cb(N_AI nAi, const uint8_t* messa
         EXPECT_EQ(N_OK, nResult);
         EXPECT_EQ(Mtype_Diagnostics, mtype);
         EXPECT_EQ_N_AI(expectedNAi, nAi);
-        EXPECT_EQ(ManySendReceiveTestMF_messageLength1, messageLength);
+        ASSERT_EQ(ManySendReceiveTestMF_messageLength1, messageLength);
         ASSERT_NE(nullptr, messageData);
         ASSERT_EQ_ARRAY(ManySendReceiveTestMF_message1, messageData, ManySendReceiveTestMF_messageLength1);
 
@@ -373,7 +373,7 @@ void ManySendReceiveTestMF_N_USData_indication_cb(N_AI nAi, const uint8_t* messa
         EXPECT_EQ(N_OK, nResult);
         EXPECT_EQ(Mtype_Diagnostics, mtype);
         EXPECT_EQ_N_AI(expectedNAi, nAi);
-        EXPECT_EQ(ManySendReceiveTestMF_messageLength2, messageLength);
+        ASSERT_EQ(ManySendReceiveTestMF_messageLength2, messageLength);
         ASSERT_NE(nullptr, messageData);
         ASSERT_EQ_ARRAY(ManySendReceiveTestMF_message2, messageData, ManySendReceiveTestMF_messageLength2);
 
@@ -390,7 +390,7 @@ void ManySendReceiveTestMF_N_USData_FF_indication_cb(const N_AI nAi, const uint3
     if (ManySendReceiveTestMF_N_USData_FF_indication_cb_calls == 1)
     {
         EXPECT_EQ_N_AI(expectedNAi, nAi);
-        EXPECT_EQ(ManySendReceiveTestMF_messageLength1, messageLength);
+        ASSERT_EQ(ManySendReceiveTestMF_messageLength1, messageLength);
         EXPECT_EQ(Mtype_Diagnostics, mtype);
 
         OSInterfaceLogInfo("ManySendReceiveTestMF_N_USData_FF_indication_cb", "First call");
@@ -398,7 +398,7 @@ void ManySendReceiveTestMF_N_USData_FF_indication_cb(const N_AI nAi, const uint3
     else if (ManySendReceiveTestMF_N_USData_FF_indication_cb_calls == 2)
     {
         EXPECT_EQ_N_AI(expectedNAi, nAi);
-        EXPECT_EQ(ManySendReceiveTestMF_messageLength2, messageLength);
+        ASSERT_EQ(ManySendReceiveTestMF_messageLength2, messageLength);
         EXPECT_EQ(Mtype_Diagnostics, mtype);
 
         OSInterfaceLogInfo("ManySendReceiveTestMF_N_USData_FF_indication_cb", "Second call");
