@@ -96,12 +96,6 @@ public:
     virtual N_Result runStep(CANFrame* receivedFrame) = 0;
 
     /**
-     * @brief Returns if the runner is awaiting a message.
-     * @return True if the runner is awaiting a message, false otherwise.
-     */
-    [[nodiscard]] virtual bool awaitingMessage() const = 0;
-
-    /**
      * @brief Returns the next timestamp the runner will run. The timestamp is derived from OsInterface::millis().
      * @return The next timestamp the runner will run.
      */

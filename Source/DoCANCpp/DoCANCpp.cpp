@@ -302,15 +302,17 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
     {
         N_Result result = IN_PROGRESS; // If the runner does not run, do nothing in the switch below.
 
-        if (frameStatus == frameAvailable && runner->awaitingMessage() &&
-            runner->isThisFrameForMe(frame)) // If the runner has a message to process, do it immediately.
+        if (frameStatus == frameAvailable && runner->isThisFrameForMe(frame)) // If the runner has a message to process, do it immediately.
         {
+            OSInterfaceLogDebug(this->tag, "Runner %s is processing frame: %s", runner->getTAG(),
+                               frameToString(frame));
             // Run the runner with the frame.
             result      = runner->runStep(&frame);
             frameStatus = frameProcessed;
         }
         else if (this->lastRunTime > runner->getNextRunTime()) // If the runner is ready to run, do it.
         {
+            OSInterfaceLogDebug(this->tag, "Runner %s is running without frame", runner->getTAG());
             // Run the runner without the frame.
             result = runner->runStep(nullptr);
         }

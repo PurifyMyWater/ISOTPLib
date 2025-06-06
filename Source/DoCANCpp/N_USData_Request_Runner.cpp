@@ -397,13 +397,6 @@ N_Result N_USData_Request_Runner::runStep_FC(const CANFrame* receivedFrame, cons
     }
 }
 
-bool N_USData_Request_Runner::awaitingMessage() const
-{
-    bool res = internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC;
-    OSInterfaceLogDebug(tag, "awaitingMessage() = %s", res ? "true" : "false");
-    return res;
-}
-
 uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
 {
     int32_t timeoutAs = timerN_As->isTimerRunning()
@@ -667,8 +660,7 @@ bool N_USData_Request_Runner::isThisFrameForMe(const CANFrame& frame) const
     res &= runnerN_AI.N_TA == frameN_AI.N_SA;
     res &= runnerN_AI.N_SA == frameN_AI.N_TA;
 
-    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false",
-                        frameToString(frame));
+    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false", frameToString(frame));
 
     return res;
 }

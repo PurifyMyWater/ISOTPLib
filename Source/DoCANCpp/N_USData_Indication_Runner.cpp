@@ -394,13 +394,6 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     return N_OK;
 }
 
-bool N_USData_Indication_Runner::awaitingMessage() const
-{
-    bool res = internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF;
-    OSInterfaceLogDebug(tag, "awaitingMessage() = %s", res ? "true" : "false");
-    return res;
-}
-
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
     int32_t timeoutAr = timerN_Ar->isTimerRunning()
@@ -552,8 +545,7 @@ const char* N_USData_Indication_Runner::getTAG() const
 bool N_USData_Indication_Runner::isThisFrameForMe(const CANFrame& frame) const
 {
     bool res = getN_AI().N_AI == frame.identifier.N_AI;
-    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false",
-                        frameToString(frame));
+    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false", frameToString(frame));
     return res;
 }
 
