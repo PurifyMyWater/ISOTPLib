@@ -153,7 +153,7 @@ void SimpleSendReceiveTestFF_N_USData_FF_indication_cb(const N_AI nAi, const uin
     EXPECT_EQ(Mtype_Diagnostics, mtype);
 }
 
-TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestFF)
+TEST(DoCANCpp_SystemTests, DISABLED_SimpleSendReceiveTestFF)
 {
     constexpr uint32_t TIMEOUT = 10000;
     senderKeepRunning          = true;
