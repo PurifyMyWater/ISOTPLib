@@ -203,6 +203,14 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
 
+    N_Result res = runStep_internal(receivedFrame);
+
+    mutex->signal();
+    return res;
+}
+
+N_Result N_USData_Request_Runner::runStep_internal(CANFrame* receivedFrame)
+{
     N_Result res = checkTimeouts();
 
     if (res != N_OK)
@@ -233,6 +241,11 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
             result = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
             res    = result;
             break;
+        case AWAITING_FF_ACK:
+            [[fallthrough]];
+        case AWAITING_CF_ACK:
+            res = runStep_holdFrame(receivedFrame); // Hold the frame for later processing.
+            break;
         case ERROR:
             res = result;
             break;
@@ -247,8 +260,23 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
 
     lastRunTime = osInterface->osMillis();
 
-    mutex->signal();
     return res;
+}
+
+N_Result N_USData_Request_Runner::runStep_holdFrame(const CANFrame* receivedFrame)
+{
+    if (receivedFrame == nullptr)
+    {
+        returnErrorWithLog(N_ERROR, "Received frame is null");
+    }
+
+    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK. Storing it for later use Frame: %s", frameToString(*receivedFrame));
+
+    frameToHold = *receivedFrame; // Store the frame for later use.
+    frameToHoldValid = true; // Mark the frame as valid.
+
+    result = IN_PROGRESS; // Indicate that we are still waiting for the ACK.
+    return result;
 }
 
 N_Result N_USData_Request_Runner::runStep_CF(const CANFrame* receivedFrame)
@@ -491,13 +519,21 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
             OSInterfaceLogDebug(tag, "Received FF ACK");
             if (success == CANInterface::ACK_SUCCESS)
             {
-                updateInternalStatus(AWAITING_FirstFC);
                 timerN_As->stopTimer();
                 timerN_Cs->clearTimer();
                 OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
                                       timerN_As->getElapsedTime_ms());
                 timerN_Bs->startTimer();
                 OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK");
+
+                updateInternalStatus(AWAITING_FirstFC);
+
+                if (frameToHoldValid)
+                {
+                    frameToHoldValid = false; // Reset the held frame after processing.
+                    OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+                    runStep_internal(&frameToHold);
+                }
             }
             else
             {
@@ -527,9 +563,17 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
                 }
                 else if (cfSentInThisBlock == blockSize)
                 {
-                    updateInternalStatus(AWAITING_FC);
                     timerN_Bs->startTimer();
                     OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK");
+
+                    updateInternalStatus(AWAITING_FC);
+
+                    if (frameToHoldValid)
+                    {
+                        frameToHoldValid = false; // Reset the held frame after processing.
+                        OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+                        runStep_internal(&frameToHold);
+                    }
                 }
                 else
                 {

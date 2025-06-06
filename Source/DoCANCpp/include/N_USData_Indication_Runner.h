@@ -46,7 +46,9 @@ public:
     [[nodiscard]] bool isThisFrameForMe(const CANFrame& frame) const override;
 
 private:
+    N_Result runStep_internal(CANFrame* receivedFrame);
     N_Result runStep_notRunning(const CANFrame* receivedFrame);
+    N_Result runStep_holdFrame(const CANFrame* receivedFrame);
     N_Result runStep_CF(const CANFrame* receivedFrame);
     N_Result runStep_FC_CTS(const CANFrame* receivedFrame);
 
@@ -84,6 +86,9 @@ private:
 
     OSInterface*        osInterface;
     CANMessageACKQueue* CanMessageACKQueue{};
+
+    CANFrame frameToHold{};
+    bool    frameToHoldValid{false};
 };
 
 #endif // N_USDATA_INDICATION_RUNNER_H

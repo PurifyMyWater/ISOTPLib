@@ -98,6 +98,14 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
 
+    N_Result res = runStep_internal(receivedFrame);
+
+    mutex->signal();
+    return res;
+}
+
+N_Result N_USData_Indication_Runner::runStep_internal(CANFrame* receivedFrame)
+{
     N_Result res = checkTimeouts();
 
     if (res != N_OK)
@@ -117,6 +125,9 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
         case AWAITING_CF:
             res = runStep_CF(receivedFrame);
             break;
+        case AWAITING_FC_ACK:
+            res = runStep_holdFrame(receivedFrame);
+            break;
         case ERROR:
             res = result;
             break;
@@ -130,8 +141,24 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
     }
 
     lastRunTime = osInterface->osMillis();
-    mutex->signal();
+
     return res;
+}
+
+N_Result N_USData_Indication_Runner::runStep_holdFrame(const CANFrame* receivedFrame)
+{
+    if (receivedFrame == nullptr)
+    {
+        returnErrorWithLog(N_ERROR, "Received frame is null");
+    }
+
+    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK. Storing it for later use Frame: %s", frameToString(*receivedFrame));
+
+    frameToHold = *receivedFrame; // Store the frame for later use.
+    frameToHoldValid = true; // Mark the frame as valid.
+
+    result = IN_PROGRESS; // Indicate that we are still waiting for the ACK.
+    return result;
 }
 
 N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* receivedFrame)
@@ -461,8 +488,16 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
                 timerN_Ar->stopTimer();
                 timerN_Br->clearTimer();
                 timerN_Cr->startTimer();
-                updateInternalStatus(AWAITING_CF);
                 OSInterfaceLogDebug(tag, "FC ACK received");
+
+                updateInternalStatus(AWAITING_CF);
+
+                if (frameToHoldValid)
+                {
+                    OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+                    frameToHoldValid = false; // Reset the held frame after processing.
+                    runStep_internal(&frameToHold);
+                }
             }
             else
             {
