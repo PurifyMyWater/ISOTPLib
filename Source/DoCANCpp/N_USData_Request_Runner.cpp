@@ -157,6 +157,7 @@ N_Result N_USData_Request_Runner::sendCFFrame()
         cfSentInThisBlock++;
         sequenceNumber++;
         timerN_As->startTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As started after sending CF");
 
         updateInternalStatus(AWAITING_CF_ACK);
         result = IN_PROGRESS;
