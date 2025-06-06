@@ -24,7 +24,7 @@
     {                                                                                                                  \
         auto oldStatus = internalStatus;                                                                               \
         internalStatus = newStatus;                                                                                    \
-        OSInterfaceLogDebug(tag, "internalStatus changed from %s (%d) to %s (%d)", internalStatusToString(oldStatus), \
+        OSInterfaceLogDebug(tag, "internalStatus changed from %s (%d) to %s (%d)", internalStatusToString(oldStatus),  \
                             oldStatus, internalStatusToString(internalStatus), internalStatus);                        \
     }                                                                                                                  \
     while (0)
