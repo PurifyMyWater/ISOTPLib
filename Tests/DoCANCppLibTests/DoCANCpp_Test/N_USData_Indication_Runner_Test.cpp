@@ -733,3 +733,516 @@ TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
     delete canInterface;
     delete receiverCanInterface;
 }
+
+TEST(N_USData_Indication_Runner, timeout_N_Br_FF_Performance)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    linuxOSInterface.osSleep(N_USData_Runner::N_Br_TIMEOUT_MS + 1); // This should trigger a warning.
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Br_CF_Performance)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+    canMessageACKQueue.runStep(); // Get ACK
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 2; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[13], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    linuxOSInterface.osSleep(N_USData_Runner::N_Br_TIMEOUT_MS + 1); // This should trigger a warning.
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+    canMessageACKQueue.runStep(); // Get ACK
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[20], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 4; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[27], 3);
+
+    ASSERT_EQ(N_OK, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Ar_lateACK)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Ar_TIMEOUT_MS + 1);
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    canMessageACKQueue.runStep(); // Get ACK
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(N_TIMEOUT_A, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Ar_noACK)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Ar_TIMEOUT_MS + 1);
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(N_TIMEOUT_A, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_lateCF)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+    canMessageACKQueue.runStep(); // Get ACK
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Cr_TIMEOUT_MS + 1);
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(N_TIMEOUT_Cr, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_noCF)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+    canMessageACKQueue.runStep(); // Get ACK
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Cr_TIMEOUT_MS + 1);
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(N_TIMEOUT_Cr, runner.runStep(nullptr));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_lateCF)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+    canMessageACKQueue.runStep(); // Get ACK
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 2; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[13], 7);
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Cr_TIMEOUT_MS + 1);
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    ASSERT_EQ(N_TIMEOUT_Cr, runner.runStep(&cfFrame));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
+
+TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_noCF)
+{
+    LocalCANNetwork can_network;
+
+    Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+
+    CANInterface*      canInterface = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
+
+    N_AI NAi = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+
+    uint8_t blockSize = 2;
+    STmin   stMin     = {10, ms};
+
+    const char*    testMessageString = "012345678901234567890123456789"; // strlen = 30
+    size_t         messageLen        = strlen(testMessageString);
+    const uint8_t* testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool           result;
+
+    N_USData_Indication_Runner runner(result, NAi, availableMemoryMock, blockSize, stMin, linuxOSInterface,
+                                      canMessageACKQueue);
+
+    CANFrame sentFrame   = NewCANFrameDoCANCpp();
+    sentFrame.identifier = NAi;
+    sentFrame.data[0]    = (N_USData_Runner::FF_CODE << 4) | messageLen >> 8;
+    sentFrame.data[1]    = messageLen & 0xFF;
+    memcpy(&sentFrame.data[2], testMessage, 6);
+
+    CANInterface* receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    ASSERT_EQ(IN_PROGRESS_FF, runner.runStep(&sentFrame));
+    ASSERT_EQ(IN_PROGRESS_FF, runner.getResult());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+    ASSERT_EQ(IN_PROGRESS, runner.getResult());
+
+    ASSERT_EQ_N_AI(NAi, runner.getN_AI());
+    ASSERT_EQ(Mtype_Diagnostics, runner.getMtype());
+    ASSERT_EQ(messageLen, runner.getMessageLength());
+    ASSERT_EQ_ARRAY(testMessage, runner.getMessageData(), 6);
+
+    CANFrame receivedFrame;
+    ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
+    canMessageACKQueue.runStep(); // Get ACK
+
+    assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
+
+    CANFrame cfFrame         = NewCANFrameDoCANCpp();
+    cfFrame.identifier       = NAi;
+    cfFrame.data_length_code = 8;
+    cfFrame.data[0]          = (N_USData_Runner::CF_CODE << 4) | 1; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[6], 7);
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(&cfFrame));
+
+    cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 2; // sequence number
+    memcpy(&cfFrame.data[1], &testMessage[13], 7);
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Cr_TIMEOUT_MS + 1);
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    ASSERT_EQ(N_TIMEOUT_Cr, runner.runStep(nullptr));
+
+    delete canInterface;
+    delete receiverCanInterface;
+}
