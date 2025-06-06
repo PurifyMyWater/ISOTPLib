@@ -430,10 +430,10 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
             [[fallthrough]];
         case SEND_FC:
             nextRunTime = 0; // Execute as soon as possible
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms", nextRunTime);
+            OSInterfaceLogDebug(tag, "Next run time is in %u ms because internalStatus is %s", nextRunTime, internalStatusToString(internalStatus));
             break;
         default:
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms", nextRunTime - osInterface->osMillis());
+            OSInterfaceLogDebug(tag, "Next run time is in %u ms because of next timeout", nextRunTime - osInterface->osMillis());
             break;
     }
     return nextRunTime;
