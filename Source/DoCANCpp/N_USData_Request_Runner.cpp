@@ -251,6 +251,8 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
 
 N_Result N_USData_Request_Runner::runStep_CF(const CANFrame* receivedFrame)
 {
+    timerN_Cs->stopTimer();
+    OSInterfaceLogVerbose(tag, "Timer N_Cs stopped before sending CF in %u ms", timerN_Cs->getElapsedTime_ms());
     if (receivedFrame != nullptr)
     {
         returnErrorWithLog(N_ERROR, "Received frame is not null");
