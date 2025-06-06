@@ -76,7 +76,7 @@ public:
     constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
     constexpr static int32_t N_Cr_TIMEOUT_MS = 1000;
     constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
-    constexpr static int32_t MAX_TIMEOUT_MS = 30000;
+    constexpr static int32_t MAX_TIMEOUT_MS  = 30000;
 #endif
 
     constexpr static STmin DEFAULT_STMIN = {20, ms};

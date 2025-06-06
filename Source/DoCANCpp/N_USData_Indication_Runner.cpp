@@ -243,8 +243,7 @@ N_Result N_USData_Indication_Runner::runStep_FC_CTS(const CANFrame* receivedFram
     }
 
     timerN_Br->stopTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Br stopped before sending FC frame in %u ms",
-                          timerN_Br->getElapsedTime_ms());
+    OSInterfaceLogVerbose(tag, "Timer N_Br stopped before sending FC frame in %u ms", timerN_Br->getElapsedTime_ms());
 
     if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
     {
@@ -377,15 +376,18 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     uint32_t N_Br_performance = timerN_Br->getElapsedTime_ms() + timerN_Ar->getElapsedTime_ms();
     if (N_Br_performance > N_Br_TIMEOUT_MS)
     {
-        OSInterfaceLogWarning(tag, "N_Br performance not met. Elapsed time is %u ms and required is %u", N_Br_performance, N_Br_TIMEOUT_MS);
+        OSInterfaceLogWarning(tag, "N_Br performance not met. Elapsed time is %u ms and required is %u",
+                              N_Br_performance, N_Br_TIMEOUT_MS);
     }
     if (timerN_Ar->getElapsedTime_ms() > N_Ar_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %u ms and timeout is %u", timerN_Ar->getElapsedTime_ms(), N_Ar_TIMEOUT_MS);
+        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %u ms and timeout is %u", timerN_Ar->getElapsedTime_ms(),
+                           N_Ar_TIMEOUT_MS);
     }
     if (timerN_Cr->getElapsedTime_ms() > N_Cr_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %u ms and timeout is %u", timerN_Cr->getElapsedTime_ms(), N_Cr_TIMEOUT_MS);
+        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %u ms and timeout is %u", timerN_Cr->getElapsedTime_ms(),
+                           N_Cr_TIMEOUT_MS);
     }
     return N_OK;
 }
