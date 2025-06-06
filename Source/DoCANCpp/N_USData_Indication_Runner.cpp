@@ -460,6 +460,7 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
             if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_Ar->stopTimer();
+                timerN_Br->clearTimer();
                 timerN_Cr->startTimer();
                 updateInternalStatus(AWAITING_CF);
                 OSInterfaceLogDebug(tag, "FC ACK received");

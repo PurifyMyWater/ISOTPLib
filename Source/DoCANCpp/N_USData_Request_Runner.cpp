@@ -471,6 +471,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
             if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_As->stopTimer();
+                timerN_Cs->clearTimer();
                 OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving SF ACK in %u ms",
                                       timerN_As->getElapsedTime_ms());
                 updateInternalStatus(MESSAGE_SENT);
@@ -490,6 +491,7 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
             {
                 updateInternalStatus(AWAITING_FirstFC);
                 timerN_As->stopTimer();
+                timerN_Cs->clearTimer();
                 OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
                                       timerN_As->getElapsedTime_ms());
                 timerN_Bs->startTimer();
@@ -509,12 +511,14 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
             if (success == CANInterface::ACK_SUCCESS)
             {
                 timerN_As->stopTimer();
+                timerN_Cs->clearTimer();
                 OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
                                       timerN_As->getElapsedTime_ms());
 
                 if (messageOffset == messageLength)
                 {
                     timerN_As->stopTimer();
+                    timerN_Cs->clearTimer();
                     OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
                                           timerN_As->getElapsedTime_ms());
                     updateInternalStatus(MESSAGE_SENT);
