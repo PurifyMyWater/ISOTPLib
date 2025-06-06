@@ -1192,6 +1192,59 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_CF)
     delete receiverCanInterface;
 }
 
+TEST(N_USData_Request_Runner, timeout_N_Cs_Performance)
+{
+    LocalCANNetwork    can_network;
+    Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
+    CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
+    CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
+    N_AI               NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
+    const char*        testMessageString = "0123456789012345678901234"; // strlen = 25
+    size_t             messageLen        = strlen(testMessageString);
+    const uint8_t*     testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
+    bool               result;
+
+    N_USData_Request_Runner runner(result, NAi, availableMemoryMock, Mtype_Diagnostics, testMessage, messageLen,
+                                   linuxOSInterface, canMessageACKQueue);
+    CANInterface*           receiverCanInterface = can_network.newCANInterfaceConnection();
+
+    runner.runStep(nullptr);
+    CANFrame receivedFrame;
+
+    // Indication Runner
+
+    receiverCanInterface->readFrame(&receivedFrame);
+
+    canMessageACKQueue.runStep(); // Get ACK
+
+    uint8_t blockSize = 4;
+    STmin   stMin     = {10, ms};
+
+    CANFrame fcFrame            = NewCANFrameDoCANCpp();
+    fcFrame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
+    fcFrame.identifier.N_TA     = NAi.N_SA;
+    fcFrame.identifier.N_SA     = NAi.N_TA;
+
+    fcFrame.data[0] = N_USData_Runner::FC_CODE << 4 | N_USData_Runner::FlowStatus::CONTINUE_TO_SEND;
+    fcFrame.data[1] = blockSize;
+    fcFrame.data[2] = stMin.value;
+
+    fcFrame.data_length_code = 3;
+
+    // Indication Runner
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(&fcFrame));
+
+    ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
+    linuxOSInterface.osSleep(N_USData_Runner::N_Cs_TIMEOUT_MS + 1); // This should trigger a warning.
+    ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
+
+    ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
+
+    delete canInterfaceRunner;
+    delete receiverCanInterface;
+}
+
 TEST(N_USData_Request_Runner, DISABLED_timeout_N_Cs_FC_LastCF)
 {
     LocalCANNetwork    can_network;
