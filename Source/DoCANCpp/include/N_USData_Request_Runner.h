@@ -95,7 +95,7 @@ private:
     CANMessageACKQueue* CanMessageACKQueue;
 
     CANFrame frameToHold{};
-    bool    frameToHoldValid{false};
+    bool     frameToHoldValid{false};
 };
 
 #endif // N_USDATA_REQUEST_RUNNER_H

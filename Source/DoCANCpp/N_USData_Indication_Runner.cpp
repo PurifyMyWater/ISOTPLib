@@ -152,10 +152,11 @@ N_Result N_USData_Indication_Runner::runStep_holdFrame(const CANFrame* receivedF
         returnErrorWithLog(N_ERROR, "Received frame is null");
     }
 
-    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK. Storing it for later use Frame: %s", frameToString(*receivedFrame));
+    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK. Storing it for later use Frame: %s",
+                          frameToString(*receivedFrame));
 
-    frameToHold = *receivedFrame; // Store the frame for later use.
-    frameToHoldValid = true; // Mark the frame as valid.
+    frameToHold      = *receivedFrame; // Store the frame for later use.
+    frameToHoldValid = true;           // Mark the frame as valid.
 
     result = IN_PROGRESS; // Indicate that we are still waiting for the ACK.
     return result;

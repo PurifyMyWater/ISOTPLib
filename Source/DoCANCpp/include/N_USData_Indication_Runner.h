@@ -88,7 +88,7 @@ private:
     CANMessageACKQueue* CanMessageACKQueue{};
 
     CANFrame frameToHold{};
-    bool    frameToHoldValid{false};
+    bool     frameToHoldValid{false};
 };
 
 #endif // N_USDATA_INDICATION_RUNNER_H
