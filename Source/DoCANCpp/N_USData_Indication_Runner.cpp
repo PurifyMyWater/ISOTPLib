@@ -27,6 +27,8 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, const N_AI 
         return;
     }
 
+    OSInterfaceLogDebug(tag, "Creating N_USData_Indication_Runner with tag %s", this->tag);
+
     this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->messageData        = nullptr;
@@ -394,7 +396,9 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
 
 bool N_USData_Indication_Runner::awaitingMessage() const
 {
-    return internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF;
+    bool res = internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF;
+    OSInterfaceLogDebug(tag, "awaitingMessage() = %s", res ? "true" : "false");
+    return res;
 }
 
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
@@ -434,8 +438,8 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
                                 internalStatusToString(internalStatus));
             break;
         default:
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because of next timeout",
-                                nextRunTime - osInterface->osMillis());
+            OSInterfaceLogDebug(tag, "Next run time is in %ld ms because of next timeout",
+                                static_cast<int64_t>(nextRunTime) - osInterface->osMillis());
             break;
     }
     return nextRunTime;
@@ -547,7 +551,10 @@ const char* N_USData_Indication_Runner::getTAG() const
 
 bool N_USData_Indication_Runner::isThisFrameForMe(const CANFrame& frame) const
 {
-    return getN_AI().N_AI == frame.identifier.N_AI;
+    bool res = getN_AI().N_AI == frame.identifier.N_AI;
+    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false",
+                        frameToString(frame));
+    return res;
 }
 
 const char* N_USData_Indication_Runner::internalStatusToString(const InternalStatus_t status)

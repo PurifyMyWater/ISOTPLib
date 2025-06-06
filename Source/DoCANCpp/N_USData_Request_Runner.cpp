@@ -31,6 +31,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
         return;
     }
 
+    OSInterfaceLogDebug(tag, "Creating N_USData_Request_Runner with tag %s", this->tag);
+
     this->nAi                = nAi;
     this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
@@ -397,7 +399,9 @@ N_Result N_USData_Request_Runner::runStep_FC(const CANFrame* receivedFrame, cons
 
 bool N_USData_Request_Runner::awaitingMessage() const
 {
-    return internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC;
+    bool res = internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC;
+    OSInterfaceLogDebug(tag, "awaitingMessage() = %s", res ? "true" : "false");
+    return res;
 }
 
 uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
@@ -447,8 +451,8 @@ uint32_t N_USData_Request_Runner::getNextRunTime() const
                                 internalStatusToString(internalStatus));
             break;
         default:
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because of next timeout",
-                                nextRunTime - osInterface->osMillis());
+            OSInterfaceLogDebug(tag, "Next run time is in %ld ms because of next timeout",
+                                static_cast<int64_t>(nextRunTime) - osInterface->osMillis());
             break;
     }
     return nextRunTime;
@@ -662,6 +666,9 @@ bool N_USData_Request_Runner::isThisFrameForMe(const CANFrame& frame) const
     res &= runnerN_AI.N_TAtype == frameN_AI.N_TAtype;
     res &= runnerN_AI.N_TA == frameN_AI.N_SA;
     res &= runnerN_AI.N_SA == frameN_AI.N_TA;
+
+    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false",
+                        frameToString(frame));
 
     return res;
 }
