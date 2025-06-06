@@ -19,11 +19,21 @@
      .data_length_code = 0,                                                                                            \
      .data             = {0}}
 
+#define updateInternalStatus(newStatus)                                                                                \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        auto oldStatus = internalStatus;                                                                               \
+        internalStatus = newStatus;                                                                                    \
+        OSInterfaceLogDebug(tag, "internalStatus changed from %s (%d) to %s (%d)", internalStatusToString(oldStatus),  \
+                            oldStatus, internalStatusToString(internalStatus), internalStatus);                        \
+    }                                                                                                                  \
+    while (0)
+
 #define returnError(errorCode)                                                                                         \
     do                                                                                                                 \
     {                                                                                                                  \
-        internalStatus = ERROR;                                                                                        \
-        result         = errorCode;                                                                                    \
+        updateInternalStatus(ERROR);                                                                                   \
+        result = errorCode;                                                                                            \
         OSInterfaceLogError(tag, "Returning error %s.", N_ResultToString(errorCode));                                  \
         return result;                                                                                                 \
     }                                                                                                                  \
@@ -32,8 +42,8 @@
 #define returnErrorWithLog(errorCode, fmt, ...)                                                                        \
     do                                                                                                                 \
     {                                                                                                                  \
-        internalStatus = ERROR;                                                                                        \
-        result         = errorCode;                                                                                    \
+        updateInternalStatus(ERROR);                                                                                   \
+        result = errorCode;                                                                                            \
         OSInterfaceLogError(tag, "Returning error %s. " fmt, N_ResultToString(errorCode), ##__VA_ARGS__);              \
         return result;                                                                                                 \
     }                                                                                                                  \
@@ -63,10 +73,10 @@ public:
     constexpr static int32_t N_As_TIMEOUT_MS = 1000;
     constexpr static int32_t N_Ar_TIMEOUT_MS = 1000;
     constexpr static int32_t N_Bs_TIMEOUT_MS = 1000;
-    // constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t N_Br_TIMEOUT_MS = 0.9 * N_Bs_TIMEOUT_MS; // Those are performance requirements.
     constexpr static int32_t N_Cr_TIMEOUT_MS = 1000;
-    // constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
-    constexpr static int32_t MAX_TIMEOUT_MS = 30000;
+    constexpr static int32_t N_Cs_TIMEOUT_MS = 0.9 * N_Cr_TIMEOUT_MS; // Those are performance requirements.
+    constexpr static int32_t MAX_TIMEOUT_MS  = 30000;
 #endif
 
     constexpr static STmin DEFAULT_STMIN = {20, ms};

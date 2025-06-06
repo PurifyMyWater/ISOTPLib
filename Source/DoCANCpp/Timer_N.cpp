@@ -20,6 +20,11 @@ void Timer_N::startTimer()
     startTime    = osInterface->osMillis();
     timerRunning = true;
 }
+void Timer_N::clearTimer()
+{
+    timerRunning = false;
+    elapsedTime  = 0;
+}
 
 bool Timer_N::isTimerRunning() const
 {

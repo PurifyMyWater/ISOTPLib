@@ -50,12 +50,15 @@ public:
 private:
     N_Result runStep_notRunning(const CANFrame* receivedFrame);
     N_Result runStep_CF(const CANFrame* receivedFrame);
+    N_Result runStep_FC_CTS(const CANFrame* receivedFrame);
 
     N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result               checkTimeouts();
 
-    using InternalStatus_t = enum { NOT_RUNNING, AWAITING_FC_ACK, AWAITING_CF, ERROR };
+    using InternalStatus_t = enum { NOT_RUNNING, SEND_FC, AWAITING_FC_ACK, AWAITING_CF, ERROR };
+
+    [[nodiscard]] static const char* internalStatusToString(InternalStatus_t status);
 
     N_AI     nAi;
     Mtype    mType;
