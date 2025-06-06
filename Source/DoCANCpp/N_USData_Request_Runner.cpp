@@ -428,7 +428,7 @@ uint32_t N_USData_Request_Runner::getNextRunTime() const
     switch (internalStatus)
     {
         case MESSAGE_SENT:
-            [[fallthrough]]; // Be careful with the fallthrough, we want to execute ASAP.
+            [[fallthrough]];
         case NOT_RUNNING_SF:
             [[fallthrough]];
         case NOT_RUNNING_FF:
