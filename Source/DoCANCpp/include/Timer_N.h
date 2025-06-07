@@ -9,6 +9,7 @@ public:
     explicit Timer_N(OSInterface& osInterface);
     void stopTimer();
     void startTimer();
+    void clearTimer();
 
     [[nodiscard]] bool     isTimerRunning() const;
     [[nodiscard]] uint32_t getStartTimeStamp() const;
