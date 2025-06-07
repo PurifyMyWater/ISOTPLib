@@ -326,13 +326,13 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
             case IN_PROGRESS:
                 break;
             default:
-                this->finishedRunners.push_front(runner);
+                this->finishedRunners.push_back(runner);
                 break;
         }
     }
 }
 
-void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::FrameStatus frameStatus, CANFrame frame)
+void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame)
 {
     if (frameStatus == frameAvailable)
     {
