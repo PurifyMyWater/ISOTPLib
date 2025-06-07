@@ -8,7 +8,7 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     FetchContent_Declare(
             LinuxOSInterface
             GIT_REPOSITORY  git@github.com:vacmg/LinuxOSInterface.git
-            GIT_TAG         v1.0.0
+            GIT_TAG         v1.1.1
     )
 
     FetchContent_Declare(
