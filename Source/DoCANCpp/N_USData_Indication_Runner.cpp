@@ -89,14 +89,14 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
 
 N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
-    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
-                          internalStatusToString(internalStatus), internalStatus,
-                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
-
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
+
+    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
+                          internalStatusToString(internalStatus), internalStatus,
+                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
 
     N_Result res = checkTimeouts();
 
@@ -460,8 +460,8 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
             [[fallthrough]];
         case SEND_FC:
             nextRunTime = 0; // Execute as soon as possible
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because internalStatus is %s", nextRunTime,
-                                internalStatusToString(internalStatus));
+            OSInterfaceLogDebug(tag, "Next run time is NOW because internalStatus is %s (%d)",
+                                internalStatusToString(internalStatus), internalStatus);
             break;
         default:
             OSInterfaceLogDebug(tag, "Next run time is in %ld ms because of next timeout",
