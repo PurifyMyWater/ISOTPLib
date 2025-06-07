@@ -11,7 +11,7 @@ LinuxOSInterface   osInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
 // TODO Tests Single Frame, Tests Multiple Frame, Tests with multiple nulls in data, Tests with low memory, Tests with
-// different messages to the same N_TA
+// different messages to the same N_TA, Tests with sending and receiving at the same time.
 
 volatile bool senderKeepRunning   = true;
 volatile bool receiverKeepRunning = true;
