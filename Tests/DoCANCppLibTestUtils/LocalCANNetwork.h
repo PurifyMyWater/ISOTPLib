@@ -1,7 +1,9 @@
 #ifndef DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 #define DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 
+#include <deque>
 #include <list>
+#include <queue>
 #include <vector>
 #include "CANInterface.h"
 #include "LinuxOSInterface.h"
@@ -74,12 +76,12 @@ public:
     void overrideActive(bool forceDisable);
 
 private:
-    std::vector<CANInterface::ACKResult> lastACKList;
-    [[nodiscard]] bool                   checkNodeID(uint32_t nodeID) const;
-    std::vector<std::list<CANFrame>>     network;
-    uint32_t                             nextNodeID      = 0;
-    bool                                 allowActiveFlag = true;
-    OSInterface_Mutex*                   accessMutex     = nullptr;
+    std::vector<std::queue<CANInterface::ACKResult>> lastACKQueueList;
+    [[nodiscard]] bool                               checkNodeID(uint32_t nodeID) const;
+    std::vector<std::list<CANFrame>>                 network;
+    uint32_t                                         nextNodeID      = 0;
+    bool                                             allowActiveFlag = true;
+    OSInterface_Mutex*                               accessMutex     = nullptr;
 };
 
 /**
