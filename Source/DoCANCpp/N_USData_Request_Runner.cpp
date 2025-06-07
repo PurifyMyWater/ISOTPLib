@@ -626,9 +626,10 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnErrorWithLog(N_ERROR, "Received frame has invalid data length code %d", receivedFrame->data_length_code);
     }
 
-    if ((receivedFrame->data[0] >> 4 & 0b00001111) != FC_CODE)
+    FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
+    if (frameCode != FC_CODE)
     {
-        returnErrorWithLog(N_ERROR, "Received frame is not a FC frame");
+        returnErrorWithLog(N_ERROR, "Received frame type %s (%u) is not a FC frame", frameCodeToString(frameCode), frameCode);
     }
 
     fs = static_cast<FlowStatus>(receivedFrame->data[0] & 0b00001111);

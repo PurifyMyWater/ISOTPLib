@@ -178,7 +178,7 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
     this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 &
                                      // 206 is the value used for remote diagnostics)
 
-    switch (receivedFrame->data[0] >> 4)
+    switch (FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4))
     {
         case SF_CODE:
         {
@@ -261,7 +261,7 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                                messageLength, availableMemory);
         }
         default:
-            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %d", receivedFrame->data[0] >> 4);
+            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %s (%u)", frameCodeToString(frameCode), frameCode);
     }
 }
 
@@ -299,9 +299,10 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
         returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %d", nAi.N_TAtype);
     }
 
-    if (receivedFrame->data[0] >> 4 != CF_CODE)
+    FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
+    if (frameCode != CF_CODE)
     {
-        returnErrorWithLog(N_UNEXP_PDU, "Received frame is not a CF frame");
+        returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%u) is not a CF frame", frameCodeToString(frameCode), frameCode);
     }
 
     uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);

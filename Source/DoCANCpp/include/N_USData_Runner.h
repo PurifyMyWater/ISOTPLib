@@ -84,6 +84,10 @@ public:
     N_USData_Runner()          = default;
     virtual ~N_USData_Runner() = default;
 
+    static const char* runnerTypeToString(RunnerType type);
+    static const char* frameCodeToString(FrameCode code);
+    static const char* flowStatusToString(FlowStatus status);
+
     /**
      * @brief Runs the runner.
      *
