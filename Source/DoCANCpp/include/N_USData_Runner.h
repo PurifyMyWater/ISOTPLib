@@ -103,7 +103,7 @@ public:
      * @brief Returns the next timestamp the runner will run. The timestamp is derived from OsInterface::millis().
      * @return The next timestamp the runner will run.
      */
-    [[nodiscard]] virtual uint32_t getNextRunTime() const = 0;
+    [[nodiscard]] virtual uint32_t getNextRunTime() = 0;
 
     /**
      * @brief Returns the N_AI of the runner.

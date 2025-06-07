@@ -451,8 +451,16 @@ uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
     return minTimeout + osInterface->osMillis();
 }
 
-uint32_t N_USData_Indication_Runner::getNextRunTime() const
+uint32_t N_USData_Indication_Runner::getNextRunTime()
 {
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        OSInterfaceLogError(tag, "Failed to acquire mutex");
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+        return 0;
+    }
+
     uint32_t nextRunTime = getNextTimeoutTime();
     switch (internalStatus)
     {
@@ -468,6 +476,9 @@ uint32_t N_USData_Indication_Runner::getNextRunTime() const
                                 static_cast<int64_t>(nextRunTime) - osInterface->osMillis());
             break;
     }
+
+    mutex->signal();
+
     return nextRunTime;
 }
 

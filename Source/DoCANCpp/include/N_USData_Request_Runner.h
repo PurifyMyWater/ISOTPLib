@@ -21,7 +21,7 @@ public:
 
     N_Result runStep(CANFrame* receivedFrame) override;
 
-    [[nodiscard]] uint32_t getNextRunTime() const override;
+    [[nodiscard]] uint32_t getNextRunTime() override;
 
     void messageACKReceivedCallback(CANInterface::ACKResult success) override;
 
