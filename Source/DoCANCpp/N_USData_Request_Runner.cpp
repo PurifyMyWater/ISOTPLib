@@ -203,14 +203,6 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
 
-    N_Result res = runStep_internal(receivedFrame);
-
-    mutex->signal();
-    return res;
-}
-
-N_Result N_USData_Request_Runner::runStep_internal(CANFrame* receivedFrame)
-{
     N_Result res = checkTimeouts();
 
     if (res != N_OK)
@@ -219,6 +211,16 @@ N_Result N_USData_Request_Runner::runStep_internal(CANFrame* receivedFrame)
         OSInterfaceLogError(tag, "Timeout occurred: %s", N_ResultToString(res));
         return res;
     }
+
+    res = runStep_internal(receivedFrame);
+
+    mutex->signal();
+    return res;
+}
+
+N_Result N_USData_Request_Runner::runStep_internal(CANFrame* receivedFrame)
+{
+    N_Result res;
 
     switch (internalStatus)
     {
