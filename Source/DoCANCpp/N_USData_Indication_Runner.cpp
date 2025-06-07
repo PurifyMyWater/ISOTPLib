@@ -263,7 +263,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                                messageLength, availableMemory);
         }
         default:
-            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %s (%u)", frameCodeToString(frameCode), frameCode);
+            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %s (%u)",
+                               frameCodeToString(frameCode), frameCode);
     }
 }
 
@@ -304,7 +305,8 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
     FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
     if (frameCode != CF_CODE)
     {
-        returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%u) is not a CF frame", frameCodeToString(frameCode), frameCode);
+        returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%u) is not a CF frame", frameCodeToString(frameCode),
+                           frameCode);
     }
 
     uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);

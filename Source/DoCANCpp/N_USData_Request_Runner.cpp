@@ -631,7 +631,8 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
     FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
     if (frameCode != FC_CODE)
     {
-        returnErrorWithLog(N_ERROR, "Received frame type %s (%u) is not a FC frame", frameCodeToString(frameCode), frameCode);
+        returnErrorWithLog(N_ERROR, "Received frame type %s (%u) is not a FC frame", frameCodeToString(frameCode),
+                           frameCode);
     }
 
     fs = static_cast<FlowStatus>(receivedFrame->data[0] & 0b00001111);
