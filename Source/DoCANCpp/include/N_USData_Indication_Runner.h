@@ -56,7 +56,7 @@ private:
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result               checkTimeouts();
 
-    using InternalStatus_t = enum { NOT_RUNNING, SEND_FC, AWAITING_FC_ACK, AWAITING_CF, ERROR };
+    using InternalStatus_t = enum { NOT_RUNNING, SEND_FC, AWAITING_FC_ACK, AWAITING_CF, MESSAGE_RECEIVED, ERROR };
 
     [[nodiscard]] static const char* internalStatusToString(InternalStatus_t status);
 

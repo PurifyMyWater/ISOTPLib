@@ -343,6 +343,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
                               timerN_Cr->getElapsedTime_ms());
         OSInterfaceLogInfo(tag, "Received message with length %ld (MF)", messageLength);
         result = N_OK;
+        updateInternalStatus(MESSAGE_RECEIVED);
     }
     else
     {
@@ -462,8 +463,13 @@ uint32_t N_USData_Indication_Runner::getNextRunTime()
     }
 
     uint32_t nextRunTime = getNextTimeoutTime();
+
+    OSInterfaceLogVerbose(tag, "internalStatus = %s (%d), nextRunTime = %u ms", internalStatusToString(internalStatus), internalStatus, nextRunTime);
+
     switch (internalStatus)
     {
+        case MESSAGE_RECEIVED:
+            [[fallthrough]];
         case NOT_RUNNING:
             [[fallthrough]];
         case SEND_FC:
@@ -613,6 +619,8 @@ const char* N_USData_Indication_Runner::internalStatusToString(const InternalSta
             return "AWAITING_FC_ACK";
         case AWAITING_CF:
             return "AWAITING_CF";
+        case MESSAGE_RECEIVED:
+            return "MESSAGE_RECEIVED";
         case ERROR:
             return "ERROR";
         default:
