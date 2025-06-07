@@ -11,7 +11,7 @@ LinuxOSInterface   osInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
 // TODO Tests Single Frame, Tests Multiple Frame, Tests with multiple nulls in data, Tests with low memory, Tests with
-// different messages to the same N_TA, Tests with sending and receiving at the same time.
+// different messages to the same N_TA, Tests with sending and receiving at the same time. Test broadcast messages, Test DoCANCpp API
 
 volatile bool senderKeepRunning   = true;
 volatile bool receiverKeepRunning = true;
@@ -226,6 +226,112 @@ TEST(DoCANCpp_SystemTests, ManySendReceiveTestSF)
     delete receiverInterface;
 }
 // END ManySendReceiveTestSF
+
+// SimpleSendReceiveTestBroadcast
+constexpr char     SimpleSendReceiveTestBroadcast_message[]     = "patata";
+constexpr uint32_t SimpleSendReceiveTestBroadcast_messageLength = 7;
+
+static uint32_t SimpleSendReceiveTestBroadcast_N_USData_confirm_cb_calls = 0;
+void            SimpleSendReceiveTestBroadcast_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
+{
+    SimpleSendReceiveTestBroadcast_N_USData_confirm_cb_calls++;
+
+    N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 1};
+    EXPECT_EQ_N_AI(expectedNAi, nAi);
+    EXPECT_EQ(N_OK, nResult);
+    EXPECT_EQ(Mtype_Diagnostics, mtype);
+
+    OSInterfaceLogInfo("SimpleSendReceiveTestBroadcast_N_USData_confirm_cb", "SenderKeepRunning set to false");
+    senderKeepRunning = false;
+}
+
+static uint32_t SimpleSendReceiveTestBroadcast_N_USData_indication_cb_calls = 0;
+void SimpleSendReceiveTestBroadcast_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                                    N_Result nResult, Mtype mtype)
+{
+    SimpleSendReceiveTestBroadcast_N_USData_indication_cb_calls++;
+    N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 1};
+    EXPECT_EQ(N_OK, nResult);
+    EXPECT_EQ(Mtype_Diagnostics, mtype);
+    EXPECT_EQ_N_AI(expectedNAi, nAi);
+    ASSERT_EQ(SimpleSendReceiveTestBroadcast_messageLength, messageLength);
+    ASSERT_NE(nullptr, messageData);
+    EXPECT_EQ_ARRAY(SimpleSendReceiveTestBroadcast_message, messageData, SimpleSendReceiveTestBroadcast_messageLength);
+
+    OSInterfaceLogInfo("SimpleSendReceiveTestBroadcast_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+    receiverKeepRunning = false;
+}
+
+static uint32_t SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb_calls = 0;
+void SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength, const Mtype mtype)
+{
+    SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb_calls++;
+}
+
+TEST(DoCANCpp_SystemTests, SimpleSendReceiveTestBroadcast)
+{
+    constexpr uint32_t TIMEOUT = 10000; // 10 seconds
+    senderKeepRunning          = true;
+    receiverKeepRunning        = true;
+
+    LocalCANNetwork network;
+    CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
+    CANInterface*   receiverInterface1 = network.newCANInterfaceConnection("receiverInterface1");
+    CANInterface*   receiverInterface2 = network.newCANInterfaceConnection("receiverInterface2");
+    DoCANCpp*       senderDoCANCpp =
+        new DoCANCpp(1, 2000, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb,
+                     SimpleSendReceiveTestBroadcast_N_USData_indication_cb, SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb,
+                     osInterface, *senderInterface, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp");
+    DoCANCpp* receiverDoCANCpp1 =
+        new DoCANCpp(2, 2000, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb,
+                     SimpleSendReceiveTestBroadcast_N_USData_indication_cb, SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb,
+                     osInterface, *receiverInterface1, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp1");
+    DoCANCpp* receiverDoCANCpp2 =
+        new DoCANCpp(3, 2000, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb,
+                     SimpleSendReceiveTestBroadcast_N_USData_indication_cb, SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb,
+                     osInterface, *receiverInterface2, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp2");
+
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step        = 0;
+
+    receiverDoCANCpp1->addAcceptedFunctionalN_TA(2);
+    receiverDoCANCpp2->addAcceptedFunctionalN_TA(2);
+
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp->runStep();
+        senderDoCANCpp->canMessageACKQueueRunStep();
+        receiverDoCANCpp1->runStep();
+        receiverDoCANCpp1->canMessageACKQueueRunStep();
+        receiverDoCANCpp2->runStep();
+        receiverDoCANCpp2->canMessageACKQueueRunStep();
+
+        if (step == 5)
+        {
+            EXPECT_TRUE(
+                senderDoCANCpp->N_USData_request(2, N_TATYPE_6_CAN_CLASSIC_29bit_Functional,
+                                                 reinterpret_cast<const uint8_t*>(SimpleSendReceiveTestBroadcast_message),
+                                                 SimpleSendReceiveTestBroadcast_messageLength, Mtype_Diagnostics));
+        }
+
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+
+    EXPECT_EQ(0, SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb_calls);
+    EXPECT_EQ(1, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb_calls);
+    EXPECT_EQ(2, SimpleSendReceiveTestBroadcast_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
+
+    delete senderDoCANCpp;
+    delete receiverDoCANCpp1;
+    delete receiverDoCANCpp2;
+    delete senderInterface;
+    delete receiverInterface1;
+    delete receiverInterface2;
+}
+// END SimpleSendReceiveTestBroadcast
 
 // SimpleSendReceiveTestMF
 constexpr char     SimpleSendReceiveTestMF_message[]     = "01234567890123456789";
