@@ -463,9 +463,6 @@ uint32_t N_USData_Indication_Runner::getNextRunTime()
     }
 
     uint32_t nextRunTime = getNextTimeoutTime();
-
-    OSInterfaceLogVerbose(tag, "internalStatus = %s (%d), nextRunTime = %u ms", internalStatusToString(internalStatus), internalStatus, nextRunTime);
-
     switch (internalStatus)
     {
         case MESSAGE_RECEIVED:
