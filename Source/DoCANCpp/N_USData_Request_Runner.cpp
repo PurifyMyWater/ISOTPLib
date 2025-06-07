@@ -240,6 +240,7 @@ N_Result N_USData_Request_Runner::runStep_internal(CANFrame* receivedFrame)
             res = runStep_FC(receivedFrame);
             break;
         case MESSAGE_SENT:
+            OSInterfaceLogDebug(tag, "Message sent successfully");
             result = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
             res    = result;
             break;

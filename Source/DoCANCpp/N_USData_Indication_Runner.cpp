@@ -130,6 +130,12 @@ N_Result N_USData_Indication_Runner::runStep_internal(CANFrame* receivedFrame)
         case AWAITING_FC_ACK:
             res = runStep_holdFrame(receivedFrame);
             break;
+        case MESSAGE_RECEIVED:
+            OSInterfaceLogDebug(tag, "Message received successfully");
+            result =
+                N_OK; // If the message is successfully received, return N_OK to allow DoCanCpp to call the callback.
+            res = result;
+            break;
         case ERROR:
             res = result;
             break;
