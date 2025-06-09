@@ -218,6 +218,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
 
         // Remove the runner from activeRunners.
         this->activeRunners.erase(runner->getN_AI().N_AI);
+        canMessageAckQueue->removeFromQueue(runner->getN_AI());
         delete runner;
     }
     this->finishedRunners.clear();
