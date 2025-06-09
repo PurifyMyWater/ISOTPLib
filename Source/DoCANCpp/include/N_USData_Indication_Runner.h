@@ -46,7 +46,7 @@ public:
     [[nodiscard]] bool isThisFrameForMe(const CANFrame& frame) const override;
 
 private:
-    N_Result runStep_internal(CANFrame* receivedFrame);
+    N_Result runStep_internal(const CANFrame* receivedFrame);
     N_Result runStep_notRunning(const CANFrame* receivedFrame);
     N_Result runStep_holdFrame(const CANFrame* receivedFrame);
     N_Result runStep_CF(const CANFrame* receivedFrame);
@@ -55,6 +55,7 @@ private:
     N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result               checkTimeouts();
+    [[nodiscard]] bool     awaitingFrame(const CANFrame& frame) const;
 
     using InternalStatus_t = enum { NOT_RUNNING, SEND_FC, AWAITING_FC_ACK, AWAITING_CF, MESSAGE_RECEIVED, ERROR };
 

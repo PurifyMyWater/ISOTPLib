@@ -198,6 +198,24 @@ N_Result N_USData_Request_Runner::checkTimeouts()
     return N_OK;
 }
 
+bool N_USData_Request_Runner::awaitingFrame(const CANFrame& frame) const
+{
+    FrameCode frameCode = static_cast<FrameCode>(frame.data[0] >> 4);
+    switch (internalStatus)
+    {
+        case AWAITING_FF_ACK: // Uses AWAITING_FirstFC.
+            [[fallthrough]];
+        case AWAITING_CF_ACK: // Uses AWAITING_FC.
+            [[fallthrough]];
+        case AWAITING_FirstFC:
+            [[fallthrough]];
+        case AWAITING_FC:
+            return frameCode == FC_CODE;
+        default:
+            return false;
+    }
+}
+
 N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
@@ -224,7 +242,7 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
     return res;
 }
 
-N_Result N_USData_Request_Runner::runStep_internal(CANFrame* receivedFrame)
+N_Result N_USData_Request_Runner::runStep_internal(const CANFrame* receivedFrame)
 {
     N_Result res;
 
@@ -726,9 +744,9 @@ bool N_USData_Request_Runner::isThisFrameForMe(const CANFrame& frame) const
     res &= runnerN_AI.N_TAtype == frameN_AI.N_TAtype;
     res &= runnerN_AI.N_TA == frameN_AI.N_SA;
     res &= runnerN_AI.N_SA == frameN_AI.N_TA;
+    res &= awaitingFrame(frame);
 
     OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false", frameToString(frame));
-
     return res;
 }
 

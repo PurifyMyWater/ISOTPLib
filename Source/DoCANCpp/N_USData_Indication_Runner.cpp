@@ -87,6 +87,22 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
     delete mutex;
 }
 
+bool N_USData_Indication_Runner::awaitingFrame(const CANFrame& frame) const
+{
+    FrameCode frameCode = static_cast<FrameCode>(frame.data[0] >> 4);
+    switch (internalStatus)
+    {
+        case NOT_RUNNING:
+            return frameCode == SF_CODE || frameCode == FF_CODE;
+        case AWAITING_FC_ACK: // Uses AWAITING_CF
+            [[fallthrough]];
+        case AWAITING_CF:
+            return frameCode == CF_CODE;
+        default:
+            return false;
+    }
+}
+
 N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
@@ -112,7 +128,7 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
     return res;
 }
 
-N_Result N_USData_Indication_Runner::runStep_internal(CANFrame* receivedFrame)
+N_Result N_USData_Indication_Runner::runStep_internal(const CANFrame* receivedFrame)
 {
     N_Result res;
 
@@ -609,6 +625,8 @@ const char* N_USData_Indication_Runner::getTAG() const
 bool N_USData_Indication_Runner::isThisFrameForMe(const CANFrame& frame) const
 {
     bool res = getN_AI().N_AI == frame.identifier.N_AI;
+    res &= awaitingFrame(frame);
+
     OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false", frameToString(frame));
     return res;
 }

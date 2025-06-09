@@ -43,7 +43,7 @@ public:
 
 private:
     N_Result runStep_holdFrame(const CANFrame* receivedFrame);
-    N_Result runStep_internal(CANFrame* receivedFrame);
+    N_Result runStep_internal(const CANFrame* receivedFrame);
     N_Result runStep_SF(const CANFrame* receivedFrame);
     N_Result runStep_FF(const CANFrame* receivedFrame);
     N_Result runStep_CF(const CANFrame* receivedFrame);
@@ -53,6 +53,7 @@ private:
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result               checkTimeouts();
     N_Result               sendCFFrame();
+    [[nodiscard]] bool     awaitingFrame(const CANFrame& frame) const;
 
     using InternalStatus_t = enum {
         NOT_RUNNING_SF,
