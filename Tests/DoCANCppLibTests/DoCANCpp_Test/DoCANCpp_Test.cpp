@@ -10,9 +10,9 @@
 LinuxOSInterface   osInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
-// TODO ~Tests Single Frame, ~Tests Multiple Frame, ~Tests with multiple nulls in data, ~Tests with low memory, Tests
-// with different messages to the same N_TA, Tests with sending and receiving at the same time. ~Test broadcast
-// messages, Test DoCANCpp API
+// TODO ~Tests Single Frame, ~Tests Multiple Frame, ~Tests with multiple nulls in data, ~Tests with low memory, ~Tests
+// with different messages to the same N_TA (SF, MF, BC, MIX), Tests with sending and receiving at the same time. ~Test
+// broadcast messages, Test DoCANCpp API
 
 volatile bool senderKeepRunning   = true;
 volatile bool receiverKeepRunning = true;
@@ -1420,3 +1420,684 @@ TEST(DoCANCpp_SystemTests, LowMemoryReceiverTestMF)
     delete receiverInterface;
 }
 // END LowMemoryReceiverTestMF
+
+// ManySenderToOneTargetSF
+constexpr char     ManySenderToOneTargetSF_message1[]     = "patata";
+constexpr uint32_t ManySenderToOneTargetSF_messageLength1 = 7;
+constexpr char     ManySenderToOneTargetSF_message2[]     = "cocida";
+constexpr uint32_t ManySenderToOneTargetSF_messageLength2 = 7;
+
+static uint32_t ManySenderToOneTargetSF_N_USData_confirm_cb_calls = 0;
+void            ManySenderToOneTargetSF_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetSF_N_USData_confirm_cb_calls++;
+
+    if (ManySenderToOneTargetSF_N_USData_confirm_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetSF_N_USData_confirm_cb", "First call");
+    }
+    else if (ManySenderToOneTargetSF_N_USData_confirm_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetSF_N_USData_confirm_cb", "SenderKeepRunning set to false");
+        senderKeepRunning = false;
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetSF_N_USData_indication_cb_calls = 0;
+void ManySenderToOneTargetSF_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                                    N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetSF_N_USData_indication_cb_calls++;
+
+    if (ManySenderToOneTargetSF_N_USData_indication_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetSF_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+        receiverKeepRunning = false;
+    }
+    else if (ManySenderToOneTargetSF_N_USData_indication_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetSF_N_USData_indication_cb", "First call");
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetSF_messageLength1, messageLength);
+        ASSERT_NE(nullptr, messageData);
+        EXPECT_EQ_ARRAY(ManySenderToOneTargetSF_message1, messageData, ManySenderToOneTargetSF_messageLength1);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetSF_messageLength2, messageLength);
+        ASSERT_NE(nullptr, messageData);
+        EXPECT_EQ_ARRAY(ManySenderToOneTargetSF_message2, messageData, ManySenderToOneTargetSF_messageLength2);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetSF_N_USData_FF_indication_cb_calls = 0;
+void ManySenderToOneTargetSF_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength, const Mtype mtype)
+{
+    ManySenderToOneTargetSF_N_USData_FF_indication_cb_calls++;
+}
+
+TEST(DoCANCpp_SystemTests, ManySenderToOneTargetSF)
+{
+    constexpr uint32_t TIMEOUT = 10000; // 10 seconds
+    senderKeepRunning          = true;
+    receiverKeepRunning        = true;
+
+    LocalCANNetwork network;
+    CANInterface*   senderInterface1  = network.newCANInterfaceConnection("senderInterface1");
+    CANInterface*   senderInterface2  = network.newCANInterfaceConnection("senderInterface2");
+    CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
+    DoCANCpp*       senderDoCANCpp1 =
+        new DoCANCpp(1, 2000, ManySenderToOneTargetSF_N_USData_confirm_cb,
+                     ManySenderToOneTargetSF_N_USData_indication_cb, ManySenderToOneTargetSF_N_USData_FF_indication_cb,
+                     osInterface, *senderInterface1, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp1");
+    DoCANCpp* senderDoCANCpp2 =
+        new DoCANCpp(3, 2000, ManySenderToOneTargetSF_N_USData_confirm_cb,
+                     ManySenderToOneTargetSF_N_USData_indication_cb, ManySenderToOneTargetSF_N_USData_FF_indication_cb,
+                     osInterface, *senderInterface2, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp2");
+    DoCANCpp* receiverDoCANCpp =
+        new DoCANCpp(2, 2000, ManySenderToOneTargetSF_N_USData_confirm_cb,
+                     ManySenderToOneTargetSF_N_USData_indication_cb, ManySenderToOneTargetSF_N_USData_FF_indication_cb,
+                     osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
+
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step        = 0;
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp1->runStep();
+        senderDoCANCpp1->canMessageACKQueueRunStep();
+        receiverDoCANCpp->runStep();
+        receiverDoCANCpp->canMessageACKQueueRunStep();
+        senderDoCANCpp2->runStep();
+        senderDoCANCpp2->canMessageACKQueueRunStep();
+
+        if (step == 5)
+        {
+            EXPECT_TRUE(
+                senderDoCANCpp1->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetSF_message1),
+                                                  ManySenderToOneTargetSF_messageLength1, Mtype_Diagnostics));
+            EXPECT_TRUE(
+                senderDoCANCpp2->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetSF_message2),
+                                                  ManySenderToOneTargetSF_messageLength2, Mtype_Diagnostics));
+        }
+
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+
+    EXPECT_EQ(0, ManySenderToOneTargetSF_N_USData_FF_indication_cb_calls);
+    EXPECT_EQ(2, ManySenderToOneTargetSF_N_USData_confirm_cb_calls);
+    EXPECT_EQ(2, ManySenderToOneTargetSF_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
+
+    delete senderDoCANCpp1;
+    delete senderDoCANCpp2;
+    delete receiverDoCANCpp;
+    delete senderInterface1;
+    delete senderInterface2;
+    delete receiverInterface;
+}
+// END ManySenderToOneTargetSF
+
+// ManySenderToOneTargetBroadcast
+constexpr char     ManySenderToOneTargetBroadcast_message1[]     = "patata";
+constexpr uint32_t ManySenderToOneTargetBroadcast_messageLength1 = 7;
+constexpr char     ManySenderToOneTargetBroadcast_message2[]     = "cocida";
+constexpr uint32_t ManySenderToOneTargetBroadcast_messageLength2 = 7;
+
+static uint32_t ManySenderToOneTargetBroadcast_N_USData_confirm_cb_calls = 0;
+void            ManySenderToOneTargetBroadcast_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetBroadcast_N_USData_confirm_cb_calls++;
+
+    if (ManySenderToOneTargetBroadcast_N_USData_confirm_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetBroadcast_N_USData_confirm_cb", "First call");
+    }
+    else if (ManySenderToOneTargetBroadcast_N_USData_confirm_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetBroadcast_N_USData_confirm_cb", "SenderKeepRunning set to false");
+        senderKeepRunning = false;
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetBroadcast_N_USData_indication_cb_calls = 0;
+void ManySenderToOneTargetBroadcast_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                                           N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetBroadcast_N_USData_indication_cb_calls++;
+
+    if (ManySenderToOneTargetBroadcast_N_USData_indication_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetBroadcast_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+        receiverKeepRunning = false;
+    }
+    else if (ManySenderToOneTargetBroadcast_N_USData_indication_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetBroadcast_N_USData_indication_cb", "First call");
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetBroadcast_messageLength1, messageLength);
+        ASSERT_NE(nullptr, messageData);
+        EXPECT_EQ_ARRAY(ManySenderToOneTargetBroadcast_message1, messageData,
+                        ManySenderToOneTargetBroadcast_messageLength1);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetBroadcast_messageLength2, messageLength);
+        ASSERT_NE(nullptr, messageData);
+        EXPECT_EQ_ARRAY(ManySenderToOneTargetBroadcast_message2, messageData,
+                        ManySenderToOneTargetBroadcast_messageLength2);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb_calls = 0;
+void            ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength,
+                                                                         const Mtype mtype)
+{
+    ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb_calls++;
+}
+
+TEST(DoCANCpp_SystemTests, ManySenderToOneTargetBroadcast)
+{
+    constexpr uint32_t TIMEOUT = 10000; // 10 seconds
+    senderKeepRunning          = true;
+    receiverKeepRunning        = true;
+
+    LocalCANNetwork network;
+    CANInterface*   senderInterface1  = network.newCANInterfaceConnection("senderInterface1");
+    CANInterface*   senderInterface2  = network.newCANInterfaceConnection("senderInterface2");
+    CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
+    DoCANCpp*       senderDoCANCpp1   = new DoCANCpp(1, 2000, ManySenderToOneTargetBroadcast_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetBroadcast_N_USData_indication_cb,
+                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                     *senderInterface1, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp1");
+    DoCANCpp*       senderDoCANCpp2   = new DoCANCpp(3, 2000, ManySenderToOneTargetBroadcast_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetBroadcast_N_USData_indication_cb,
+                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                     *senderInterface2, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp2");
+    DoCANCpp*       receiverDoCANCpp  = new DoCANCpp(2, 2000, ManySenderToOneTargetBroadcast_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetBroadcast_N_USData_indication_cb,
+                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                     *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
+
+    receiverDoCANCpp->addAcceptedFunctionalN_TA(2);
+
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step        = 0;
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp1->runStep();
+        senderDoCANCpp1->canMessageACKQueueRunStep();
+        receiverDoCANCpp->runStep();
+        receiverDoCANCpp->canMessageACKQueueRunStep();
+        senderDoCANCpp2->runStep();
+        senderDoCANCpp2->canMessageACKQueueRunStep();
+
+        if (step == 5)
+        {
+            EXPECT_TRUE(senderDoCANCpp1->N_USData_request(
+                2, N_TATYPE_6_CAN_CLASSIC_29bit_Functional,
+                reinterpret_cast<const uint8_t*>(ManySenderToOneTargetBroadcast_message1),
+                ManySenderToOneTargetBroadcast_messageLength1, Mtype_Diagnostics));
+            EXPECT_TRUE(senderDoCANCpp2->N_USData_request(
+                2, N_TATYPE_6_CAN_CLASSIC_29bit_Functional,
+                reinterpret_cast<const uint8_t*>(ManySenderToOneTargetBroadcast_message2),
+                ManySenderToOneTargetBroadcast_messageLength2, Mtype_Diagnostics));
+        }
+
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+
+    EXPECT_EQ(0, ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb_calls);
+    EXPECT_EQ(2, ManySenderToOneTargetBroadcast_N_USData_confirm_cb_calls);
+    EXPECT_EQ(2, ManySenderToOneTargetBroadcast_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
+
+    delete senderDoCANCpp1;
+    delete senderDoCANCpp2;
+    delete receiverDoCANCpp;
+    delete senderInterface1;
+    delete senderInterface2;
+    delete receiverInterface;
+}
+// END ManySenderToOneTargetBroadcast
+
+// ManySenderToOneTargetMF
+constexpr char     ManySenderToOneTargetMF_message1[]     = "01234567890123456789";
+constexpr uint32_t ManySenderToOneTargetMF_messageLength1 = 21;
+constexpr char     ManySenderToOneTargetMF_message2[]     = "98765432109876543210";
+constexpr uint32_t ManySenderToOneTargetMF_messageLength2 = 21;
+
+static uint32_t ManySenderToOneTargetMF_N_USData_confirm_cb_calls = 0;
+void            ManySenderToOneTargetMF_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetMF_N_USData_confirm_cb_calls++;
+
+    if (ManySenderToOneTargetMF_N_USData_confirm_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMF_N_USData_confirm_cb", "First call");
+    }
+    else if (ManySenderToOneTargetMF_N_USData_confirm_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMF_N_USData_confirm_cb", "SenderKeepRunning set to false");
+        senderKeepRunning = false;
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetMF_N_USData_indication_cb_calls = 0;
+void ManySenderToOneTargetMF_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                                    N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetMF_N_USData_indication_cb_calls++;
+
+    if (ManySenderToOneTargetMF_N_USData_indication_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMF_N_USData_indication_cb", "First call");
+    }
+    else if (ManySenderToOneTargetMF_N_USData_indication_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMF_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+        receiverKeepRunning = false;
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetMF_messageLength1, messageLength);
+        ASSERT_NE(nullptr, messageData);
+        ASSERT_EQ_ARRAY(ManySenderToOneTargetMF_message1, messageData, ManySenderToOneTargetMF_messageLength1);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ(N_OK, nResult);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetMF_messageLength2, messageLength);
+        ASSERT_NE(nullptr, messageData);
+        ASSERT_EQ_ARRAY(ManySenderToOneTargetMF_message2, messageData, ManySenderToOneTargetMF_messageLength2);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetMF_N_USData_FF_indication_cb_calls = 0;
+void ManySenderToOneTargetMF_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength, const Mtype mtype)
+{
+    ManySenderToOneTargetMF_N_USData_FF_indication_cb_calls++;
+
+    if (ManySenderToOneTargetMF_N_USData_FF_indication_cb_calls == 1)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMF_N_USData_FF_indication_cb", "First call");
+    }
+    else if (ManySenderToOneTargetMF_N_USData_FF_indication_cb_calls == 2)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMF_N_USData_FF_indication_cb", "Second call");
+    }
+
+    if (nAi.N_SA == 1)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetMF_messageLength1, messageLength);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+    }
+    else if (nAi.N_SA == 3)
+    {
+        N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 3};
+        EXPECT_EQ_N_AI(expectedNAi, nAi);
+        ASSERT_EQ(ManySenderToOneTargetMF_messageLength2, messageLength);
+        EXPECT_EQ(Mtype_Diagnostics, mtype);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3): " << nAi.N_SA;
+    }
+}
+
+TEST(DoCANCpp_SystemTests, ManySenderToOneTargetMF)
+{
+    constexpr uint32_t TIMEOUT = 10000;
+    senderKeepRunning          = true;
+    receiverKeepRunning        = true;
+
+    LocalCANNetwork network;
+    CANInterface*   senderInterface1  = network.newCANInterfaceConnection();
+    CANInterface*   senderInterface2  = network.newCANInterfaceConnection();
+    CANInterface*   receiverInterface = network.newCANInterfaceConnection();
+    DoCANCpp*       senderDoCANCpp1 =
+        new DoCANCpp(1, 2000, ManySenderToOneTargetMF_N_USData_confirm_cb,
+                     ManySenderToOneTargetMF_N_USData_indication_cb, ManySenderToOneTargetMF_N_USData_FF_indication_cb,
+                     osInterface, *senderInterface1, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp1");
+    DoCANCpp* senderDoCANCpp2 =
+        new DoCANCpp(3, 2000, ManySenderToOneTargetMF_N_USData_confirm_cb,
+                     ManySenderToOneTargetMF_N_USData_indication_cb, ManySenderToOneTargetMF_N_USData_FF_indication_cb,
+                     osInterface, *senderInterface2, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp2");
+    DoCANCpp* receiverDoCANCpp =
+        new DoCANCpp(2, 2000, ManySenderToOneTargetMF_N_USData_confirm_cb,
+                     ManySenderToOneTargetMF_N_USData_indication_cb, ManySenderToOneTargetMF_N_USData_FF_indication_cb,
+                     osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
+
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step        = 0;
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp1->runStep();
+        senderDoCANCpp1->canMessageACKQueueRunStep();
+        senderDoCANCpp2->runStep();
+        senderDoCANCpp2->canMessageACKQueueRunStep();
+        receiverDoCANCpp->runStep();
+        receiverDoCANCpp->canMessageACKQueueRunStep();
+
+        if (step == 5)
+        {
+            EXPECT_TRUE(
+                senderDoCANCpp1->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetMF_message1),
+                                                  ManySenderToOneTargetMF_messageLength1, Mtype_Diagnostics));
+            EXPECT_TRUE(
+                senderDoCANCpp2->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetMF_message2),
+                                                  ManySenderToOneTargetMF_messageLength2, Mtype_Diagnostics));
+        }
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+
+    EXPECT_EQ(2, ManySenderToOneTargetMF_N_USData_FF_indication_cb_calls);
+    EXPECT_EQ(2, ManySenderToOneTargetMF_N_USData_confirm_cb_calls);
+    EXPECT_EQ(2, ManySenderToOneTargetMF_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
+
+    delete senderDoCANCpp1;
+    delete senderDoCANCpp2;
+    delete receiverDoCANCpp;
+    delete senderInterface1;
+    delete senderInterface2;
+    delete receiverInterface;
+}
+// END ManySenderToOneTargetMF
+
+// ManySenderToOneTargetMIX
+constexpr char     ManySenderToOneTargetMIX_message1[]     = "patata";
+constexpr uint32_t ManySenderToOneTargetMIX_messageLength1 = 7;
+constexpr char     ManySenderToOneTargetMIX_message2[]     = "cocida";
+constexpr uint32_t ManySenderToOneTargetMIX_messageLength2 = 7;
+constexpr char     ManySenderToOneTargetMIX_message3[]     = "98765432109876543210";
+constexpr uint32_t ManySenderToOneTargetMIX_messageLength3 = 21;
+
+static uint32_t ManySenderToOneTargetMIX_N_USData_confirm_cb_calls = 0;
+void            ManySenderToOneTargetMIX_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetMIX_N_USData_confirm_cb_calls++;
+
+    N_AI expectedNAi;
+
+    OSInterfaceLogInfo("ManySenderToOneTargetMIX_N_USData_confirm_cb", "Callback called (%d)",
+                       ManySenderToOneTargetMIX_N_USData_confirm_cb_calls);
+
+    if (ManySenderToOneTargetMIX_N_USData_confirm_cb_calls == 3)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMIX_N_USData_confirm_cb", "SenderKeepRunning set to false");
+        senderKeepRunning = false;
+    }
+
+    switch (nAi.N_SA)
+    {
+        case 1:
+            expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+            break;
+        case 3:
+            expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 3};
+            break;
+        case 4:
+            expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 4};
+            break;
+        default:
+            EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3; != 4): " << nAi.N_SA;
+    }
+
+    EXPECT_EQ_N_AI(expectedNAi, nAi);
+    EXPECT_EQ(N_OK, nResult);
+    EXPECT_EQ(Mtype_Diagnostics, mtype);
+}
+
+static uint32_t ManySenderToOneTargetMIX_N_USData_indication_cb_calls = 0;
+void ManySenderToOneTargetMIX_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                                     N_Result nResult, Mtype mtype)
+{
+    ManySenderToOneTargetMIX_N_USData_indication_cb_calls++;
+    N_AI expectedNAi;
+
+    OSInterfaceLogInfo("ManySenderToOneTargetMIX_N_USData_indication_cb", "Callback called (%d)",
+                       ManySenderToOneTargetMIX_N_USData_indication_cb_calls);
+
+    if (ManySenderToOneTargetMIX_N_USData_indication_cb_calls == 3)
+    {
+        OSInterfaceLogInfo("ManySenderToOneTargetMIX_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+        receiverKeepRunning = false;
+    }
+
+    switch (nAi.N_SA)
+    {
+        case 1:
+            expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
+            EXPECT_EQ(N_OK, nResult);
+            EXPECT_EQ(Mtype_Diagnostics, mtype);
+            EXPECT_EQ_N_AI(expectedNAi, nAi);
+            ASSERT_EQ(ManySenderToOneTargetMIX_messageLength1, messageLength);
+            ASSERT_NE(nullptr, messageData);
+            ASSERT_EQ_ARRAY(ManySenderToOneTargetMIX_message1, messageData, ManySenderToOneTargetMIX_messageLength1);
+            break;
+        case 3:
+            expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 3};
+            EXPECT_EQ(N_OK, nResult);
+            EXPECT_EQ(Mtype_Diagnostics, mtype);
+            EXPECT_EQ_N_AI(expectedNAi, nAi);
+            ASSERT_EQ(ManySenderToOneTargetMIX_messageLength2, messageLength);
+            ASSERT_NE(nullptr, messageData);
+            ASSERT_EQ_ARRAY(ManySenderToOneTargetMIX_message2, messageData, ManySenderToOneTargetMIX_messageLength2);
+            break;
+        case 4:
+            expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 4};
+            EXPECT_EQ(N_OK, nResult);
+            EXPECT_EQ(Mtype_Diagnostics, mtype);
+            EXPECT_EQ_N_AI(expectedNAi, nAi);
+            ASSERT_EQ(ManySenderToOneTargetMIX_messageLength3, messageLength);
+            ASSERT_NE(nullptr, messageData);
+            ASSERT_EQ_ARRAY(ManySenderToOneTargetMIX_message3, messageData, ManySenderToOneTargetMIX_messageLength3);
+            break;
+        default:
+            EXPECT_TRUE(false) << "Unexpected N_SA value (!= 1; != 3; != 4): " << nAi.N_SA;
+    }
+}
+
+static uint32_t ManySenderToOneTargetMIX_N_USData_FF_indication_cb_calls = 0;
+void ManySenderToOneTargetMIX_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength, const Mtype mtype)
+{
+    ManySenderToOneTargetMIX_N_USData_FF_indication_cb_calls++;
+
+    OSInterfaceLogInfo("ManySenderToOneTargetMIX_N_USData_FF_indication_cb", "Callback called (%d)",
+                       ManySenderToOneTargetMIX_N_USData_FF_indication_cb_calls);
+
+    N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 4};
+    EXPECT_EQ(Mtype_Diagnostics, mtype);
+    EXPECT_EQ_N_AI(expectedNAi, nAi);
+    ASSERT_EQ(ManySenderToOneTargetMIX_messageLength3, messageLength);
+}
+
+TEST(DoCANCpp_SystemTests, ManySenderToOneTargetMIX)
+{
+    constexpr uint32_t TIMEOUT = 10000;
+    senderKeepRunning          = true;
+    receiverKeepRunning        = true;
+
+    LocalCANNetwork network;
+    CANInterface*   senderInterface1  = network.newCANInterfaceConnection();
+    CANInterface*   senderInterface2  = network.newCANInterfaceConnection();
+    CANInterface*   senderInterface3  = network.newCANInterfaceConnection();
+    CANInterface*   receiverInterface = network.newCANInterfaceConnection();
+    DoCANCpp*       senderDoCANCpp1   = new DoCANCpp(1, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_indication_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     *senderInterface1, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp1");
+    DoCANCpp*       senderDoCANCpp2   = new DoCANCpp(3, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_indication_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     *senderInterface2, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp2");
+    DoCANCpp*       senderDoCANCpp3   = new DoCANCpp(4, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_indication_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     *senderInterface3, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp3");
+    DoCANCpp*       receiverDoCANCpp  = new DoCANCpp(2, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_indication_cb,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
+
+    receiverDoCANCpp->addAcceptedFunctionalN_TA(2);
+
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step        = 0;
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp1->runStep();
+        senderDoCANCpp1->canMessageACKQueueRunStep();
+        senderDoCANCpp2->runStep();
+        senderDoCANCpp2->canMessageACKQueueRunStep();
+        senderDoCANCpp3->runStep();
+        senderDoCANCpp3->canMessageACKQueueRunStep();
+        receiverDoCANCpp->runStep();
+        receiverDoCANCpp->canMessageACKQueueRunStep();
+
+        if (step == 5)
+        {
+            EXPECT_TRUE(
+                senderDoCANCpp1->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetMIX_message1),
+                                                  ManySenderToOneTargetMIX_messageLength1, Mtype_Diagnostics));
+            EXPECT_TRUE(
+                senderDoCANCpp2->N_USData_request(2, N_TATYPE_6_CAN_CLASSIC_29bit_Functional,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetMIX_message2),
+                                                  ManySenderToOneTargetMIX_messageLength2, Mtype_Diagnostics));
+            EXPECT_TRUE(
+                senderDoCANCpp3->N_USData_request(2, N_TATYPE_5_CAN_CLASSIC_29bit_Physical,
+                                                  reinterpret_cast<const uint8_t*>(ManySenderToOneTargetMIX_message3),
+                                                  ManySenderToOneTargetMIX_messageLength3, Mtype_Diagnostics));
+        }
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+
+    EXPECT_EQ(1, ManySenderToOneTargetMIX_N_USData_FF_indication_cb_calls);
+    EXPECT_EQ(3, ManySenderToOneTargetMIX_N_USData_confirm_cb_calls);
+    EXPECT_EQ(3, ManySenderToOneTargetMIX_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
+
+    delete senderDoCANCpp1;
+    delete senderDoCANCpp2;
+    delete senderDoCANCpp3;
+    delete receiverDoCANCpp;
+    delete senderInterface1;
+    delete senderInterface2;
+    delete senderInterface3;
+    delete receiverInterface;
+}
+// END ManySenderToOneTargetMIX
