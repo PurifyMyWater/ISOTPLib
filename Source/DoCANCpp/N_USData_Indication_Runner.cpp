@@ -206,8 +206,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
             int64_t availableMemory;
             availableMemoryForRunners->get(&availableMemory);
-            returnErrorWithLog(N_ERROR, "Message length is %ld and available memory is %ld", messageLength,
-                               availableMemory);
+            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
+                               messageLength, availableMemory);
         }
         case FF_CODE:
         {
@@ -236,6 +236,9 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
             OSInterfaceLogDebug(tag, "Received FF frame with full message length = %ld", messageLength);
 
+            int64_t availableMemory;
+            availableMemoryForRunners->get(&availableMemory);
+
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(
                     this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
             {
@@ -243,7 +246,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
                 if (this->messageData == nullptr)
                 {
-                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld.", messageLength);
+                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
+                                       messageLength, availableMemory);
                 }
 
                 if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
@@ -261,12 +265,11 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                 result = IN_PROGRESS_FF;
                 return result;
             }
-            sendFCFrame(OVERFLOW);
 
-            int64_t availableMemory;
-            availableMemoryForRunners->get(&availableMemory);
-            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
-                               messageLength, availableMemory);
+            sendFCFrame(OVERFLOW);
+            returnErrorWithLog(
+                N_ERROR, "Not enough memory for message length %ld. Available memory is %ld. OVERFLOW FC frame sent",
+                messageLength, availableMemory);
         }
         default:
             returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %s (%u)",

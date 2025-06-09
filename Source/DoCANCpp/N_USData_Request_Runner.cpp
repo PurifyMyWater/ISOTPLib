@@ -76,7 +76,10 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
         }
         if (this->messageData == nullptr)
         {
-            OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
+            int64_t availableMemory;
+            availableMemoryForRunners.get(&availableMemory);
+            OSInterfaceLogError(tag, "Not enough memory for message length %u. Available memory is %ld", messageLength,
+                                availableMemory);
         }
         else
         {
@@ -110,7 +113,10 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
     }
     else
     {
-        OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
+        int64_t availableMemory;
+        availableMemoryForRunners.get(&availableMemory);
+        OSInterfaceLogError(tag, "Not enough memory for message length %u. Available memory is %ld", messageLength,
+                            availableMemory);
     }
 }
 
