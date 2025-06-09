@@ -228,6 +228,117 @@ TEST(DoCANCpp_SystemTests, ManySendReceiveTestSF)
 }
 // END ManySendReceiveTestSF
 
+// BigSFTestBroadcast
+constexpr char     BigSFTestBroadcast_message[]     = "patatasFritas";
+constexpr uint32_t BigSFTestBroadcast_messageLength = 14;
+
+static uint32_t BigSFTestBroadcast_N_USData_confirm_cb_calls = 0;
+void            BigSFTestBroadcast_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
+{
+    BigSFTestBroadcast_N_USData_confirm_cb_calls++;
+
+    N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 1};
+    EXPECT_EQ_N_AI(expectedNAi, nAi);
+    EXPECT_EQ(N_OK, nResult);
+    EXPECT_EQ(Mtype_Diagnostics, mtype);
+
+    OSInterfaceLogInfo("BigSFTestBroadcast_N_USData_confirm_cb", "SenderKeepRunning set to false");
+    senderKeepRunning = false;
+}
+
+static uint32_t BigSFTestBroadcast_N_USData_indication_cb_calls = 0;
+void            BigSFTestBroadcast_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
+                                                          N_Result nResult, Mtype mtype)
+{
+    BigSFTestBroadcast_N_USData_indication_cb_calls++;
+    N_AI expectedNAi = {.N_TAtype = N_TATYPE_6_CAN_CLASSIC_29bit_Functional, .N_TA = 2, .N_SA = 1};
+    EXPECT_EQ(N_OK, nResult);
+    EXPECT_EQ(Mtype_Diagnostics, mtype);
+    EXPECT_EQ_N_AI(expectedNAi, nAi);
+    ASSERT_EQ(BigSFTestBroadcast_messageLength, messageLength);
+    ASSERT_NE(nullptr, messageData);
+    EXPECT_EQ_ARRAY(BigSFTestBroadcast_message, messageData, BigSFTestBroadcast_messageLength);
+
+    OSInterfaceLogInfo("BigSFTestBroadcast_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+    receiverKeepRunning = false;
+}
+
+static uint32_t BigSFTestBroadcast_N_USData_FF_indication_cb_calls = 0;
+void BigSFTestBroadcast_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t messageLength, const Mtype mtype)
+{
+    BigSFTestBroadcast_N_USData_FF_indication_cb_calls++;
+}
+
+TEST(DoCANCpp_SystemTests, BigSFTestBroadcast)
+{
+    constexpr uint32_t TIMEOUT = 10000; // 10 seconds
+    senderKeepRunning          = true;
+    receiverKeepRunning        = true;
+
+    LocalCANNetwork network;
+    CANInterface*   senderInterface    = network.newCANInterfaceConnection("senderInterface");
+    CANInterface*   receiverInterface1 = network.newCANInterfaceConnection("receiverInterface1");
+    CANInterface*   receiverInterface2 = network.newCANInterfaceConnection("receiverInterface2");
+    DoCANCpp*       senderDoCANCpp =
+        new DoCANCpp(1, 2000, BigSFTestBroadcast_N_USData_confirm_cb, BigSFTestBroadcast_N_USData_indication_cb,
+                     BigSFTestBroadcast_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     DoCANCpp_DefaultSTmin, "senderDoCANCpp");
+    DoCANCpp* receiverDoCANCpp1 =
+        new DoCANCpp(2, 2000, BigSFTestBroadcast_N_USData_confirm_cb, BigSFTestBroadcast_N_USData_indication_cb,
+                     BigSFTestBroadcast_N_USData_FF_indication_cb, osInterface, *receiverInterface1, 2,
+                     DoCANCpp_DefaultSTmin, "receiverDoCANCpp1");
+    DoCANCpp* receiverDoCANCpp2 =
+        new DoCANCpp(3, 2000, BigSFTestBroadcast_N_USData_confirm_cb, BigSFTestBroadcast_N_USData_indication_cb,
+                     BigSFTestBroadcast_N_USData_FF_indication_cb, osInterface, *receiverInterface2, 2,
+                     DoCANCpp_DefaultSTmin, "receiverDoCANCpp2");
+
+    uint32_t initialTime = osInterface.osMillis();
+    uint32_t step        = 0;
+
+    receiverDoCANCpp1->addAcceptedFunctionalN_TA(2);
+    receiverDoCANCpp2->addAcceptedFunctionalN_TA(2);
+
+    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    {
+        senderDoCANCpp->runStep();
+        senderDoCANCpp->canMessageACKQueueRunStep();
+        receiverDoCANCpp1->runStep();
+        receiverDoCANCpp1->canMessageACKQueueRunStep();
+        receiverDoCANCpp2->runStep();
+        receiverDoCANCpp2->canMessageACKQueueRunStep();
+
+        if (step == 5)
+        {
+            EXPECT_FALSE(senderDoCANCpp->N_USData_request(2, N_TATYPE_6_CAN_CLASSIC_29bit_Functional,
+                                                          reinterpret_cast<const uint8_t*>(BigSFTestBroadcast_message),
+                                                          BigSFTestBroadcast_messageLength, Mtype_Diagnostics));
+        }
+
+        if (step == 10)
+        {
+            senderKeepRunning   = false;
+            receiverKeepRunning = false;
+        }
+
+        step++;
+    }
+    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+
+    EXPECT_EQ(0, BigSFTestBroadcast_N_USData_FF_indication_cb_calls);
+    EXPECT_EQ(0, BigSFTestBroadcast_N_USData_confirm_cb_calls);
+    EXPECT_EQ(0, BigSFTestBroadcast_N_USData_indication_cb_calls);
+
+    ASSERT_LT(elapsedTime, TIMEOUT) << "Test took too long: " << elapsedTime << " ms, Timeout was: " << TIMEOUT;
+
+    delete senderDoCANCpp;
+    delete receiverDoCANCpp1;
+    delete receiverDoCANCpp2;
+    delete senderInterface;
+    delete receiverInterface1;
+    delete receiverInterface2;
+}
+// END BigSFTestBroadcast
+
 // SimpleSendReceiveTestBroadcast
 constexpr char     SimpleSendReceiveTestBroadcast_message[]     = "patata";
 constexpr uint32_t SimpleSendReceiveTestBroadcast_messageLength = 7;
