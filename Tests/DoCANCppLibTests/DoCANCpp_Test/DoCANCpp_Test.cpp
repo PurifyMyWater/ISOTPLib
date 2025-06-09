@@ -406,7 +406,8 @@ void ManySendReceiveTestBroadcast_N_USData_indication_cb(N_AI nAi, const uint8_t
         }
         else if (ManySendReceiveTestBroadcast_N_USData_indication_cb_calls == 3)
         {
-            OSInterfaceLogInfo("ManySendReceiveTestBroadcast_N_USData_indication_cb", "ReceiverKeepRunning set to false");
+            OSInterfaceLogInfo("ManySendReceiveTestBroadcast_N_USData_indication_cb",
+                               "ReceiverKeepRunning set to false");
             receiverKeepRunning = false;
         }
     }
@@ -914,49 +915,6 @@ TEST(DoCANCpp_SystemTests, NullCharSendReceiveTestMF)
 }
 // END NullCharSendReceiveTestMF
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // LowMemorySenderTestSF
 constexpr char     LowMemorySenderTestSF_message[]     = "patata";
 constexpr uint32_t LowMemorySenderTestSF_messageLength = 7;
@@ -977,7 +935,7 @@ void            LowMemorySenderTestSF_N_USData_confirm_cb(N_AI nAi, N_Result nRe
 
 static uint32_t LowMemorySenderTestSF_N_USData_indication_cb_calls = 0;
 void LowMemorySenderTestSF_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
-                                                    N_Result nResult, Mtype mtype)
+                                                  N_Result nResult, Mtype mtype)
 {
     LowMemorySenderTestSF_N_USData_indication_cb_calls++;
     N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
@@ -1008,13 +966,13 @@ TEST(DoCANCpp_SystemTests, LowMemorySenderTestSF)
     CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     DoCANCpp*       senderDoCANCpp =
-        new DoCANCpp(1, 100, LowMemorySenderTestSF_N_USData_confirm_cb,
-                     LowMemorySenderTestSF_N_USData_indication_cb, LowMemorySenderTestSF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp");
+        new DoCANCpp(1, 100, LowMemorySenderTestSF_N_USData_confirm_cb, LowMemorySenderTestSF_N_USData_indication_cb,
+                     LowMemorySenderTestSF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     DoCANCpp_DefaultSTmin, "senderDoCANCpp");
     DoCANCpp* receiverDoCANCpp =
-        new DoCANCpp(2, 2000, LowMemorySenderTestSF_N_USData_confirm_cb,
-                     LowMemorySenderTestSF_N_USData_indication_cb, LowMemorySenderTestSF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
+        new DoCANCpp(2, 2000, LowMemorySenderTestSF_N_USData_confirm_cb, LowMemorySenderTestSF_N_USData_indication_cb,
+                     LowMemorySenderTestSF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2,
+                     DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
 
     uint32_t initialTime = osInterface.osMillis();
     uint32_t step        = 0;
@@ -1034,7 +992,7 @@ TEST(DoCANCpp_SystemTests, LowMemorySenderTestSF)
         }
         if (step == 10)
         {
-            senderKeepRunning = false;
+            senderKeepRunning   = false;
             receiverKeepRunning = false;
         }
 
@@ -1054,28 +1012,6 @@ TEST(DoCANCpp_SystemTests, LowMemorySenderTestSF)
     delete receiverInterface;
 }
 // END LowMemorySenderTestSF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // LowMemoryReceiverTestSF
 constexpr char     LowMemoryReceiverTestSF_message[]     = "patata";
@@ -1169,21 +1105,6 @@ TEST(DoCANCpp_SystemTests, LowMemoryReceiverTestSF)
 }
 // END LowMemoryReceiverTestSF
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // LowMemorySenderTestMF
 constexpr char     LowMemorySenderTestMF_message[]     = "01234567890123456789";
 constexpr uint32_t LowMemorySenderTestMF_messageLength = 21;
@@ -1204,7 +1125,7 @@ void            LowMemorySenderTestMF_N_USData_confirm_cb(N_AI nAi, N_Result nRe
 
 static uint32_t LowMemorySenderTestMF_N_USData_indication_cb_calls = 0;
 void LowMemorySenderTestMF_N_USData_indication_cb(N_AI nAi, const uint8_t* messageData, uint32_t messageLength,
-                                                    N_Result nResult, Mtype mtype)
+                                                  N_Result nResult, Mtype mtype)
 {
     LowMemorySenderTestMF_N_USData_indication_cb_calls++;
     N_AI expectedNAi = {.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical, .N_TA = 2, .N_SA = 1};
@@ -1239,13 +1160,13 @@ TEST(DoCANCpp_SystemTests, LowMemorySenderTestMF)
     CANInterface*   senderInterface   = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     DoCANCpp*       senderDoCANCpp =
-        new DoCANCpp(1, 100, LowMemorySenderTestMF_N_USData_confirm_cb,
-                     LowMemorySenderTestMF_N_USData_indication_cb, LowMemorySenderTestMF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface, 2, DoCANCpp_DefaultSTmin, "senderDoCANCpp");
+        new DoCANCpp(1, 100, LowMemorySenderTestMF_N_USData_confirm_cb, LowMemorySenderTestMF_N_USData_indication_cb,
+                     LowMemorySenderTestMF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     DoCANCpp_DefaultSTmin, "senderDoCANCpp");
     DoCANCpp* receiverDoCANCpp =
-        new DoCANCpp(2, 2000, LowMemorySenderTestMF_N_USData_confirm_cb,
-                     LowMemorySenderTestMF_N_USData_indication_cb, LowMemorySenderTestMF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
+        new DoCANCpp(2, 2000, LowMemorySenderTestMF_N_USData_confirm_cb, LowMemorySenderTestMF_N_USData_indication_cb,
+                     LowMemorySenderTestMF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2,
+                     DoCANCpp_DefaultSTmin, "receiverDoCANCpp");
 
     uint32_t initialTime = osInterface.osMillis();
     uint32_t step        = 0;
@@ -1266,7 +1187,7 @@ TEST(DoCANCpp_SystemTests, LowMemorySenderTestMF)
 
         if (step == 10)
         {
-            senderKeepRunning = false;
+            senderKeepRunning   = false;
             receiverKeepRunning = false;
         }
         step++;
@@ -1285,29 +1206,6 @@ TEST(DoCANCpp_SystemTests, LowMemorySenderTestMF)
     delete receiverInterface;
 }
 // END LowMemorySenderTestMF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // LowMemoryReceiverTestMF
 constexpr char     LowMemoryReceiverTestMF_message[]     = "01234567890123456789";
@@ -1403,4 +1301,3 @@ TEST(DoCANCpp_SystemTests, LowMemoryReceiverTestMF)
     delete receiverInterface;
 }
 // END LowMemoryReceiverTestMF
-
