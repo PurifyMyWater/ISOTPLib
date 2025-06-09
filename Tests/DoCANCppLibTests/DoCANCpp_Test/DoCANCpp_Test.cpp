@@ -10,7 +10,7 @@
 LinuxOSInterface   osInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
-// TODO ~Tests Single Frame, ~Tests Multiple Frame, ~Tests with multiple nulls in data, Tests with low memory, Tests
+// TODO ~Tests Single Frame, ~Tests Multiple Frame, ~Tests with multiple nulls in data, ~Tests with low memory, Tests
 // with different messages to the same N_TA, Tests with sending and receiving at the same time. ~Test broadcast
 // messages, Test DoCANCpp API
 
@@ -725,7 +725,11 @@ TEST(DoCANCpp_SystemTests, ManySendReceiveTestMF)
 // END ManySendReceiveTestMF
 
 // NullCharSendReceiveTestSF
-constexpr char     NullCharSendReceiveTestSF_message[]     = "pa\0a\0a";
+constexpr char     NullCharSendReceiveTestSF_message[]     = "pa"
+                                                             "\0"
+                                                             "a"
+                                                             "\0"
+                                                             "a";
 constexpr uint32_t NullCharSendReceiveTestSF_messageLength = 7;
 
 static uint32_t NullCharSendReceiveTestSF_N_USData_confirm_cb_calls = 0;
@@ -819,7 +823,11 @@ TEST(DoCANCpp_SystemTests, NullCharSendReceiveTestSF)
 // END NullCharSendReceiveTestSF
 
 // NullCharSendReceiveTestMF
-constexpr char     NullCharSendReceiveTestMF_message[]     = "01\0345678901234567\09";
+constexpr char     NullCharSendReceiveTestMF_message[]     = "01"
+                                                             "\0"
+                                                             "345678901234567"
+                                                             "\0"
+                                                             "9";
 constexpr uint32_t NullCharSendReceiveTestMF_messageLength = 21;
 
 static uint32_t NullCharSendReceiveTestMF_N_USData_confirm_cb_calls = 0;
