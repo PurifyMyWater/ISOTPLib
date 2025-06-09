@@ -192,7 +192,7 @@ private:
     std::list<N_USData_Runner*>                              notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
     std::list<N_USData_Runner*>                              finishedRunners;
-    CANMessageACKQueue*                                      CanMessageACKQueue;
+    CANMessageACKQueue*                                      canMessageAckQueue;
 
     // Functions
     bool populateQueueTag();

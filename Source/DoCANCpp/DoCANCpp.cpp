@@ -20,7 +20,7 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
     this->queueTag = nullptr;
     ASSERT_SAFE(populateQueueTag(), == true);
 
-    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface, osInterface, this->queueTag);
+    this->canMessageAckQueue = new CANMessageACKQueue(canInterface, osInterface, this->queueTag);
     this->nSA                = nSA;
     this->availableMemoryForRunners.set(totalAvailableMemoryForRunners);
     this->N_USData_confirm_cb       = N_USData_confirm_cb;
@@ -62,7 +62,7 @@ DoCANCpp::~DoCANCpp()
     {
         this->osInterface.osFree(this->queueTag);
     }
-    delete this->CanMessageACKQueue;
+    delete this->canMessageAckQueue;
 
     for (auto& runner : this->notStartedRunners)
     {
@@ -171,7 +171,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
     bool             result;
     N_AI             nAI    = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
     N_USData_Runner* runner = new N_USData_Request_Runner(result, nAI, availableMemoryForRunners, mType, messageData,
-                                                          length, osInterface, *CanMessageACKQueue);
+                                                          length, osInterface, *canMessageAckQueue);
     if (!result)
     {
         delete runner;
@@ -343,7 +343,7 @@ void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatu
 
         N_USData_Runner* runner =
             new N_USData_Indication_Runner(result, frame.identifier, this->availableMemoryForRunners, blockSize, stMin,
-                                           this->osInterface, *this->CanMessageACKQueue);
+                                           this->osInterface, *this->canMessageAckQueue);
         if (runner == nullptr)
         {
             OSInterfaceLogError(this->tag, "Failed to create a new runner");
@@ -457,9 +457,9 @@ void DoCANCpp::canMessageACKQueueRunStep() const
     if (this->osInterface.osMillis() - ACKlastRunTime > DoCANCpp_RunPeriod_ACKQueue_MS)
     {
         ACKlastRunTime = this->osInterface.osMillis();
-        if (CanMessageACKQueue != nullptr)
+        if (canMessageAckQueue != nullptr)
         {
-            CanMessageACKQueue->runStep();
+            canMessageAckQueue->runStep();
         }
     }
 }
