@@ -223,7 +223,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
     this->finishedRunners.clear();
 }
 
-template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runners) // TODO test this function
+template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runners)
 {
     for (const auto runner : runners)
     {
