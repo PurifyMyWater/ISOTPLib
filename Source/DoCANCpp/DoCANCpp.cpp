@@ -177,10 +177,13 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
         delete runner;
         return false;
     }
-    result = notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    notStartedRunners.push_back(runner);
-    notStartedRunnersMutex->signal();
-    return result;
+    if (notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        notStartedRunners.push_back(runner);
+        notStartedRunnersMutex->signal();
+        return true;
+    }
+    return false;
 }
 
 void DoCANCpp::runFinishedRunnerCallbacks()
