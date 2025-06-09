@@ -89,8 +89,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
             if (this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                 this->messageLength > MAX_SF_MESSAGE_LENGTH)
             {
-                OSInterfaceLogError(tag, "Message length %u is too long for N_TAtype %d", messageLength,
-                                    this->nAi.N_TAtype);
+                OSInterfaceLogError(tag, "Message length %u is too long for N_TAtype %s", messageLength,
+                                    N_TAtypeToString(this->nAi.N_TAtype));
             }
             else
             {

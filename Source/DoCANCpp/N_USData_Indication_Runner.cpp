@@ -180,8 +180,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
     if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical &&
         receivedFrame->identifier.N_TAtype != N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
-        returnErrorWithLog(N_ERROR,
-                           "The frame is not a Mtype_Diagnostics frame"); // The frame is not a Mtype_Diagnostics frame.
+        returnErrorWithLog(N_ERROR, "The frame is not a Mtype_Diagnostics frame (%d)",
+                           receivedFrame->identifier.N_TAtype); // The frame is not a Mtype_Diagnostics frame.
     }
     this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 &
                                      // 206 is the value used for remote diagnostics)
@@ -214,7 +214,7 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
             timerN_Br->startTimer();
             if (nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
             {
-                returnErrorWithLog(N_UNEXP_PDU, "Received FF frame with N_TAtype %d", nAi.N_TAtype);
+                returnErrorWithLog(N_UNEXP_PDU, "Received FF frame with N_TAtype %s", N_TAtypeToString(nAi.N_TAtype));
             }
 
             messageLength =
@@ -308,7 +308,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
 
     if (receivedFrame->identifier.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
-        returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %d", nAi.N_TAtype);
+        returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %s", N_TAtypeToString(nAi.N_TAtype));
     }
 
     FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
