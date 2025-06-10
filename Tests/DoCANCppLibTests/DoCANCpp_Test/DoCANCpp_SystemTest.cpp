@@ -1,13 +1,11 @@
 #include "DoCANCpp.h"
 
 #include <LocalCANNetwork.h>
-
-#include <future>
 #include "ASSERT_MACROS.h"
 #include "LinuxOSInterface.h"
 #include "gtest/gtest.h"
 
-LinuxOSInterface   osInterface;
+static LinuxOSInterface   osInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
 volatile bool senderKeepRunning   = true;
