@@ -17,6 +17,8 @@ public:
 
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
 
+    bool removeFromQueue(N_AI runnerNAi);
+
     constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
 
 private:

@@ -31,6 +31,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
         return;
     }
 
+    OSInterfaceLogDebug(tag, "Creating N_USData_Request_Runner with tag %s", this->tag);
+
     this->nAi                = nAi;
     this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
@@ -74,7 +76,10 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
         }
         if (this->messageData == nullptr)
         {
-            OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
+            int64_t availableMemory;
+            availableMemoryForRunners.get(&availableMemory);
+            OSInterfaceLogError(tag, "Not enough memory for message length %u. Available memory is %ld", messageLength,
+                                availableMemory);
         }
         else
         {
@@ -84,8 +89,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
             if (this->nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                 this->messageLength > MAX_SF_MESSAGE_LENGTH)
             {
-                OSInterfaceLogError(tag, "Message length %u is too long for N_TAtype %d", messageLength,
-                                    this->nAi.N_TAtype);
+                OSInterfaceLogError(tag, "Message length %u is too long for N_TAtype %s", messageLength,
+                                    N_TAtypeToString(this->nAi.N_TAtype));
             }
             else
             {
@@ -108,7 +113,10 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
     }
     else
     {
-        OSInterfaceLogError(tag, "Not enough memory for message length %u", messageLength);
+        int64_t availableMemory;
+        availableMemoryForRunners.get(&availableMemory);
+        OSInterfaceLogError(tag, "Not enough memory for message length %u. Available memory is %ld", messageLength,
+                            availableMemory);
     }
 }
 
@@ -190,16 +198,34 @@ N_Result N_USData_Request_Runner::checkTimeouts()
     return N_OK;
 }
 
+bool N_USData_Request_Runner::awaitingFrame(const CANFrame& frame) const
+{
+    FrameCode frameCode = static_cast<FrameCode>(frame.data[0] >> 4);
+    switch (internalStatus)
+    {
+        case AWAITING_FF_ACK: // Uses AWAITING_FirstFC.
+            [[fallthrough]];
+        case AWAITING_CF_ACK: // Uses AWAITING_FC.
+            [[fallthrough]];
+        case AWAITING_FirstFC:
+            [[fallthrough]];
+        case AWAITING_FC:
+            return frameCode == FC_CODE;
+        default:
+            return false;
+    }
+}
+
 N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
 {
-    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
-                          internalStatusToString(internalStatus), internalStatus,
-                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
-
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
+
+    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
+                          internalStatusToString(internalStatus), internalStatus,
+                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
 
     N_Result res = checkTimeouts();
 
@@ -209,6 +235,16 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
         OSInterfaceLogError(tag, "Timeout occurred: %s", N_ResultToString(res));
         return res;
     }
+
+    res = runStep_internal(receivedFrame);
+
+    mutex->signal();
+    return res;
+}
+
+N_Result N_USData_Request_Runner::runStep_internal(const CANFrame* receivedFrame)
+{
+    N_Result res;
 
     switch (internalStatus)
     {
@@ -228,8 +264,14 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
             res = runStep_FC(receivedFrame);
             break;
         case MESSAGE_SENT:
+            OSInterfaceLogDebug(tag, "Message sent successfully");
             result = N_OK; // If the message is successfully sent, return N_OK to allow DoCanCpp to call the callback.
             res    = result;
+            break;
+        case AWAITING_FF_ACK:
+            [[fallthrough]];
+        case AWAITING_CF_ACK:
+            res = runStep_holdFrame(receivedFrame); // Hold the frame for later processing.
             break;
         case ERROR:
             res = result;
@@ -245,8 +287,24 @@ N_Result N_USData_Request_Runner::runStep(CANFrame* receivedFrame)
 
     lastRunTime = osInterface->osMillis();
 
-    mutex->signal();
     return res;
+}
+
+N_Result N_USData_Request_Runner::runStep_holdFrame(const CANFrame* receivedFrame)
+{
+    if (receivedFrame == nullptr)
+    {
+        returnErrorWithLog(N_ERROR, "Received frame is null");
+    }
+
+    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK in %s (%d). Storing it for later use Frame: %s",
+                          internalStatusToString(internalStatus), internalStatus, frameToString(*receivedFrame));
+
+    frameToHold      = *receivedFrame; // Store the frame for later use.
+    frameToHoldValid = true;           // Mark the frame as valid.
+
+    result = IN_PROGRESS; // Indicate that we are still waiting for the ACK.
+    return result;
 }
 
 N_Result N_USData_Request_Runner::runStep_CF(const CANFrame* receivedFrame)
@@ -395,11 +453,6 @@ N_Result N_USData_Request_Runner::runStep_FC(const CANFrame* receivedFrame, cons
     }
 }
 
-bool N_USData_Request_Runner::awaitingMessage() const
-{
-    return internalStatus == AWAITING_FC || internalStatus == AWAITING_FirstFC;
-}
-
 uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
 {
     int32_t timeoutAs = timerN_As->isTimerRunning()
@@ -432,25 +485,38 @@ uint32_t N_USData_Request_Runner::getNextTimeoutTime() const
     return minTimeout + osInterface->osMillis();
 }
 
-uint32_t N_USData_Request_Runner::getNextRunTime() const
+uint32_t N_USData_Request_Runner::getNextRunTime()
 {
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        OSInterfaceLogError(tag, "Failed to acquire mutex");
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+        return 0;
+    }
+
     uint32_t nextRunTime = getNextTimeoutTime();
     switch (internalStatus)
     {
+        case ERROR:
+            [[fallthrough]];
         case MESSAGE_SENT:
             [[fallthrough]];
         case NOT_RUNNING_SF:
             [[fallthrough]];
         case NOT_RUNNING_FF:
             nextRunTime = 0; // Execute as soon as possible
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because internalStatus is %s", nextRunTime,
-                                internalStatusToString(internalStatus));
+            OSInterfaceLogDebug(tag, "Next run time is NOW because internalStatus is %s (%d)",
+                                internalStatusToString(internalStatus), internalStatus);
             break;
         default:
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because of next timeout",
-                                nextRunTime - osInterface->osMillis());
+            OSInterfaceLogDebug(tag, "Next run time is in %ld ms because of next timeout",
+                                static_cast<int64_t>(nextRunTime) - osInterface->osMillis());
             break;
     }
+
+    mutex->signal();
+
     return nextRunTime;
 }
 
@@ -473,80 +539,19 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
         case AWAITING_SF_ACK:
         {
             OSInterfaceLogDebug(tag, "Received SF ACK");
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_As->stopTimer();
-                timerN_Cs->clearTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving SF ACK in %u ms",
-                                      timerN_As->getElapsedTime_ms());
-                updateInternalStatus(MESSAGE_SENT);
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "SF ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            SF_ACKReceivedCallback(success);
             break;
         }
         case AWAITING_FF_ACK:
         {
             OSInterfaceLogDebug(tag, "Received FF ACK");
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                updateInternalStatus(AWAITING_FirstFC);
-                timerN_As->stopTimer();
-                timerN_Cs->clearTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
-                                      timerN_As->getElapsedTime_ms());
-                timerN_Bs->startTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK");
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "FF ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            FF_ACKReceivedCallback(success);
             break;
         }
         case AWAITING_CF_ACK:
         {
             OSInterfaceLogDebug(tag, "Received CF ACK");
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_As->stopTimer();
-                timerN_Cs->clearTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
-                                      timerN_As->getElapsedTime_ms());
-
-                if (messageOffset == messageLength)
-                {
-                    timerN_As->stopTimer();
-                    timerN_Cs->clearTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
-                                          timerN_As->getElapsedTime_ms());
-                    updateInternalStatus(MESSAGE_SENT);
-                }
-                else if (cfSentInThisBlock == blockSize)
-                {
-                    updateInternalStatus(AWAITING_FC);
-                    timerN_Bs->startTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK");
-                }
-                else
-                {
-                    timerN_Cs->startTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving CF ACK");
-                    updateInternalStatus(SEND_CF);
-                }
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "CF ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            CF_ACKReceivedCallback(success);
             break;
         }
         default:
@@ -560,6 +565,98 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
     mutex->signal();
 }
 
+void N_USData_Request_Runner::SF_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_As->stopTimer();
+        timerN_Cs->clearTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving SF ACK in %u ms",
+                              timerN_As->getElapsedTime_ms());
+        updateInternalStatus(MESSAGE_SENT);
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "SF ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
+}
+
+void N_USData_Request_Runner::FF_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_As->stopTimer();
+        timerN_Cs->clearTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
+                              timerN_As->getElapsedTime_ms());
+        timerN_Bs->startTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK");
+
+        updateInternalStatus(AWAITING_FirstFC);
+
+        if (frameToHoldValid)
+        {
+            frameToHoldValid = false; // Reset the held frame after processing.
+            OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+            runStep_internal(&frameToHold);
+        }
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "FF ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
+}
+
+void N_USData_Request_Runner::CF_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_As->stopTimer();
+        timerN_Cs->clearTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
+                              timerN_As->getElapsedTime_ms());
+
+        if (messageOffset == messageLength)
+        {
+            timerN_As->stopTimer();
+            timerN_Cs->clearTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
+                                  timerN_As->getElapsedTime_ms());
+            updateInternalStatus(MESSAGE_SENT);
+        }
+        else if (cfSentInThisBlock == blockSize)
+        {
+            timerN_Bs->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK");
+
+            updateInternalStatus(AWAITING_FC);
+
+            if (frameToHoldValid)
+            {
+                frameToHoldValid = false; // Reset the held frame after processing.
+                OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+                runStep_internal(&frameToHold);
+            }
+        }
+        else
+        {
+            timerN_Cs->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving CF ACK");
+            updateInternalStatus(SEND_CF);
+        }
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "CF ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
+}
+
 N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize,
                                                STmin& stM)
 {
@@ -567,11 +664,6 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
     {
         returnErrorWithLog(N_ERROR, "Received frame is null");
     }
-
-    timerN_Bs->stopTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Bs stopped after receiving FC frame in %u ms", timerN_Bs->getElapsedTime_ms());
-    timerN_Cs->startTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving FC frame");
 
     if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical)
     {
@@ -584,9 +676,10 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnErrorWithLog(N_ERROR, "Received frame has invalid data length code %d", receivedFrame->data_length_code);
     }
 
-    if ((receivedFrame->data[0] >> 4 & 0b00001111) != FC_CODE)
+    if (const FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4); frameCode != FC_CODE)
     {
-        returnErrorWithLog(N_ERROR, "Received frame is not a FC frame");
+        returnErrorWithLog(N_ERROR, "Received frame type %s (%u) is not a FC frame", frameCodeToString(frameCode),
+                           frameCode);
     }
 
     fs = static_cast<FlowStatus>(receivedFrame->data[0] & 0b00001111);
@@ -662,7 +755,9 @@ bool N_USData_Request_Runner::isThisFrameForMe(const CANFrame& frame) const
     res &= runnerN_AI.N_TAtype == frameN_AI.N_TAtype;
     res &= runnerN_AI.N_TA == frameN_AI.N_SA;
     res &= runnerN_AI.N_SA == frameN_AI.N_TA;
+    res &= awaitingFrame(frame);
 
+    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false", frameToString(frame));
     return res;
 }
 

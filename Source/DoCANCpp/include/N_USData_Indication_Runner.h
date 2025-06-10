@@ -21,9 +21,7 @@ public:
 
     N_Result runStep(CANFrame* receivedFrame) override;
 
-    [[nodiscard]] bool awaitingMessage() const override;
-
-    [[nodiscard]] uint32_t getNextRunTime() const override;
+    [[nodiscard]] uint32_t getNextRunTime() override;
 
     void messageACKReceivedCallback(CANInterface::ACKResult success) override;
 
@@ -48,15 +46,20 @@ public:
     [[nodiscard]] bool isThisFrameForMe(const CANFrame& frame) const override;
 
 private:
+    N_Result runStep_internal(const CANFrame* receivedFrame);
     N_Result runStep_notRunning(const CANFrame* receivedFrame);
+    N_Result runStep_holdFrame(const CANFrame* receivedFrame);
     N_Result runStep_CF(const CANFrame* receivedFrame);
     N_Result runStep_FC_CTS(const CANFrame* receivedFrame);
+
+    void FC_ACKReceivedCallback(CANInterface::ACKResult success);
 
     N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result               checkTimeouts();
+    [[nodiscard]] bool     awaitingFrame(const CANFrame& frame) const;
 
-    using InternalStatus_t = enum { NOT_RUNNING, SEND_FC, AWAITING_FC_ACK, AWAITING_CF, ERROR };
+    using InternalStatus_t = enum { NOT_RUNNING, SEND_FC, AWAITING_FC_ACK, AWAITING_CF, MESSAGE_RECEIVED, ERROR };
 
     [[nodiscard]] static const char* internalStatusToString(InternalStatus_t status);
 
@@ -86,6 +89,9 @@ private:
 
     OSInterface*        osInterface;
     CANMessageACKQueue* CanMessageACKQueue{};
+
+    CANFrame frameToHold{};
+    bool     frameToHoldValid{false};
 };
 
 #endif // N_USDATA_INDICATION_RUNNER_H

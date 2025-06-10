@@ -192,7 +192,7 @@ private:
     std::list<N_USData_Runner*>                              notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
     std::list<N_USData_Runner*>                              finishedRunners;
-    CANMessageACKQueue*                                      CanMessageACKQueue;
+    CANMessageACKQueue*                                      canMessageAckQueue;
 
     // Functions
     bool populateQueueTag();
@@ -201,7 +201,7 @@ private:
     bool updateRunner(N_USData_Runner* runner) const;
 
     void runRunners(FrameStatus& frameStatus, CANFrame frame);
-    void createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame);
+    void createRunnerForMessage(STmin stM, uint8_t bs, FrameStatus frameStatus, CANFrame frame);
     void runStepCanActive();
     void runStepCanInactive();
     void startRunners();

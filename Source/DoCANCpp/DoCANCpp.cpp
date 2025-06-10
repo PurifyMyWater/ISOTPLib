@@ -20,7 +20,7 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
     this->queueTag = nullptr;
     ASSERT_SAFE(populateQueueTag(), == true);
 
-    this->CanMessageACKQueue = new CANMessageACKQueue(canInterface, osInterface, this->queueTag);
+    this->canMessageAckQueue = new CANMessageACKQueue(canInterface, osInterface, this->queueTag);
     this->nSA                = nSA;
     this->availableMemoryForRunners.set(totalAvailableMemoryForRunners);
     this->N_USData_confirm_cb       = N_USData_confirm_cb;
@@ -62,7 +62,7 @@ DoCANCpp::~DoCANCpp()
     {
         this->osInterface.osFree(this->queueTag);
     }
-    delete this->CanMessageACKQueue;
+    delete this->canMessageAckQueue;
 
     for (auto& runner : this->notStartedRunners)
     {
@@ -171,16 +171,20 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
     bool             result;
     N_AI             nAI    = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
     N_USData_Runner* runner = new N_USData_Request_Runner(result, nAI, availableMemoryForRunners, mType, messageData,
-                                                          length, osInterface, *CanMessageACKQueue);
+                                                          length, osInterface, *canMessageAckQueue);
     if (!result)
     {
         delete runner;
         return false;
     }
-    result = notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    notStartedRunners.push_front(runner);
-    notStartedRunnersMutex->signal();
-    return result;
+    if (notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        notStartedRunners.push_back(runner);
+        notStartedRunnersMutex->signal();
+        return true;
+    }
+    delete runner;
+    return false;
 }
 
 void DoCANCpp::runFinishedRunnerCallbacks()
@@ -215,12 +219,13 @@ void DoCANCpp::runFinishedRunnerCallbacks()
 
         // Remove the runner from activeRunners.
         this->activeRunners.erase(runner->getN_AI().N_AI);
+        canMessageAckQueue->removeFromQueue(runner->getN_AI());
         delete runner;
     }
     this->finishedRunners.clear();
 }
 
-template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runners) // TODO test this function
+template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runners)
 {
     for (const auto runner : runners)
     {
@@ -302,15 +307,17 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
     {
         N_Result result = IN_PROGRESS; // If the runner does not run, do nothing in the switch below.
 
-        if (frameStatus == frameAvailable && runner->awaitingMessage() &&
+        if (frameStatus == frameAvailable &&
             runner->isThisFrameForMe(frame)) // If the runner has a message to process, do it immediately.
         {
+            OSInterfaceLogDebug(this->tag, "Runner %s is processing frame: %s", runner->getTAG(), frameToString(frame));
             // Run the runner with the frame.
             result      = runner->runStep(&frame);
             frameStatus = frameProcessed;
         }
         else if (this->lastRunTime > runner->getNextRunTime()) // If the runner is ready to run, do it.
         {
+            OSInterfaceLogDebug(this->tag, "Runner %s is running without frame", runner->getTAG());
             // Run the runner without the frame.
             result = runner->runStep(nullptr);
         }
@@ -324,21 +331,21 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
             case IN_PROGRESS:
                 break;
             default:
-                this->finishedRunners.push_front(runner);
+                this->finishedRunners.push_back(runner);
                 break;
         }
     }
 }
 
-void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, DoCANCpp::FrameStatus frameStatus, CANFrame frame)
+void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const FrameStatus frameStatus, CANFrame frame)
 {
     if (frameStatus == frameAvailable)
     {
         bool result;
 
         N_USData_Runner* runner =
-            new N_USData_Indication_Runner(result, frame.identifier, this->availableMemoryForRunners, blockSize, stMin,
-                                           this->osInterface, *this->CanMessageACKQueue);
+            new N_USData_Indication_Runner(result, frame.identifier, this->availableMemoryForRunners, bs, stM,
+                                           this->osInterface, *this->canMessageAckQueue);
         if (runner == nullptr)
         {
             OSInterfaceLogError(this->tag, "Failed to create a new runner");
@@ -452,9 +459,9 @@ void DoCANCpp::canMessageACKQueueRunStep() const
     if (this->osInterface.osMillis() - ACKlastRunTime > DoCANCpp_RunPeriod_ACKQueue_MS)
     {
         ACKlastRunTime = this->osInterface.osMillis();
-        if (CanMessageACKQueue != nullptr)
+        if (canMessageAckQueue != nullptr)
         {
-            CanMessageACKQueue->runStep();
+            canMessageAckQueue->runStep();
         }
     }
 }

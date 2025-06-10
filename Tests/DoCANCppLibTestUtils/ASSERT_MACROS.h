@@ -18,6 +18,8 @@
     {                                                                                                                  \
         for (uint32_t i = 0; i < (ARRAY_SIZE); i++)                                                                    \
         {                                                                                                              \
+            OSInterfaceLogVerbose("ASSERT_EQ_ARRAY", "REAL_ARRAY[%u]: %c (%02X)\tEXPECTED_ARRAY[%u]: %c (%02X)",       \
+                                  (REAL_ARRAY)[i], (REAL_ARRAY)[i], i, (EXPECTED_ARRAY)[i], (EXPECTED_ARRAY)[i], i);   \
             ASSERT_EQ((REAL_ARRAY)[i], (EXPECTED_ARRAY)[i]);                                                           \
         }                                                                                                              \
     }                                                                                                                  \
@@ -30,6 +32,14 @@
         ASSERT_EQ((EXPECTED_FRAME).flags, (REAL_FRAME).flags);                                                         \
         ASSERT_EQ((EXPECTED_FRAME).data_length_code, (REAL_FRAME).data_length_code);                                   \
         ASSERT_EQ_ARRAY((EXPECTED_FRAME).data, (REAL_FRAME).data, (EXPECTED_FRAME).data_length_code);                  \
+    }                                                                                                                  \
+    while (0)
+
+#define ASSERT_EQ_STMIN(EXPECTED_STMIN, REAL_STMIN)                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        ASSERT_EQ((REAL_STMIN).value, (EXPECTED_STMIN).value);                                                         \
+        ASSERT_EQ((REAL_STMIN).unit, (EXPECTED_STMIN).unit);                                                           \
     }                                                                                                                  \
     while (0)
 
@@ -62,6 +72,14 @@
         EXPECT_EQ((EXPECTED_FRAME).flags, (REAL_FRAME).flags);                                                         \
         EXPECT_EQ((EXPECTED_FRAME).data_length_code, (REAL_FRAME).data_length_code);                                   \
         EXPECT_EQ_ARRAY((EXPECTED_FRAME).data, (REAL_FRAME).data, (EXPECTED_FRAME).data_length_code);                  \
+    }                                                                                                                  \
+    while (0)
+
+#define EXPECT_EQ_STMIN(EXPECTED_STMIN, REAL_STMIN)                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        EXPECT_EQ((REAL_STMIN).value, (EXPECTED_STMIN).value);                                                         \
+        EXPECT_EQ((REAL_STMIN).unit, (EXPECTED_STMIN).unit);                                                           \
     }                                                                                                                  \
     while (0)
 

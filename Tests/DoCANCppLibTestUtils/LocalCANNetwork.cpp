@@ -58,7 +58,7 @@ LocalCANNetworkCANInterface* LocalCANNetwork::newCANInterfaceConnection(const ch
     if (accessMutex->wait(maxSyncTimeMS))
     {
         network.emplace_back();
-        lastACKList.push_back(CANInterface::ACK_NONE);
+        lastACKQueueList.emplace_back();
         accessMutex->signal();
         return new LocalCANNetworkCANInterface(this, nextNodeID++, tag);
     }
@@ -80,7 +80,7 @@ bool LocalCANNetwork::writeFrame(const uint32_t emitterID, CANFrame* frame)
                 }
                 else
                 {
-                    lastACKList[i] = CANInterface::ACK_SUCCESS; // Simulate successful write
+                    lastACKQueueList[i].push(CANInterface::ACK_SUCCESS); // Simulate successful write
                 }
             }
             accessMutex->signal();
@@ -147,8 +147,12 @@ CANInterface::ACKResult LocalCANNetwork::getWriteFrameACK(uint32_t nodeID)
     CANInterface::ACKResult res = CANInterface::ACK_NONE;
     if (accessMutex->wait(maxSyncTimeMS))
     {
-        res                 = lastACKList[nodeID];
-        lastACKList[nodeID] = CANInterface::ACK_NONE;
+        if (!lastACKQueueList[nodeID].empty())
+        {
+            res = lastACKQueueList[nodeID].front();
+            lastACKQueueList[nodeID].pop();
+        }
+
         accessMutex->signal();
         // OSInterfaceLogVerbose("LocalCANNetwork", "Last ACK for node %u: %s", nodeID,
         // CANInterface::ackResultToString(res));

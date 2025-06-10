@@ -27,6 +27,8 @@ N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, const N_AI 
         return;
     }
 
+    OSInterfaceLogDebug(tag, "Creating N_USData_Indication_Runner with tag %s", this->tag);
+
     this->mType              = Mtype_Unknown;
     this->CanMessageACKQueue = &canMessageACKQueue;
     this->messageData        = nullptr;
@@ -85,16 +87,32 @@ N_USData_Indication_Runner::~N_USData_Indication_Runner()
     delete mutex;
 }
 
+bool N_USData_Indication_Runner::awaitingFrame(const CANFrame& frame) const
+{
+    FrameCode frameCode = static_cast<FrameCode>(frame.data[0] >> 4);
+    switch (internalStatus)
+    {
+        case NOT_RUNNING:
+            return frameCode == SF_CODE || frameCode == FF_CODE;
+        case AWAITING_FC_ACK: // Uses AWAITING_CF
+            [[fallthrough]];
+        case AWAITING_CF:
+            return frameCode == CF_CODE;
+        default:
+            return false;
+    }
+}
+
 N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
-    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
-                          internalStatusToString(internalStatus), internalStatus,
-                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
-
     if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
+
+    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%d) and frame %s",
+                          internalStatusToString(internalStatus), internalStatus,
+                          receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
 
     N_Result res = checkTimeouts();
 
@@ -103,6 +121,16 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
         mutex->signal();
         return res;
     }
+
+    res = runStep_internal(receivedFrame);
+
+    mutex->signal();
+    return res;
+}
+
+N_Result N_USData_Indication_Runner::runStep_internal(const CANFrame* receivedFrame)
+{
+    N_Result res;
 
     switch (internalStatus)
     {
@@ -114,6 +142,15 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
             break;
         case AWAITING_CF:
             res = runStep_CF(receivedFrame);
+            break;
+        case AWAITING_FC_ACK:
+            res = runStep_holdFrame(receivedFrame);
+            break;
+        case MESSAGE_RECEIVED:
+            OSInterfaceLogDebug(tag, "Message received successfully");
+            result =
+                N_OK; // If the message is successfully received, return N_OK to allow DoCanCpp to call the callback.
+            res = result;
             break;
         case ERROR:
             res = result;
@@ -128,8 +165,25 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
     }
 
     lastRunTime = osInterface->osMillis();
-    mutex->signal();
+
     return res;
+}
+
+N_Result N_USData_Indication_Runner::runStep_holdFrame(const CANFrame* receivedFrame)
+{
+    if (receivedFrame == nullptr)
+    {
+        returnErrorWithLog(N_ERROR, "Received frame is null");
+    }
+
+    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK in %s (%d). Storing it for later use Frame: %s",
+                          internalStatusToString(internalStatus), internalStatus, frameToString(*receivedFrame));
+
+    frameToHold      = *receivedFrame; // Store the frame for later use.
+    frameToHoldValid = true;           // Mark the frame as valid.
+
+    result = IN_PROGRESS; // Indicate that we are still waiting for the ACK.
+    return result;
 }
 
 N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* receivedFrame)
@@ -142,13 +196,13 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
     if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical &&
         receivedFrame->identifier.N_TAtype != N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
-        returnErrorWithLog(N_ERROR,
-                           "The frame is not a Mtype_Diagnostics frame"); // The frame is not a Mtype_Diagnostics frame.
+        returnErrorWithLog(N_ERROR, "The frame is not a Mtype_Diagnostics frame (%d)",
+                           receivedFrame->identifier.N_TAtype); // The frame is not a Mtype_Diagnostics frame.
     }
     this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 &
                                      // 206 is the value used for remote diagnostics)
 
-    switch (receivedFrame->data[0] >> 4)
+    switch (FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4))
     {
         case SF_CODE:
         {
@@ -168,15 +222,15 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
             int64_t availableMemory;
             availableMemoryForRunners->get(&availableMemory);
-            returnErrorWithLog(N_ERROR, "Message length is %ld and available memory is %ld", messageLength,
-                               availableMemory);
+            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
+                               messageLength, availableMemory);
         }
         case FF_CODE:
         {
             timerN_Br->startTimer();
             if (nAi.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
             {
-                returnErrorWithLog(N_UNEXP_PDU, "Received FF frame with N_TAtype %d", nAi.N_TAtype);
+                returnErrorWithLog(N_UNEXP_PDU, "Received FF frame with N_TAtype %s", N_TAtypeToString(nAi.N_TAtype));
             }
 
             messageLength =
@@ -198,6 +252,9 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
             OSInterfaceLogDebug(tag, "Received FF frame with full message length = %ld", messageLength);
 
+            int64_t availableMemory;
+            availableMemoryForRunners->get(&availableMemory);
+
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(
                     this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
             {
@@ -205,7 +262,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
                 if (this->messageData == nullptr)
                 {
-                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld.", messageLength);
+                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
+                                       messageLength, availableMemory);
                 }
 
                 if (messageLength < MIN_FF_DL_WITH_ESCAPE_SEQUENCE)
@@ -223,15 +281,15 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                 result = IN_PROGRESS_FF;
                 return result;
             }
-            sendFCFrame(OVERFLOW);
 
-            int64_t availableMemory;
-            availableMemoryForRunners->get(&availableMemory);
-            returnErrorWithLog(N_ERROR, "Not enough memory for message length %ld. Available memory is %ld",
-                               messageLength, availableMemory);
+            sendFCFrame(OVERFLOW);
+            returnErrorWithLog(
+                N_ERROR, "Not enough memory for message length %ld. Available memory is %ld. OVERFLOW FC frame sent",
+                messageLength, availableMemory);
         }
         default:
-            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %d", receivedFrame->data[0] >> 4);
+            returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %s (%u)",
+                               frameCodeToString(frameCode), frameCode);
     }
 }
 
@@ -266,16 +324,17 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
 
     if (receivedFrame->identifier.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional)
     {
-        returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %d", nAi.N_TAtype);
+        returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %s", N_TAtypeToString(nAi.N_TAtype));
     }
 
-    if (receivedFrame->data[0] >> 4 != CF_CODE)
+    if (const FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4); frameCode != CF_CODE)
     {
-        returnErrorWithLog(N_UNEXP_PDU, "Received frame is not a CF frame");
+        returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%u) is not a CF frame", frameCodeToString(frameCode),
+                           frameCode);
     }
 
-    uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
-    if (messageSequenceNumber != sequenceNumber)
+    if (const uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
+        messageSequenceNumber != sequenceNumber)
     {
         returnErrorWithLog(N_WRONG_SN, "Received CF frame with wrong sequence number %d. Was expecting %d",
                            messageSequenceNumber, sequenceNumber);
@@ -289,7 +348,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
                            receivedFrame->data_length_code);
     }
 
-    uint8_t bytesToCopy =
+    const uint8_t bytesToCopy =
         MIN(receivedFrame->data_length_code - 1,
             messageLength - messageOffset); // Copy the minimum between the remaining bytes and the received bytes (1st
                                             // byte is used to transport metadata).
@@ -308,6 +367,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
                               timerN_Cr->getElapsedTime_ms());
         OSInterfaceLogInfo(tag, "Received message with length %ld (MF)", messageLength);
         result = N_OK;
+        updateInternalStatus(MESSAGE_RECEIVED);
     }
     else
     {
@@ -392,11 +452,6 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     return N_OK;
 }
 
-bool N_USData_Indication_Runner::awaitingMessage() const
-{
-    return internalStatus == NOT_RUNNING || internalStatus == AWAITING_CF;
-}
-
 uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 {
     int32_t timeoutAr = timerN_Ar->isTimerRunning()
@@ -421,23 +476,38 @@ uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
     return minTimeout + osInterface->osMillis();
 }
 
-uint32_t N_USData_Indication_Runner::getNextRunTime() const
+uint32_t N_USData_Indication_Runner::getNextRunTime()
 {
+    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        OSInterfaceLogError(tag, "Failed to acquire mutex");
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+        return 0;
+    }
+
     uint32_t nextRunTime = getNextTimeoutTime();
     switch (internalStatus)
     {
+        case ERROR:
+            [[fallthrough]];
+        case MESSAGE_RECEIVED:
+            [[fallthrough]];
         case NOT_RUNNING:
             [[fallthrough]];
         case SEND_FC:
             nextRunTime = 0; // Execute as soon as possible
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because internalStatus is %s", nextRunTime,
-                                internalStatusToString(internalStatus));
+            OSInterfaceLogDebug(tag, "Next run time is NOW because internalStatus is %s (%d)",
+                                internalStatusToString(internalStatus), internalStatus);
             break;
         default:
-            OSInterfaceLogDebug(tag, "Next run time is in %u ms because of next timeout",
-                                nextRunTime - osInterface->osMillis());
+            OSInterfaceLogDebug(tag, "Next run time is in %ld ms because of next timeout",
+                                static_cast<int64_t>(nextRunTime) - osInterface->osMillis());
             break;
     }
+
+    mutex->signal();
+
     return nextRunTime;
 }
 
@@ -459,20 +529,8 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
     {
         case AWAITING_FC_ACK:
         {
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_Ar->stopTimer();
-                timerN_Br->clearTimer();
-                timerN_Cr->startTimer();
-                updateInternalStatus(AWAITING_CF);
-                OSInterfaceLogDebug(tag, "FC ACK received");
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "FC ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            OSInterfaceLogDebug(tag, "Received FC ACK");
+            FC_ACKReceivedCallback(success);
         }
         break;
         default:
@@ -484,6 +542,32 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
     }
 
     mutex->signal();
+}
+
+void N_USData_Indication_Runner::FC_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_Ar->stopTimer();
+        timerN_Br->clearTimer();
+        timerN_Cr->startTimer();
+        OSInterfaceLogDebug(tag, "FC ACK received");
+
+        updateInternalStatus(AWAITING_CF);
+
+        if (frameToHoldValid)
+        {
+            OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+            frameToHoldValid = false; // Reset the held frame after processing.
+            runStep_internal(&frameToHold);
+        }
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "FC ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
 }
 
 bool N_USData_Indication_Runner::setBlockSize(const uint8_t blockSize)
@@ -547,7 +631,11 @@ const char* N_USData_Indication_Runner::getTAG() const
 
 bool N_USData_Indication_Runner::isThisFrameForMe(const CANFrame& frame) const
 {
-    return getN_AI().N_AI == frame.identifier.N_AI;
+    bool res = getN_AI().N_AI == frame.identifier.N_AI;
+    res &= awaitingFrame(frame);
+
+    OSInterfaceLogDebug(tag, "isThisFrameForMe() = %s for frame %s", res ? "true" : "false", frameToString(frame));
+    return res;
 }
 
 const char* N_USData_Indication_Runner::internalStatusToString(const InternalStatus_t status)
@@ -562,6 +650,8 @@ const char* N_USData_Indication_Runner::internalStatusToString(const InternalSta
             return "AWAITING_FC_ACK";
         case AWAITING_CF:
             return "AWAITING_CF";
+        case MESSAGE_RECEIVED:
+            return "MESSAGE_RECEIVED";
         case ERROR:
             return "ERROR";
         default:

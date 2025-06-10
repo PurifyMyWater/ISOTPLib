@@ -46,3 +46,24 @@ bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
     }
     return res;
 }
+
+bool CANMessageACKQueue::removeFromQueue(const N_AI runnerNAi)
+{
+    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        for (const auto runner : messageQueue)
+        {
+            if (runner->getN_AI().N_AI == runnerNAi.N_AI)
+            {
+                messageQueue.remove(runner);
+                mutex->signal();
+                OSInterfaceLogDebug(this->tag, "Removing runner with N_AI=%s from queue", nAiToString(runnerNAi));
+                return true;
+            }
+        }
+        mutex->signal();
+        OSInterfaceLogDebug(this->tag, "Runner with N_AI=%s not found in queue when attempting to remove it",
+                            nAiToString(runnerNAi));
+    }
+    return false;
+}
