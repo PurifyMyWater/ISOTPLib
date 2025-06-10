@@ -12,26 +12,88 @@ CANMessageACKQueue::~CANMessageACKQueue()
     delete mutex;
 }
 
+void CANMessageACKQueue::saveAck(const CANInterface::ACKResult ack)
+{
+    if (!messageQueue.empty())
+    {
+        for (auto& [runner, runnerAck] : messageQueue)
+        {
+            if (runnerAck == CANInterface::ACK_NONE)
+            {
+                OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s",
+                                    CANInterface::ackResultToString(ack), nAiToString(runner->getN_AI()));
+                runnerAck = ack; // Update the ACK result for the runner.
+                break;
+            }
+        }
+    }
+    else
+    {
+        OSInterfaceLogWarning(this->tag, "No runners in queue to process ACK");
+    }
+}
 void CANMessageACKQueue::runStep()
 {
-    if (CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
+    if (const CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {
         OSInterfaceLogDebug(this->tag, "ACK received: %s", CANInterface::ackResultToString(ack));
         if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
-            if (!messageQueue.empty())
+            saveAck(ack);
+            mutex->signal();
+        }
+        else
+        {
+            OSInterfaceLogError(this->tag, "Failed to acquire mutex for ACK storage of %s",
+                                CANInterface::ackResultToString(ack));
+        }
+    }
+}
+
+void CANMessageACKQueue::runAvailableAckCallbacks()
+{
+    bool callbackHasRun = false;
+    do
+    {
+        callbackHasRun = runNextAvailableAckCallback();
+    }
+    while (callbackHasRun);
+}
+
+bool CANMessageACKQueue::runNextAvailableAckCallback()
+{
+    bool callbackHasRun = false;
+    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        if (!messageQueue.empty())
+        {
+            if (const auto ack = messageQueue.front().second; ack != CANInterface::ACK_NONE)
             {
-                N_USData_Runner* runner = messageQueue.front();
+                auto* runner = messageQueue.front().first;
+
                 messageQueue.pop_front();
                 mutex->signal();
+
+                OSInterfaceLogDebug(this->tag, "Running callback for runner with N_AI=%s and ACK=%s",
+                                    nAiToString(runner->getN_AI()), CANInterface::ackResultToString(ack));
                 runner->messageACKReceivedCallback(ack);
+                callbackHasRun = true;
             }
             else
             {
                 mutex->signal();
+                callbackHasRun = false; // No more callbacks to run.
+                OSInterfaceLogDebug(this->tag, "No ACK available for the first runner in the queue");
             }
         }
+        else
+        {
+            mutex->signal();
+            callbackHasRun = false; // No more callbacks to run.
+            OSInterfaceLogDebug(this->tag, "No runners in queue to run callbacks");
+        }
     }
+    return callbackHasRun;
 }
 
 bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
@@ -41,7 +103,7 @@ bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
     bool res = canInterface->writeFrame(&frame);
     if (res && mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
-        messageQueue.push_back(&runner);
+        messageQueue.emplace_back(&runner, CANInterface::ACK_NONE);
         mutex->signal();
     }
     return res;
@@ -49,21 +111,20 @@ bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
 
 bool CANMessageACKQueue::removeFromQueue(const N_AI runnerNAi)
 {
+    size_t res = 0;
     if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
     {
-        for (const auto runner : messageQueue)
-        {
-            if (runner->getN_AI().N_AI == runnerNAi.N_AI)
-            {
-                messageQueue.remove(runner);
-                mutex->signal();
-                OSInterfaceLogDebug(this->tag, "Removing runner with N_AI=%s from queue", nAiToString(runnerNAi));
-                return true;
-            }
-        }
+        res = messageQueue.remove_if([&runnerNAi](const auto& pair)
+                                     { return pair.first->getN_AI().N_AI == runnerNAi.N_AI; });
+
         mutex->signal();
-        OSInterfaceLogDebug(this->tag, "Runner with N_AI=%s not found in queue when attempting to remove it",
+        OSInterfaceLogDebug(this->tag, "Runners with N_AI=%s not found in queue when attempting to remove it",
                             nAiToString(runnerNAi));
     }
-    return false;
+    else
+    {
+        OSInterfaceLogError(this->tag, "Failed to acquire mutex for removing runner with N_AI=%s from queue",
+                            nAiToString(runnerNAi));
+    }
+    return res > 0;
 }

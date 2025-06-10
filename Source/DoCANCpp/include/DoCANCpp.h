@@ -14,8 +14,8 @@
     {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForRunnersSync_MS = 1000;
-constexpr uint32_t DoCANCpp_RunPeriod_MS                   = 100;
-constexpr uint32_t DoCANCpp_RunPeriod_ACKQueue_MS          = 20;
+constexpr uint32_t DoCANCpp_RunPeriod_MS                   = 0;
+constexpr uint32_t DoCANCpp_RunPeriod_ACKQueue_MS          = 0;
 constexpr STmin    DoCANCpp_DefaultSTmin                   = {20, ms};
 constexpr uint8_t  DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
