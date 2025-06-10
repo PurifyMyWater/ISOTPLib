@@ -409,7 +409,10 @@ void DoCANCpp::runStepCanActive()
     // new runner to handle it.
     createRunnerForMessage(stMin, blockSize, frameStatus, frame);
 
-    // The sixth part of the runStep is to run the callbacks for the finished runners and remove them from
+    // The sixth part of the runStep is to run any ack callback.
+    canMessageAckQueue->runAvailableAckCallbacks();
+
+    // The seventh part of the runStep is to run the callbacks for the finished runners and remove them from
     // activeRunners and finishedRunners.
     runFinishedRunnerCallbacks();
 

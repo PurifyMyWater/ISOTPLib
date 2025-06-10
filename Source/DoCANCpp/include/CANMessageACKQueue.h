@@ -15,6 +15,8 @@ public:
 
     void runStep();
 
+    void runAvailableAckCallbacks();
+
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
 
     bool removeFromQueue(N_AI runnerNAi);
@@ -22,10 +24,10 @@ public:
     constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
 
 private:
-    const char*                 tag;
-    OSInterface_Mutex*          mutex;
-    std::list<N_USData_Runner*> messageQueue;
-    CANInterface*               canInterface;
+    const char*                                                     tag;
+    OSInterface_Mutex*                                              mutex;
+    std::list<std::pair<N_USData_Runner*, CANInterface::ACKResult>> messageQueue;
+    CANInterface*                                                   canInterface;
 };
 
 #endif // CANMESSAGEACKQUEUE_H

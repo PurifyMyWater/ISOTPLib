@@ -527,6 +527,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
@@ -548,6 +549,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
@@ -608,6 +610,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
@@ -636,6 +639,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
@@ -648,6 +652,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 4; // sequence number
@@ -703,6 +708,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
@@ -820,6 +826,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Br_CF_Performance)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
@@ -843,6 +850,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Br_CF_Performance)
 
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
     cfFrame.data[0] = (N_USData_Runner::CF_CODE << 4) | 3; // sequence number
@@ -908,6 +916,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Ar_lateACK)
     ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
@@ -1029,6 +1038,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_lateCF)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(N_USData_Runner::N_Cr_TIMEOUT_MS + 1);
@@ -1092,6 +1102,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_noCF)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(N_USData_Runner::N_Cr_TIMEOUT_MS + 1);
@@ -1155,6 +1166,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_lateCF)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 
@@ -1223,6 +1235,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_noCF)
     CANFrame receivedFrame;
     ASSERT_TRUE(receiverCanInterface->readFrame(&receivedFrame));
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     assertFCFrame(&receivedFrame, N_USData_Runner::CONTINUE_TO_SEND, blockSize, stMin);
 

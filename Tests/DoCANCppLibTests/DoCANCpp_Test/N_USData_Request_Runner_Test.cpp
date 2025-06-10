@@ -117,6 +117,7 @@ TEST(N_USData_Request_Runner, runStep_SF_valid)
     ASSERT_TRUE(canInterface->readFrame(&receivedFrame));
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
     ASSERT_EQ(N_OK, runner.runStep(nullptr));
     ASSERT_EQ(N_OK, runner.getResult());
 
@@ -154,6 +155,7 @@ TEST(N_USData_Request_Runner, runStep_SF_valid_empty)
     ASSERT_TRUE(canInterface->readFrame(&receivedFrame));
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
     ASSERT_EQ(N_OK, runner.runStep(nullptr));
     ASSERT_EQ(N_OK, runner.getResult());
 
@@ -369,6 +371,7 @@ TEST(N_USData_Request_Runner, runStep_First_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -428,6 +431,7 @@ TEST(N_USData_Request_Runner, runStep_First_Last_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -451,6 +455,7 @@ TEST(N_USData_Request_Runner, runStep_First_Last_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(N_OK, runner.runStep(nullptr));
 
@@ -491,6 +496,7 @@ TEST(N_USData_Request_Runner, runStep_Intermediate_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -514,12 +520,14 @@ TEST(N_USData_Request_Runner, runStep_Intermediate_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(1, receivedFrame.extd);
     ASSERT_EQ(0, receivedFrame.dlc_non_comp);
@@ -560,6 +568,7 @@ TEST(N_USData_Request_Runner, runStep_Last_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -583,18 +592,21 @@ TEST(N_USData_Request_Runner, runStep_Last_CF_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(1, receivedFrame.extd);
     ASSERT_EQ(0, receivedFrame.dlc_non_comp);
@@ -635,6 +647,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 3;
     STmin   stMin     = {10, ms};
@@ -659,6 +672,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
         ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
         receiverCanInterface->readFrame(&receivedFrame);
         canMessageACKQueue.runStep(); // Get ACK
+        canMessageACKQueue.runAvailableAckCallbacks();
     }
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(&fcFrame));
@@ -666,6 +680,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
     receiverCanInterface->readFrame(&receivedFrame);
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     delete canInterfaceRunner;
     delete receiverCanInterface;
@@ -695,6 +710,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_NotSent)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 3;
     STmin   stMin     = {10, ms};
@@ -719,6 +735,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_NotSent)
         ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
         receiverCanInterface->readFrame(&receivedFrame);
         canMessageACKQueue.runStep(); // Get ACK
+        canMessageACKQueue.runAvailableAckCallbacks();
     }
 
     ASSERT_EQ(N_ERROR, runner.runStep(nullptr));
@@ -788,6 +805,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_FF_lateACK)
     ASSERT_LE(runner.getNextRunTime(), linuxOSInterface.osMillis());
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(N_TIMEOUT_A, runner.runStep(nullptr));
 
@@ -819,6 +837,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_CF_lateACK)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -846,6 +865,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_CF_lateACK)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(N_TIMEOUT_A, runner.runStep(nullptr));
 
@@ -877,6 +897,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_CF_noACK)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -933,6 +954,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_FF_lateFC)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(N_USData_Runner::N_Bs_TIMEOUT_MS + 1);
@@ -984,6 +1006,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_FF_noFC)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(N_USData_Runner::N_Bs_TIMEOUT_MS + 1);
@@ -1020,6 +1043,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_lateFC)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 3;
     STmin   stMin     = {10, ms};
@@ -1044,18 +1068,21 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_lateFC)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(N_USData_Runner::N_Bs_TIMEOUT_MS + 1);
@@ -1092,6 +1119,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_noFC)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 3;
     STmin   stMin     = {10, ms};
@@ -1116,18 +1144,21 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_noFC)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_EQ(IN_PROGRESS, runner.runStep(nullptr));
 
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(N_USData_Runner::N_Bs_TIMEOUT_MS + 1);
@@ -1163,6 +1194,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_CF)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -1216,6 +1248,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_Performance)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 4;
     STmin   stMin     = {10, ms};
@@ -1270,6 +1303,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_LastCFInBlock)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     uint8_t blockSize = 3;
     STmin   stMin     = {10, ms};
@@ -1298,6 +1332,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_LastCFInBlock)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(getStMinInMs(stMin) + 1);
@@ -1308,6 +1343,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_LastCFInBlock)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(getStMinInMs(stMin) + 1);
@@ -1318,6 +1354,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_LastCFInBlock)
     receiverCanInterface->readFrame(&receivedFrame);
 
     canMessageACKQueue.runStep(); // Get ACK
+    canMessageACKQueue.runAvailableAckCallbacks();
 
     ASSERT_GT(runner.getNextRunTime(), linuxOSInterface.osMillis());
     linuxOSInterface.osSleep(getStMinInMs(stMin) + 1);
