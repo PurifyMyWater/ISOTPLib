@@ -35,6 +35,14 @@
     }                                                                                                                  \
     while (0)
 
+#define ASSERT_EQ_STMIN(EXPECTED_STMIN, REAL_STMIN)                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        ASSERT_EQ((REAL_STMIN).value, (EXPECTED_STMIN).value);                                                         \
+        ASSERT_EQ((REAL_STMIN).unit, (EXPECTED_STMIN).unit);                                                           \
+    }                                                                                                                  \
+    while (0)
+
 #define EXPECT_EQ_N_AI(EXPECTED_N_AI, REAL_N_AI)                                                                       \
     do                                                                                                                 \
     {                                                                                                                  \
@@ -64,6 +72,14 @@
         EXPECT_EQ((EXPECTED_FRAME).flags, (REAL_FRAME).flags);                                                         \
         EXPECT_EQ((EXPECTED_FRAME).data_length_code, (REAL_FRAME).data_length_code);                                   \
         EXPECT_EQ_ARRAY((EXPECTED_FRAME).data, (REAL_FRAME).data, (EXPECTED_FRAME).data_length_code);                  \
+    }                                                                                                                  \
+    while (0)
+
+#define EXPECT_EQ_STMIN(EXPECTED_STMIN, REAL_STMIN)                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        EXPECT_EQ((REAL_STMIN).value, (EXPECTED_STMIN).value);                                                         \
+        EXPECT_EQ((REAL_STMIN).unit, (EXPECTED_STMIN).unit);                                                           \
     }                                                                                                                  \
     while (0)
 
