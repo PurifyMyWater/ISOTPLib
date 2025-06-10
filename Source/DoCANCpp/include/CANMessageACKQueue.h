@@ -24,6 +24,9 @@ public:
     constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
 
 private:
+    bool runNextAvailableAckCallback();
+    void saveAck(CANInterface::ACKResult ack);
+
     const char*                                                     tag;
     OSInterface_Mutex*                                              mutex;
     std::list<std::pair<N_USData_Runner*, CANInterface::ACKResult>> messageQueue;

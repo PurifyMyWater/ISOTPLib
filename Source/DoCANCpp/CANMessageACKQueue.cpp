@@ -12,6 +12,26 @@ CANMessageACKQueue::~CANMessageACKQueue()
     delete mutex;
 }
 
+void CANMessageACKQueue::saveAck(const CANInterface::ACKResult ack)
+{
+    if (!messageQueue.empty())
+    {
+        for (auto& [runner, runnerAck] : messageQueue)
+        {
+            if (runnerAck == CANInterface::ACK_NONE)
+            {
+                OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s",
+                                    CANInterface::ackResultToString(ack), nAiToString(runner->getN_AI()));
+                runnerAck = ack; // Update the ACK result for the runner.
+                break;
+            }
+        }
+    }
+    else
+    {
+        OSInterfaceLogWarning(this->tag, "No runners in queue to process ACK");
+    }
+}
 void CANMessageACKQueue::runStep()
 {
     if (const CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
@@ -19,23 +39,7 @@ void CANMessageACKQueue::runStep()
         OSInterfaceLogDebug(this->tag, "ACK received: %s", CANInterface::ackResultToString(ack));
         if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
         {
-            if (!messageQueue.empty())
-            {
-                for (auto& [runner, runnerAck] : messageQueue)
-                {
-                    if (runnerAck == CANInterface::ACK_NONE)
-                    {
-                        OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s",
-                                            CANInterface::ackResultToString(ack), nAiToString(runner->getN_AI()));
-                        runnerAck = ack; // Update the ACK result for the runner.
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                OSInterfaceLogWarning(this->tag, "No runners in queue to process ACK");
-            }
+            saveAck(ack);
             mutex->signal();
         }
         else
@@ -45,43 +49,51 @@ void CANMessageACKQueue::runStep()
         }
     }
 }
+
 void CANMessageACKQueue::runAvailableAckCallbacks()
 {
     bool callbackHasRun = false;
     do
     {
-        if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+        callbackHasRun = runNextAvailableAckCallback();
+    }
+    while (callbackHasRun);
+}
+
+bool CANMessageACKQueue::runNextAvailableAckCallback()
+{
+    bool callbackHasRun = false;
+    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    {
+        if (!messageQueue.empty())
         {
-            if (!messageQueue.empty())
+            if (const auto ack = messageQueue.front().second; ack != CANInterface::ACK_NONE)
             {
-                if (const auto ack = messageQueue.front().second; ack != CANInterface::ACK_NONE)
-                {
-                    auto* runner = messageQueue.front().first;
+                auto* runner = messageQueue.front().first;
 
-                    messageQueue.pop_front();
-                    mutex->signal();
+                messageQueue.pop_front();
+                mutex->signal();
 
-                    OSInterfaceLogDebug(this->tag, "Running callback for runner with N_AI=%s and ACK=%s",
-                                        nAiToString(runner->getN_AI()), CANInterface::ackResultToString(ack));
-                    runner->messageACKReceivedCallback(ack);
-                    callbackHasRun = true;
-                }
-                else
-                {
-                    mutex->signal();
-                    callbackHasRun = false; // No more callbacks to run.
-                    OSInterfaceLogDebug(this->tag, "No ACK available for the first runner in the queue");
-                }
+                OSInterfaceLogDebug(this->tag, "Running callback for runner with N_AI=%s and ACK=%s",
+                                    nAiToString(runner->getN_AI()), CANInterface::ackResultToString(ack));
+                runner->messageACKReceivedCallback(ack);
+                callbackHasRun = true;
             }
             else
             {
                 mutex->signal();
                 callbackHasRun = false; // No more callbacks to run.
-                OSInterfaceLogDebug(this->tag, "No runners in queue to run callbacks");
+                OSInterfaceLogDebug(this->tag, "No ACK available for the first runner in the queue");
             }
         }
+        else
+        {
+            mutex->signal();
+            callbackHasRun = false; // No more callbacks to run.
+            OSInterfaceLogDebug(this->tag, "No runners in queue to run callbacks");
+        }
     }
-    while (callbackHasRun);
+    return callbackHasRun;
 }
 
 bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
