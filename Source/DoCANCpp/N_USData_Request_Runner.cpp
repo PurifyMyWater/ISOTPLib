@@ -663,11 +663,6 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnErrorWithLog(N_ERROR, "Received frame is null");
     }
 
-    timerN_Bs->stopTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Bs stopped after receiving FC frame in %u ms", timerN_Bs->getElapsedTime_ms());
-    timerN_Cs->startTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving FC frame");
-
     if (receivedFrame->identifier.N_TAtype != N_TATYPE_5_CAN_CLASSIC_29bit_Physical)
     {
         returnErrorWithLog(N_ERROR, "Received frame is of type %s. Expected N_TATYPE_5_CAN_CLASSIC_29bit_Physical",
