@@ -121,5 +121,10 @@ bool CANMessageACKQueue::removeFromQueue(const N_AI runnerNAi)
         OSInterfaceLogDebug(this->tag, "Runners with N_AI=%s not found in queue when attempting to remove it",
                             nAiToString(runnerNAi));
     }
+    else
+    {
+        OSInterfaceLogError(this->tag, "Failed to acquire mutex for removing runner with N_AI=%s from queue",
+                            nAiToString(runnerNAi));
+    }
     return res > 0;
 }
