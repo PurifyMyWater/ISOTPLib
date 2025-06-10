@@ -52,6 +52,8 @@ private:
     N_Result runStep_CF(const CANFrame* receivedFrame);
     N_Result runStep_FC_CTS(const CANFrame* receivedFrame);
 
+    void FC_ACKReceivedCallback(CANInterface::ACKResult success);
+
     N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
     N_Result               checkTimeouts();

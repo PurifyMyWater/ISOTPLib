@@ -183,6 +183,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
         notStartedRunnersMutex->signal();
         return true;
     }
+    delete runner;
     return false;
 }
 
@@ -336,14 +337,14 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
     }
 }
 
-void DoCANCpp::createRunnerForMessage(STmin stMin, uint8_t blockSize, FrameStatus frameStatus, CANFrame frame)
+void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const FrameStatus frameStatus, CANFrame frame)
 {
     if (frameStatus == frameAvailable)
     {
         bool result;
 
         N_USData_Runner* runner =
-            new N_USData_Indication_Runner(result, frame.identifier, this->availableMemoryForRunners, blockSize, stMin,
+            new N_USData_Indication_Runner(result, frame.identifier, this->availableMemoryForRunners, bs, stM,
                                            this->osInterface, *this->canMessageAckQueue);
         if (runner == nullptr)
         {

@@ -327,15 +327,14 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
         returnErrorWithLog(N_UNEXP_PDU, "Received CF frame with N_TAtype %s", N_TAtypeToString(nAi.N_TAtype));
     }
 
-    FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
-    if (frameCode != CF_CODE)
+    if (const FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4); frameCode != CF_CODE)
     {
         returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%u) is not a CF frame", frameCodeToString(frameCode),
                            frameCode);
     }
 
-    uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
-    if (messageSequenceNumber != sequenceNumber)
+    if (const uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
+        messageSequenceNumber != sequenceNumber)
     {
         returnErrorWithLog(N_WRONG_SN, "Received CF frame with wrong sequence number %d. Was expecting %d",
                            messageSequenceNumber, sequenceNumber);
@@ -349,7 +348,7 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
                            receivedFrame->data_length_code);
     }
 
-    uint8_t bytesToCopy =
+    const uint8_t bytesToCopy =
         MIN(receivedFrame->data_length_code - 1,
             messageLength - messageOffset); // Copy the minimum between the remaining bytes and the received bytes (1st
                                             // byte is used to transport metadata).
@@ -528,28 +527,8 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
     {
         case AWAITING_FC_ACK:
         {
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_Ar->stopTimer();
-                timerN_Br->clearTimer();
-                timerN_Cr->startTimer();
-                OSInterfaceLogDebug(tag, "FC ACK received");
-
-                updateInternalStatus(AWAITING_CF);
-
-                if (frameToHoldValid)
-                {
-                    OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
-                    frameToHoldValid = false; // Reset the held frame after processing.
-                    runStep_internal(&frameToHold);
-                }
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "FC ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            OSInterfaceLogDebug(tag, "Received FC ACK");
+            FC_ACKReceivedCallback(success);
         }
         break;
         default:
@@ -561,6 +540,32 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::
     }
 
     mutex->signal();
+}
+
+void N_USData_Indication_Runner::FC_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_Ar->stopTimer();
+        timerN_Br->clearTimer();
+        timerN_Cr->startTimer();
+        OSInterfaceLogDebug(tag, "FC ACK received");
+
+        updateInternalStatus(AWAITING_CF);
+
+        if (frameToHoldValid)
+        {
+            OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+            frameToHoldValid = false; // Reset the held frame after processing.
+            runStep_internal(&frameToHold);
+        }
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "FC ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
 }
 
 bool N_USData_Indication_Runner::setBlockSize(const uint8_t blockSize)

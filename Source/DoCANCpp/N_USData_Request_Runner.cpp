@@ -537,96 +537,19 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
         case AWAITING_SF_ACK:
         {
             OSInterfaceLogDebug(tag, "Received SF ACK");
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_As->stopTimer();
-                timerN_Cs->clearTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving SF ACK in %u ms",
-                                      timerN_As->getElapsedTime_ms());
-                updateInternalStatus(MESSAGE_SENT);
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "SF ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            SF_ACKReceivedCallback(success);
             break;
         }
         case AWAITING_FF_ACK:
         {
             OSInterfaceLogDebug(tag, "Received FF ACK");
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_As->stopTimer();
-                timerN_Cs->clearTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
-                                      timerN_As->getElapsedTime_ms());
-                timerN_Bs->startTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK");
-
-                updateInternalStatus(AWAITING_FirstFC);
-
-                if (frameToHoldValid)
-                {
-                    frameToHoldValid = false; // Reset the held frame after processing.
-                    OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
-                    runStep_internal(&frameToHold);
-                }
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "FF ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            FF_ACKReceivedCallback(success);
             break;
         }
         case AWAITING_CF_ACK:
         {
             OSInterfaceLogDebug(tag, "Received CF ACK");
-            if (success == CANInterface::ACK_SUCCESS)
-            {
-                timerN_As->stopTimer();
-                timerN_Cs->clearTimer();
-                OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
-                                      timerN_As->getElapsedTime_ms());
-
-                if (messageOffset == messageLength)
-                {
-                    timerN_As->stopTimer();
-                    timerN_Cs->clearTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
-                                          timerN_As->getElapsedTime_ms());
-                    updateInternalStatus(MESSAGE_SENT);
-                }
-                else if (cfSentInThisBlock == blockSize)
-                {
-                    timerN_Bs->startTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK");
-
-                    updateInternalStatus(AWAITING_FC);
-
-                    if (frameToHoldValid)
-                    {
-                        frameToHoldValid = false; // Reset the held frame after processing.
-                        OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
-                        runStep_internal(&frameToHold);
-                    }
-                }
-                else
-                {
-                    timerN_Cs->startTimer();
-                    OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving CF ACK");
-                    updateInternalStatus(SEND_CF);
-                }
-            }
-            else
-            {
-                OSInterfaceLogError(tag, "CF ACK failed with result %d", success);
-                result = N_ERROR;
-                updateInternalStatus(ERROR);
-            }
+            CF_ACKReceivedCallback(success);
             break;
         }
         default:
@@ -638,6 +561,98 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const CANInterface::ACK
     }
 
     mutex->signal();
+}
+
+void N_USData_Request_Runner::SF_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_As->stopTimer();
+        timerN_Cs->clearTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving SF ACK in %u ms",
+                              timerN_As->getElapsedTime_ms());
+        updateInternalStatus(MESSAGE_SENT);
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "SF ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
+}
+
+void N_USData_Request_Runner::FF_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_As->stopTimer();
+        timerN_Cs->clearTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving FF ACK in %u ms",
+                              timerN_As->getElapsedTime_ms());
+        timerN_Bs->startTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving FF ACK");
+
+        updateInternalStatus(AWAITING_FirstFC);
+
+        if (frameToHoldValid)
+        {
+            frameToHoldValid = false; // Reset the held frame after processing.
+            OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+            runStep_internal(&frameToHold);
+        }
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "FF ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
+}
+
+void N_USData_Request_Runner::CF_ACKReceivedCallback(const CANInterface::ACKResult success)
+{
+    if (success == CANInterface::ACK_SUCCESS)
+    {
+        timerN_As->stopTimer();
+        timerN_Cs->clearTimer();
+        OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
+                              timerN_As->getElapsedTime_ms());
+
+        if (messageOffset == messageLength)
+        {
+            timerN_As->stopTimer();
+            timerN_Cs->clearTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_As stopped after receiving CF ACK in %u ms",
+                                  timerN_As->getElapsedTime_ms());
+            updateInternalStatus(MESSAGE_SENT);
+        }
+        else if (cfSentInThisBlock == blockSize)
+        {
+            timerN_Bs->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Bs started after receiving CF ACK");
+
+            updateInternalStatus(AWAITING_FC);
+
+            if (frameToHoldValid)
+            {
+                frameToHoldValid = false; // Reset the held frame after processing.
+                OSInterfaceLogDebug(tag, "Processing held frame: %s", frameToString(frameToHold));
+                runStep_internal(&frameToHold);
+            }
+        }
+        else
+        {
+            timerN_Cs->startTimer();
+            OSInterfaceLogVerbose(tag, "Timer N_Cs started after receiving CF ACK");
+            updateInternalStatus(SEND_CF);
+        }
+    }
+    else
+    {
+        OSInterfaceLogError(tag, "CF ACK failed with result %d", success);
+        result = N_ERROR;
+        updateInternalStatus(ERROR);
+    }
 }
 
 N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize,
@@ -664,8 +679,7 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
         returnErrorWithLog(N_ERROR, "Received frame has invalid data length code %d", receivedFrame->data_length_code);
     }
 
-    FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4);
-    if (frameCode != FC_CODE)
+    if (const FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4); frameCode != FC_CODE)
     {
         returnErrorWithLog(N_ERROR, "Received frame type %s (%u) is not a FC frame", frameCodeToString(frameCode),
                            frameCode);
