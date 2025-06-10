@@ -498,6 +498,8 @@ uint32_t N_USData_Request_Runner::getNextRunTime()
     uint32_t nextRunTime = getNextTimeoutTime();
     switch (internalStatus)
     {
+        case ERROR:
+            [[fallthrough]];
         case MESSAGE_SENT:
             [[fallthrough]];
         case NOT_RUNNING_SF:

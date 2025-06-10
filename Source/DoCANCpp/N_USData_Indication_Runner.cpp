@@ -489,6 +489,8 @@ uint32_t N_USData_Indication_Runner::getNextRunTime()
     uint32_t nextRunTime = getNextTimeoutTime();
     switch (internalStatus)
     {
+        case ERROR:
+            [[fallthrough]];
         case MESSAGE_RECEIVED:
             [[fallthrough]];
         case NOT_RUNNING:
