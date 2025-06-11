@@ -14,12 +14,13 @@
     {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
 constexpr uint32_t DoCANCpp_MaxTimeToWaitForRunnersSync_MS = 1000;
-constexpr uint32_t DoCANCpp_RunPeriod_MS                   = 100;
+constexpr uint32_t DoCANCpp_RunPeriod_MS                   = 0;
+constexpr uint32_t DoCANCpp_RunPeriod_ACKQueue_MS          = 0;
 constexpr STmin    DoCANCpp_DefaultSTmin                   = {20, ms};
 constexpr uint8_t  DoCANCpp_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
 
 /**
- * This function is used to confirm the reception of a message.
+ * This function is used to confirm the sending of a message.
  * @param nAi The N_AI of the message.
  * @param nResult The result of the reception.
  * @param mtype The Mtype of the message.
@@ -54,7 +55,7 @@ using N_USData_FF_indication_cb_t = void (*)(N_AI nAi, uint32_t messageLength, M
 class DoCANCpp
 {
 public:
-    static const char* TAG;
+    constexpr static const char* TAG = "DoCANCpp";
 
     /**
      * This function is used to queue a message to be sent to an N_TA from the current DoCANCpp object N_SA.
@@ -76,9 +77,15 @@ public:
      * This function is used to run the DoCAN service.
      * It needs to be called periodically to allow the DoCAN service to run.
      * There are no limitations on the frequency of this function, timing is handled internally.
-     * @param self The DoCANCpp object to run.
      */
-    static void run_step(DoCANCpp* self);
+    void runStep();
+
+    /**
+     * This function is used to run the DoCAN service.
+     * It needs to be called periodically to allow the DoCAN service to run.
+     * There are no limitations on the frequency of this function, timing is handled internally.
+     */
+    void canMessageACKQueueRunStep() const;
 
     /**
      * This function is used to get the N_SA for this DoCANCpp object.
@@ -142,9 +149,23 @@ public:
     DoCANCpp(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb,
              N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb,
              OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = DoCANCpp_DefaultBlockSize,
-             STmin stMin = DoCANCpp_DefaultSTmin);
+             STmin stMin = DoCANCpp_DefaultSTmin, const char* tag = TAG);
+
+    const char* getTag() const;
+
+    ~DoCANCpp();
 
 private:
+    enum FrameStatus
+    {
+        frameNotAvailable = 0,
+        frameAvailable,
+        frameProcessed
+    };
+
+    const char* tag;
+    char*       queueTag;
+
     // Interfaces
     OSInterface&  osInterface;
     CANInterface& canInterface;
@@ -171,11 +192,23 @@ private:
     std::list<N_USData_Runner*>                              notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
     std::list<N_USData_Runner*>                              finishedRunners;
-    CANMessageACKQueue*                                      CanMessageACKQueue;
+    CANMessageACKQueue*                                      canMessageAckQueue;
 
     // Functions
+    bool populateQueueTag();
+
     bool updateRunners();
     bool updateRunner(N_USData_Runner* runner) const;
+
+    void runRunners(FrameStatus& frameStatus, CANFrame frame);
+    void createRunnerForMessage(STmin stM, uint8_t bs, FrameStatus frameStatus, CANFrame frame);
+    void runStepCanActive();
+    void runStepCanInactive();
+    void startRunners();
+    void getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) const;
+    void runFinishedRunnerCallbacks();
+
+    template <std::ranges::input_range R> void runErrorCallbacks(R&& runners);
 };
 
 #endif // DoCANCpp_H

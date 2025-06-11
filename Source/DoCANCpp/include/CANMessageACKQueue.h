@@ -10,19 +10,27 @@ class N_USData_Runner;
 class CANMessageACKQueue
 {
 public:
-    explicit CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface);
+    explicit CANMessageACKQueue(CANInterface& canInterface, OSInterface& osInterface, const char* tag = TAG);
     ~CANMessageACKQueue();
 
-    void run_step();
+    void runStep();
+
+    void runAvailableAckCallbacks();
 
     bool writeFrame(N_USData_Runner& runner, CANFrame& frame);
+
+    bool removeFromQueue(N_AI runnerNAi);
 
     constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
 
 private:
-    OSInterface_Mutex*          mutex;
-    std::list<N_USData_Runner*> messageQueue;
-    CANInterface*               canInterface;
+    bool runNextAvailableAckCallback();
+    void saveAck(CANInterface::ACKResult ack);
+
+    const char*                                                     tag;
+    OSInterface_Mutex*                                              mutex;
+    std::list<std::pair<N_USData_Runner*, CANInterface::ACKResult>> messageQueue;
+    CANInterface*                                                   canInterface;
 };
 
 #endif // CANMESSAGEACKQUEUE_H

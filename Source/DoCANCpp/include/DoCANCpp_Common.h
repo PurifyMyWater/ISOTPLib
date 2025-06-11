@@ -1,13 +1,7 @@
 #ifndef DOCANCPP_COMMON_H
 #define DOCANCPP_COMMON_H
 
-#define DOCANCPP_DISABLE_TIMEOUTS false
-
-#ifdef NDEBUG
-    #define ASSERT_SAFE(expression, condition) expression
-#else
-    #define ASSERT_SAFE(expression, condition) assert(expression condition)
-#endif
+#define DOCANCPP_USE_DEBUG_TIMEOUTS false
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 

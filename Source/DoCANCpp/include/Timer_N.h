@@ -9,7 +9,9 @@ public:
     explicit Timer_N(OSInterface& osInterface);
     void stopTimer();
     void startTimer();
+    void clearTimer();
 
+    [[nodiscard]] bool     isTimerRunning() const;
     [[nodiscard]] uint32_t getStartTimeStamp() const;
     [[nodiscard]] uint32_t getElapsedTime_ms() const;
 
@@ -17,7 +19,7 @@ private:
     OSInterface* osInterface;
     uint32_t     elapsedTime;
     uint32_t     startTime;
-    bool         isTimerRunning;
+    bool         timerRunning;
 };
 
 #endif // TIMER_N_H
