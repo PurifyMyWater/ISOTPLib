@@ -369,7 +369,7 @@ void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const F
                         this->N_USData_FF_indication_cb(runner->getN_AI(), runner->getMessageLength(),
                                                         runner->getMtype());
                     }
-                    this->activeRunners.insert(std::make_pair(runner->getN_AI().N_AI, runner));
+                    this->activeRunners.emplace(runner->getN_AI().N_AI, runner);
                     break;
                 default: // Single frame or error
                     this->finishedRunners.push_front(runner);
