@@ -301,7 +301,7 @@ void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) co
     }
 }
 
-void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame frame)
+void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame& frame)
 {
     for (auto runner : this->activeRunners | std::views::values)
     {

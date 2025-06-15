@@ -1,7 +1,6 @@
 #ifndef DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 #define DOCANTESTPROJECT_LOCALCANNETWORKMANAGER_H
 
-#include <deque>
 #include <list>
 #include <queue>
 #include <vector>
