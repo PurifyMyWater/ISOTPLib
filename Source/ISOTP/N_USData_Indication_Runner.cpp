@@ -148,9 +148,8 @@ N_Result N_USData_Indication_Runner::runStep_internal(const CANFrame* receivedFr
             break;
         case MESSAGE_RECEIVED:
             OSInterfaceLogDebug(tag, "Message received successfully");
-            result =
-                N_OK; // If the message is successfully received, return N_OK to allow ISOTP to call the callback.
-            res = result;
+            result = N_OK; // If the message is successfully received, return N_OK to allow ISOTP to call the callback.
+            res    = result;
             break;
         case ERROR:
             res = result;

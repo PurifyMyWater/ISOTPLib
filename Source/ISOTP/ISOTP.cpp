@@ -8,10 +8,9 @@
 #include "N_USData_Request_Runner.h"
 
 ISOTP::ISOTP(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners,
-                   const N_USData_confirm_cb_t       N_USData_confirm_cb,
-                   const N_USData_indication_cb_t    N_USData_indication_cb,
-                   const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface,
-                   CANInterface& canInterface, const uint8_t blockSize, const STmin stMin, const char* tag) :
+             const N_USData_confirm_cb_t N_USData_confirm_cb, const N_USData_indication_cb_t N_USData_indication_cb,
+             const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface,
+             CANInterface& canInterface, const uint8_t blockSize, const STmin stMin, const char* tag) :
     osInterface(osInterface), canInterface(canInterface),
     availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface)
 {
@@ -166,7 +165,7 @@ bool ISOTP::setSTmin(const STmin stMin)
 }
 
 bool ISOTP::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t nTaType, const uint8_t* messageData,
-                                const uint32_t length, const Mtype mType)
+                             const uint32_t length, const Mtype mType)
 {
     bool             result;
     N_AI             nAI    = ISOTP_N_AI_CONFIG(nTaType, nTa, getN_SA());

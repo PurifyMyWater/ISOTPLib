@@ -10,14 +10,14 @@
 #include "ISOTP_Common.h"
 #include "N_USData_Runner.h"
 
-#define ISOTP_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA)                                                                  \
+#define ISOTP_N_AI_CONFIG(_N_TAtype, _N_TA, _N_SA)                                                                     \
     {.N_NFA_Header = 0b110, .N_NFA_Padding = 0b00, .N_TAtype = (_N_TAtype), .N_TA = (_N_TA), .N_SA = (_N_SA)}
 
 constexpr uint32_t ISOTP_MaxTimeToWaitForRunnersSync_MS = 1000;
 constexpr uint32_t ISOTP_RunPeriod_MS                   = 0;
 constexpr uint32_t ISOTP_RunPeriod_ACKQueue_MS          = 0;
 constexpr STmin    ISOTP_DefaultSTmin                   = {20, ms};
-constexpr uint8_t  ISOTP_DefaultBlockSize = 0; // 0 means that all CFs are sent without waiting for an FC.
+constexpr uint8_t  ISOTP_DefaultBlockSize               = 0; // 0 means that all CFs are sent without waiting for an FC.
 
 /**
  * This function is used to confirm the sending of a message.
@@ -147,9 +147,9 @@ public:
     bool setSTmin(STmin stMin);
 
     ISOTP(typeof(N_AI::N_SA) nSA, uint32_t totalAvailableMemoryForRunners, N_USData_confirm_cb_t N_USData_confirm_cb,
-             N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb,
-             OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = ISOTP_DefaultBlockSize,
-             STmin stMin = ISOTP_DefaultSTmin, const char* tag = TAG);
+          N_USData_indication_cb_t N_USData_indication_cb, N_USData_FF_indication_cb_t N_USData_FF_indication_cb,
+          OSInterface& osInterface, CANInterface& canInterface, uint8_t blockSize = ISOTP_DefaultBlockSize,
+          STmin stMin = ISOTP_DefaultSTmin, const char* tag = TAG);
 
     const char* getTag() const;
 

@@ -4,7 +4,7 @@
 #include "CANInterface.h"
 #include "ISOTP_Common.h"
 
-#define NewCANFrameISOTP()                                                                                          \
+#define NewCANFrameISOTP()                                                                                             \
     {.extd             = 1,                                                                                            \
      .rtr              = 0,                                                                                            \
      .ss               = 0,                                                                                            \
