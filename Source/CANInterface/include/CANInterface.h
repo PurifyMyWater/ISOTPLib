@@ -15,11 +15,14 @@ using N_TAtype_t = enum N_TAtype {
     N_TATYPE_6_CAN_CLASSIC_29bit_Functional = 219
 };
 
+constexpr uint8_t N_NFA_Header_Value = 0b110;
+constexpr uint8_t N_NFA_Padding_Value = 0b00;
+
 using N_AI = union N_AI_union
 {
     struct __attribute__((packed))
     {
-        uint8_t : 3, N_NFA_Header : 3 {0b110}, N_NFA_Padding : 2 {0b00};
+        uint8_t : 3, N_NFA_Header : 3 {N_NFA_Header_Value}, N_NFA_Padding : 2 {N_NFA_Padding_Value};
         N_TAtype_t N_TAtype : 8 {CAN_UNKNOWN};
         uint8_t    N_TA{0};
         uint8_t    N_SA{0};
@@ -95,14 +98,14 @@ public:
 
     /**
      * @brief Check if a frame is available to read.
-     * @return Number of frames available to read.
+     * @return Number of frames available to read. or 0 if no frames are available, or the bus is not active.
      */
     virtual uint32_t frameAvailable() = 0;
 
     /**
      * @brief Read a frame from the CAN bus.
      * @param frame Pointer to a CANFrame struct to store the read frame.
-     * @return True if a frame was read, false if no frame was available.
+     * @return True if a frame was read, false if no frame was available, or the bus is not active.
      */
     virtual bool readFrame(CANFrame* frame) = 0;
 
@@ -122,7 +125,7 @@ public:
     /**
      * @brief Get the ACK result of the last message sent.
      * @return The result of the last ACK or ACK_NONE if no message finished transmission since the last call to this
-     * function.
+     * function, or the bus is not active.
      */
     virtual ACKResult getWriteFrameACK() = 0;
 
