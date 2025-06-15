@@ -1,8 +1,8 @@
 add_subdirectory(CANInterface)
-add_subdirectory(DoCANCpp)
+add_subdirectory(ISOTP)
 
 # Create a combined library
-add_library(DoCANCppLib INTERFACE)
+add_library(ISOTPLib INTERFACE)
 
 # Link the sub-libraries to the combined library
-target_link_libraries(DoCANCppLib INTERFACE OSInterface CANInterface DoCANCpp)
+target_link_libraries(ISOTPLib INTERFACE OSInterface CANInterface ISOTP)
