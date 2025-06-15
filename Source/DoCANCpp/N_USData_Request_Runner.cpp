@@ -300,6 +300,11 @@ N_Result N_USData_Request_Runner::runStep_holdFrame(const CANFrame* receivedFram
     OSInterfaceLogWarning(tag, "Received frame while waiting for ACK in %s (%d). Storing it for later use Frame: %s",
                           internalStatusToString(internalStatus), internalStatus, frameToString(*receivedFrame));
 
+    if (frameToHoldValid)
+    {
+        returnErrorWithLog(N_ERROR, "There is already a valid frame stored. Cannot hold another frame.");
+    }
+
     frameToHold      = *receivedFrame; // Store the frame for later use.
     frameToHoldValid = true;           // Mark the frame as valid.
 
