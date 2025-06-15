@@ -200,8 +200,8 @@ private:
     bool updateRunners();
     bool updateRunner(N_USData_Runner* runner) const;
 
-    void runRunners(FrameStatus& frameStatus, CANFrame frame);
-    void createRunnerForMessage(STmin stM, uint8_t bs, FrameStatus frameStatus, CANFrame frame);
+    void runRunners(FrameStatus& frameStatus, CANFrame& frame);
+    void createRunnerForMessage(STmin stM, uint8_t bs, FrameStatus frameStatus, CANFrame& frame);
     void runStepCanActive();
     void runStepCanInactive();
     void startRunners();

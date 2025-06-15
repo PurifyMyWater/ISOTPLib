@@ -337,7 +337,7 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame& frame)
     }
 }
 
-void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const FrameStatus frameStatus, CANFrame frame)
+void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const FrameStatus frameStatus, CANFrame& frame)
 {
     if (frameStatus == frameAvailable)
     {
