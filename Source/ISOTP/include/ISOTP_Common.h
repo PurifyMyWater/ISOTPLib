@@ -1,13 +1,13 @@
-#ifndef DOCANCPP_COMMON_H
-#define DOCANCPP_COMMON_H
+#ifndef ISOTP_COMMON_H
+#define ISOTP_COMMON_H
 
-#define DOCANCPP_USE_DEBUG_TIMEOUTS false
+#define ISOTP_USE_DEBUG_TIMEOUTS false
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #include <cstdint>
 
-constexpr uint32_t DoCANCpp_MaxTimeToWaitForSync_MS = 100;
+constexpr uint32_t ISOTP_MaxTimeToWaitForSync_MS = 100;
 
 constexpr uint8_t MAX_STMIN_MS_VALUE = 0x7F;
 constexpr uint8_t MIN_STMIN_US_VALUE = 0xF1;
@@ -47,4 +47,4 @@ const char* STminToString(const STmin& stMin);
 
 uint32_t getStMinInMs(STmin stMin);
 
-#endif // DOCANCPP_COMMON_H
+#endif // ISOTP_COMMON_H

@@ -2,9 +2,9 @@
 #define N_USDATA_RUNNER_H
 
 #include "CANInterface.h"
-#include "DoCANCpp_Common.h"
+#include "ISOTP_Common.h"
 
-#define NewCANFrameDoCANCpp()                                                                                          \
+#define NewCANFrameISOTP()                                                                                          \
     {.extd             = 1,                                                                                            \
      .rtr              = 0,                                                                                            \
      .ss               = 0,                                                                                            \
@@ -61,7 +61,7 @@ public:
     constexpr static uint8_t  FC_MESSAGE_LENGTH              = 3;
     constexpr static uint32_t MIN_FF_DL_WITH_ESCAPE_SEQUENCE = 4096;
 
-#if DOCANCPP_USE_DEBUG_TIMEOUTS
+#if ISOTP_USE_DEBUG_TIMEOUTS
     constexpr static int32_t N_As_TIMEOUT_MS = 100000000;
     constexpr static int32_t N_Ar_TIMEOUT_MS = 100000000;
     constexpr static int32_t N_Bs_TIMEOUT_MS = 100000000;
@@ -152,7 +152,7 @@ public:
      * @return The logging tag of the runner.
      */
     [[nodiscard]] virtual const char*
-    getTAG() const = 0; // TODO: in the future, allow DoCanCpp to set logging level of the runner.
+    getTAG() const = 0; // TODO: in the future, allow ISOTP to set logging level of the runner.
 
     /**
      * @brief Returns if the frame is for this runner.

@@ -37,7 +37,7 @@ void CANMessageACKQueue::runStep()
     if (const CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
     {
         OSInterfaceLogDebug(this->tag, "ACK received: %s", CANInterface::ackResultToString(ack));
-        if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+        if (mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
         {
             saveAck(ack);
             mutex->signal();
@@ -63,7 +63,7 @@ void CANMessageACKQueue::runAvailableAckCallbacks()
 bool CANMessageACKQueue::runNextAvailableAckCallback()
 {
     bool callbackHasRun = false;
-    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         if (!messageQueue.empty())
         {
@@ -101,7 +101,7 @@ bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
     OSInterfaceLogDebug(this->tag, "Writing frame with N_AI=%s", nAiToString(frame.identifier));
     OSInterfaceLogVerbose(this->tag, "Writing frame: %s", frameToString(frame));
     bool res = canInterface->writeFrame(&frame);
-    if (res && mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (res && mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         messageQueue.emplace_back(&runner, CANInterface::ACK_NONE);
         mutex->signal();
@@ -112,7 +112,7 @@ bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
 bool CANMessageACKQueue::removeFromQueue(const N_AI runnerNAi)
 {
     size_t res = 0;
-    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         res = messageQueue.remove_if([&runnerNAi](const auto& pair)
                                      { return pair.first->getN_AI().N_AI == runnerNAi.N_AI; });

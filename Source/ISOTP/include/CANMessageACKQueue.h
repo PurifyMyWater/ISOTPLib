@@ -21,7 +21,7 @@ public:
 
     bool removeFromQueue(N_AI runnerNAi);
 
-    constexpr static const char* TAG = "DoCANCpp-CANMessageACKQueue";
+    constexpr static const char* TAG = "ISOTP-CANMessageACKQueue";
 
 private:
     bool runNextAvailableAckCallback();

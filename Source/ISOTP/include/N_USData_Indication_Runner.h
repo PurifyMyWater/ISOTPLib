@@ -6,7 +6,7 @@
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
 
-constexpr char    N_USDATA_INDICATION_RUNNER_STATIC_TAG[] = "DoCANCpp_IndicationRunner_";
+constexpr char    N_USDATA_INDICATION_RUNNER_STATIC_TAG[] = "ISOTP_IndicationRunner_";
 constexpr int32_t N_USDATA_INDICATION_RUNNER_TAG_SIZE =
     MAX_N_AI_STR_SIZE + sizeof(N_USDATA_INDICATION_RUNNER_STATIC_TAG);
 

@@ -1,13 +1,13 @@
 #include "cassert"
 
-#include "DoCANCpp.h"
+#include "ISOTP.h"
 
 #include <ranges>
 
 #include "N_USData_Indication_Runner.h"
 #include "N_USData_Request_Runner.h"
 
-DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners,
+ISOTP::ISOTP(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryForRunners,
                    const N_USData_confirm_cb_t       N_USData_confirm_cb,
                    const N_USData_indication_cb_t    N_USData_indication_cb,
                    const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface,
@@ -51,12 +51,12 @@ DoCANCpp::DoCANCpp(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMe
     }
 }
 
-const char* DoCANCpp::getTag() const
+const char* ISOTP::getTag() const
 {
     return this->tag;
 }
 
-DoCANCpp::~DoCANCpp()
+ISOTP::~ISOTP()
 {
     if (this->queueTag != nullptr)
     {
@@ -82,7 +82,7 @@ DoCANCpp::~DoCANCpp()
     delete this->runnersMutex;
 }
 
-bool DoCANCpp::populateQueueTag()
+bool ISOTP::populateQueueTag()
 {
     int queueTagSize = snprintf(nullptr, 0, "%s-%s", tag, "ACKQueue");
     this->queueTag   = static_cast<char*>(osInterface.osMalloc(queueTagSize + 1));
@@ -95,81 +95,81 @@ bool DoCANCpp::populateQueueTag()
     return true;
 }
 
-typeof(N_AI::N_SA) DoCANCpp::getN_SA() const
+typeof(N_AI::N_SA) ISOTP::getN_SA() const
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     typeof(N_AI::N_SA) NSA = this->nSA;
     configMutex->signal();
     return NSA;
 }
 
-void DoCANCpp::addAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
+void ISOTP::addAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     this->acceptedFunctionalN_TAs.insert(nTA);
     configMutex->signal();
 }
 
-bool DoCANCpp::removeAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
+bool ISOTP::removeAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     bool res = this->acceptedFunctionalN_TAs.erase(nTA) == 1;
     configMutex->signal();
     return res;
 }
 
-bool DoCANCpp::hasAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
+bool ISOTP::hasAcceptedFunctionalN_TA(const typeof(N_AI::N_TA) nTA)
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     bool res = this->acceptedFunctionalN_TAs.contains(nTA);
     configMutex->signal();
     return res;
 }
 
-uint8_t DoCANCpp::getBlockSize() const
+uint8_t ISOTP::getBlockSize() const
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     uint8_t bs = this->blockSize;
     configMutex->signal();
     return bs;
 }
 
-bool DoCANCpp::setBlockSize(const uint8_t bs)
+bool ISOTP::setBlockSize(const uint8_t bs)
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     this->blockSize = bs;
     configMutex->signal();
 
     return updateRunners();
 }
 
-STmin DoCANCpp::getSTmin() const
+STmin ISOTP::getSTmin() const
 {
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     const STmin stM = this->stMin;
     configMutex->signal();
     return stM;
 }
 
-bool DoCANCpp::setSTmin(const STmin stMin)
+bool ISOTP::setSTmin(const STmin stMin)
 {
     if ((stMin.unit == ms && stMin.value > 127) || (stMin.unit == usX100 && (stMin.value < 1 || stMin.value > 9)))
     {
         return false;
     }
 
-    configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     this->stMin = stMin;
     configMutex->signal();
 
     return updateRunners();
 }
 
-bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t nTaType, const uint8_t* messageData,
+bool ISOTP::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t nTaType, const uint8_t* messageData,
                                 const uint32_t length, const Mtype mType)
 {
     bool             result;
-    N_AI             nAI    = DoCANCpp_N_AI_CONFIG(nTaType, nTa, getN_SA());
+    N_AI             nAI    = ISOTP_N_AI_CONFIG(nTaType, nTa, getN_SA());
     N_USData_Runner* runner = new N_USData_Request_Runner(result, nAI, availableMemoryForRunners, mType, messageData,
                                                           length, osInterface, *canMessageAckQueue);
     if (!result)
@@ -177,7 +177,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
         delete runner;
         return false;
     }
-    if (notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (notStartedRunnersMutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         notStartedRunners.push_back(runner);
         notStartedRunnersMutex->signal();
@@ -187,7 +187,7 @@ bool DoCANCpp::N_USData_request(const typeof(N_AI::N_TA) nTa, const N_TAtype_t n
     return false;
 }
 
-void DoCANCpp::runFinishedRunnerCallbacks()
+void ISOTP::runFinishedRunnerCallbacks()
 {
     for (const auto runner : this->finishedRunners)
     {
@@ -225,7 +225,7 @@ void DoCANCpp::runFinishedRunnerCallbacks()
     this->finishedRunners.clear();
 }
 
-template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runners)
+template <std::ranges::input_range R> void ISOTP::runErrorCallbacks(R&& runners)
 {
     for (const auto runner : runners)
     {
@@ -253,14 +253,14 @@ template <std::ranges::input_range R> void DoCANCpp::runErrorCallbacks(R&& runne
     }
 }
 
-void DoCANCpp::startRunners()
+void ISOTP::startRunners()
 {
     // The second part of the runStep is to check if there are any runners in notStartedRunners, and move them
     // to activeRunners. ISO 15765-2 specifies that there should not be more than one message with the same N_AI
     // being transmitted or received at the same time. If that happens, leave the message in the
     // notStartedRunners queue until the current message with this N_AI is processed.
-    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
-    this->notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    this->runnersMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
+    this->notStartedRunnersMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
 
     auto it = this->notStartedRunners.begin();
     while (it != this->notStartedRunners.end())
@@ -280,7 +280,7 @@ void DoCANCpp::startRunners()
     this->runnersMutex->signal();
 }
 
-void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) const
+void ISOTP::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) const
 {
     frameStatus = frameNotAvailable;
     if (this->canInterface.frameAvailable())
@@ -294,14 +294,14 @@ void DoCANCpp::getFrameIfAvailable(FrameStatus& frameStatus, CANFrame& frame) co
                 (frame.identifier.N_TAtype == N_TATYPE_6_CAN_CLASSIC_29bit_Functional &&
                  this->acceptedFunctionalN_TAs.contains(frame.identifier.N_TA)))
             {
-                OSInterfaceLogDebug(this->tag, "Received frame for this DoCANCpp instance: %s", frameToString(frame));
+                OSInterfaceLogDebug(this->tag, "Received frame for this ISOTP instance: %s", frameToString(frame));
                 frameStatus = frameAvailable;
             }
         }
     }
 }
 
-void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame& frame)
+void ISOTP::runRunners(FrameStatus& frameStatus, CANFrame& frame)
 {
     for (auto runner : this->activeRunners | std::views::values)
     {
@@ -337,7 +337,7 @@ void DoCANCpp::runRunners(FrameStatus& frameStatus, CANFrame& frame)
     }
 }
 
-void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const FrameStatus frameStatus, CANFrame& frame)
+void ISOTP::createRunnerForMessage(const STmin stM, const uint8_t bs, const FrameStatus frameStatus, CANFrame& frame)
 {
     if (frameStatus == frameAvailable)
     {
@@ -378,10 +378,10 @@ void DoCANCpp::createRunnerForMessage(const STmin stM, const uint8_t bs, const F
         }
     }
 }
-void DoCANCpp::runStepCanActive()
+void ISOTP::runStepCanActive()
 {
     // Get the configuration used in this runStep.
-    this->configMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    this->configMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
     std::unordered_set<typeof(N_AI::N_TA)> acceptedFunctionalN_TAs = this->acceptedFunctionalN_TAs;
     STmin                                  stMin                   = this->stMin;
     uint8_t                                blockSize               = this->blockSize;
@@ -393,13 +393,13 @@ void DoCANCpp::runStepCanActive()
     // notStartedRunners queue until the current message with this N_AI is processed.
     startRunners();
 
-    // The third part of the runStep is to check if a message is available, read it and check if this DoCANCpp
+    // The third part of the runStep is to check if a message is available, read it and check if this ISOTP
     // object is interested in it.
     FrameStatus frameStatus;
     CANFrame    frame;
     getFrameIfAvailable(frameStatus, frame);
 
-    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForRunnersSync_MS);
+    this->runnersMutex->wait(ISOTP_MaxTimeToWaitForRunnersSync_MS);
 
     // The fourth part of the runStep is to walk through all activeRunners checking if they need to run. If
     // they do, run them passing them the frame if it applies.
@@ -419,15 +419,15 @@ void DoCANCpp::runStepCanActive()
     this->runnersMutex->signal();
 }
 
-void DoCANCpp::runStepCanInactive()
+void ISOTP::runStepCanInactive()
 {
-    this->notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    this->notStartedRunnersMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
 
     runErrorCallbacks(this->notStartedRunners);
     this->notStartedRunners.clear();
 
     this->notStartedRunnersMutex->signal();
-    this->runnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    this->runnersMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
 
     runErrorCallbacks(this->activeRunners | std::views::values);
     this->activeRunners.clear();
@@ -437,11 +437,11 @@ void DoCANCpp::runStepCanInactive()
     this->runnersMutex->signal();
 }
 
-void DoCANCpp::runStep()
+void ISOTP::runStep()
 {
-    // The first part of the runStep is to check if the CAN is active, and more than DoCANCpp_RunPeriod_MS has passed
+    // The first part of the runStep is to check if the CAN is active, and more than ISOTP_RunPeriod_MS has passed
     // since the last run.
-    if (const uint32_t millis = this->osInterface.osMillis(); millis - this->lastRunTime > DoCANCpp_RunPeriod_MS)
+    if (const uint32_t millis = this->osInterface.osMillis(); millis - this->lastRunTime > ISOTP_RunPeriod_MS)
     {
         this->lastRunTime = millis;
 
@@ -456,10 +456,10 @@ void DoCANCpp::runStep()
         }
     }
 }
-void DoCANCpp::canMessageACKQueueRunStep() const
+void ISOTP::canMessageACKQueueRunStep() const
 {
     static uint32_t ACKlastRunTime = 0;
-    if (this->osInterface.osMillis() - ACKlastRunTime > DoCANCpp_RunPeriod_ACKQueue_MS)
+    if (this->osInterface.osMillis() - ACKlastRunTime > ISOTP_RunPeriod_ACKQueue_MS)
     {
         ACKlastRunTime = this->osInterface.osMillis();
         if (canMessageAckQueue != nullptr)
@@ -469,9 +469,9 @@ void DoCANCpp::canMessageACKQueueRunStep() const
     }
 }
 
-bool DoCANCpp::updateRunners()
+bool ISOTP::updateRunners()
 {
-    notStartedRunnersMutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS);
+    notStartedRunnersMutex->wait(ISOTP_MaxTimeToWaitForSync_MS);
 
     for (const auto runner : notStartedRunners)
     {
@@ -483,7 +483,7 @@ bool DoCANCpp::updateRunners()
 
     notStartedRunnersMutex->signal();
 
-    runnersMutex->wait(DoCANCpp_MaxTimeToWaitForRunnersSync_MS);
+    runnersMutex->wait(ISOTP_MaxTimeToWaitForRunnersSync_MS);
 
     for (const auto runner : activeRunners | std::views::values)
     {
@@ -496,7 +496,7 @@ bool DoCANCpp::updateRunners()
     return true;
 }
 
-bool DoCANCpp::updateRunner(N_USData_Runner* runner) const
+bool ISOTP::updateRunner(N_USData_Runner* runner) const
 {
     if (runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
     {
