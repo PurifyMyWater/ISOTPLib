@@ -1,6 +1,6 @@
 #include "CANMessageACKQueue.h"
 
-#include <DoCANCpp.h>
+#include <ISOTP.h>
 #include <N_USData_Request_Runner.h>
 
 #include <N_USData_Runner.h>
@@ -17,13 +17,13 @@ TEST(CANMessageACKQueue, removeFromQueue)
     LocalCANNetwork    localCANNetwork;
     CANInterface*      canInterface = localCANNetwork.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
-    CANFrame           frame  = NewCANFrameDoCANCpp();
-    CANFrame           frame2 = NewCANFrameDoCANCpp();
+    CANFrame           frame  = NewCANFrameISOTP();
+    CANFrame           frame2 = NewCANFrameISOTP();
 
     // Create dumb runner
     int64_t                 availableMemoryConst = 100;
     Atomic_int64_t          availableMemoryMock(availableMemoryConst, linuxOSInterface);
-    N_AI                    NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI                    NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
     const char*             testMessageString = ""; // strlen = 0
     size_t                  messageLen        = strlen(testMessageString);
     const uint8_t*          testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);
@@ -59,12 +59,12 @@ TEST(CANMessageACKQueue, writeFrame)
     LocalCANNetwork    localCANNetwork;
     CANInterface*      canInterface = localCANNetwork.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
-    CANFrame           frame = NewCANFrameDoCANCpp();
+    CANFrame           frame = NewCANFrameISOTP();
 
     // Create dumb runner
     int64_t                 availableMemoryConst = 100;
     Atomic_int64_t          availableMemoryMock(availableMemoryConst, linuxOSInterface);
-    N_AI                    NAi               = DoCANCpp_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
+    N_AI                    NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
     const char*             testMessageString = ""; // strlen = 0
     size_t                  messageLen        = strlen(testMessageString);
     const uint8_t*          testMessage       = reinterpret_cast<const uint8_t*>(testMessageString);

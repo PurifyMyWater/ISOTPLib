@@ -1,7 +1,7 @@
-#include "DoCANCpp_Common.h"
+#include "ISOTP_Common.h"
 #include <gtest/gtest.h>
 
-TEST(DoCANCpp_Common, N_ResultToString)
+TEST(ISOTP_Common, N_ResultToString)
 {
     EXPECT_STREQ("NOT_STARTED", N_ResultToString(NOT_STARTED));
     EXPECT_STREQ("IN_PROGRESS", N_ResultToString(IN_PROGRESS));
@@ -18,7 +18,7 @@ TEST(DoCANCpp_Common, N_ResultToString)
     EXPECT_STREQ("UNKNOWN", N_ResultToString(static_cast<N_Result>(999)));
 }
 
-TEST(DoCANCpp_Common, getStMinInMs)
+TEST(ISOTP_Common, getStMinInMs)
 {
     STmin stMin1{.value = 10, .unit = usX100};
     EXPECT_EQ(1, getStMinInMs(stMin1));

@@ -105,7 +105,7 @@ bool N_USData_Indication_Runner::awaitingFrame(const CANFrame& frame) const
 
 N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
 {
-    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (!mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
@@ -148,9 +148,8 @@ N_Result N_USData_Indication_Runner::runStep_internal(const CANFrame* receivedFr
             break;
         case MESSAGE_RECEIVED:
             OSInterfaceLogDebug(tag, "Message received successfully");
-            result =
-                N_OK; // If the message is successfully received, return N_OK to allow DoCanCpp to call the callback.
-            res = result;
+            result = N_OK; // If the message is successfully received, return N_OK to allow ISOTP to call the callback.
+            res    = result;
             break;
         case ERROR:
             res = result;
@@ -404,7 +403,7 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
     effectiveBlockSize = blockSize;
     effectiveStMin     = stMin;
 
-    CANFrame fcFrame            = NewCANFrameDoCANCpp();
+    CANFrame fcFrame            = NewCANFrameISOTP();
     fcFrame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
     fcFrame.identifier.N_TA     = nAi.N_SA;
     fcFrame.identifier.N_SA     = nAi.N_TA;
@@ -483,7 +482,7 @@ uint32_t N_USData_Indication_Runner::getNextTimeoutTime() const
 
 uint32_t N_USData_Indication_Runner::getNextRunTime()
 {
-    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (!mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         OSInterfaceLogError(tag, "Failed to acquire mutex");
         result = N_ERROR;
@@ -518,7 +517,7 @@ uint32_t N_USData_Indication_Runner::getNextRunTime()
 
 void N_USData_Indication_Runner::messageACKReceivedCallback(const CANInterface::ACKResult success)
 {
-    if (!mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (!mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         OSInterfaceLogError(tag, "Failed to acquire mutex");
         result = N_ERROR;
@@ -577,7 +576,7 @@ void N_USData_Indication_Runner::FC_ACKReceivedCallback(const CANInterface::ACKR
 
 bool N_USData_Indication_Runner::setBlockSize(const uint8_t blockSize)
 {
-    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         this->blockSize = blockSize;
         mutex->signal();
@@ -589,7 +588,7 @@ bool N_USData_Indication_Runner::setBlockSize(const uint8_t blockSize)
 
 bool N_USData_Indication_Runner::setSTmin(const STmin stMin)
 {
-    if (mutex->wait(DoCANCpp_MaxTimeToWaitForSync_MS))
+    if (mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
         this->stMin = stMin;
         mutex->signal();

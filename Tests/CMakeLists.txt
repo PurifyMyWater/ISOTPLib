@@ -1,6 +1,6 @@
 if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
 
-    project(DoCANCppLib_GoogleTests)
+    project(ISOTPLib_GoogleTests)
 
     include(FetchContent)
     set(FETCHCONTENT_QUIET OFF)
@@ -20,17 +20,17 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     FetchContent_MakeAvailable(LinuxOSInterface)
     FetchContent_MakeAvailable(googletest)
 
-    include_directories("${gtest_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTestUtils")
+    include_directories("${gtest_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/ISOTPLibTestUtils")
 
-    file(GLOB_RECURSE TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTests/*.cpp")
-    file(GLOB_RECURSE TEST_UTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTestUtils/*.cpp")
+    file(GLOB_RECURSE TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ISOTPLibTests/*.cpp")
+    file(GLOB_RECURSE TEST_UTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ISOTPLibTestUtils/*.cpp")
 
     # adding the Google_Tests_run target
-    add_executable(DoCANCppLib_GoogleTestsExe ${TEST_SOURCES} ${TEST_UTILS_SOURCES})
-    target_include_directories(DoCANCppLib_GoogleTestsExe PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/DoCANCppLibTestUtils")
+    add_executable(ISOTPLib_GoogleTestsExe ${TEST_SOURCES} ${TEST_UTILS_SOURCES})
+    target_include_directories(ISOTPLib_GoogleTestsExe PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/ISOTPLibTestUtils")
 
-    # linking Google_Tests_run with DoCANCppLib which will be tested
-    target_link_libraries(DoCANCppLib_GoogleTestsExe DoCANCppLib LinuxOSInterface)
+    # linking Google_Tests_run with ISOTPLib which will be tested
+    target_link_libraries(ISOTPLib_GoogleTestsExe ISOTPLib LinuxOSInterface)
 
-    target_link_libraries(DoCANCppLib_GoogleTestsExe gtest gtest_main)
+    target_link_libraries(ISOTPLib_GoogleTestsExe gtest gtest_main)
 endif ()

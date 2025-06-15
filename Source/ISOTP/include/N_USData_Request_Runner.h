@@ -6,7 +6,7 @@
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
 
-constexpr char    N_USDATA_REQUEST_RUNNER_STATIC_TAG[] = "DoCANCpp_RequestRunner_";
+constexpr char    N_USDATA_REQUEST_RUNNER_STATIC_TAG[] = "ISOTP_RequestRunner_";
 constexpr int32_t N_USDATA_REQUEST_RUNNER_TAG_SIZE     = MAX_N_AI_STR_SIZE + sizeof(N_USDATA_REQUEST_RUNNER_STATIC_TAG);
 
 // Class that handles the request aka transmission of a message
