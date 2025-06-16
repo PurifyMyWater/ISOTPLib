@@ -34,7 +34,7 @@ using CANFrame = struct CANFrame
 {
     union
     {
-        struct
+        struct __attribute__((packed))
         {
             uint32_t extd : 1;         /**< Extended Frame Format (29bit ID) */
             uint32_t rtr : 1;          /**< Message is a Remote Frame */
