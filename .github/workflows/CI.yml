@@ -17,6 +17,7 @@ on:
 
 jobs:
     Build:
+        permissions: {}
         runs-on: ubuntu-latest
         env:
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
@@ -52,6 +53,7 @@ jobs:
                 run: cmake --build ./build
 
     Test-Coverage:
+        permissions: {}
         runs-on: ubuntu-latest
         needs: Build
 
@@ -81,6 +83,7 @@ jobs:
                     path: '${{runner.workspace}}/coverage.xml'
 
     Valgrind:
+        permissions: {}
         runs-on: ubuntu-latest
         needs: Build
 
@@ -159,6 +162,7 @@ jobs:
                 run: exit 1 # To enable or disable this check as an error, run exit 1 / exit 0.
 
     Sonar:
+        permissions: {}
         runs-on: ubuntu-latest
         needs:
             - Test-Coverage
@@ -240,6 +244,7 @@ jobs:
                     token: ${{ secrets.GITHUB_TOKEN }}
 
     success:
+        permissions: {}
         runs-on: ubuntu-latest
         needs:
             - merge-gatekeeper
