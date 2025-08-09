@@ -499,7 +499,7 @@ bool ISOTP::updateRunner(N_USData_Runner* runner) const
 {
     if (runner->getRunnerType() == N_USData_Runner::RunnerIndicationType)
     {
-        const auto indicationRunner = dynamic_cast<N_USData_Indication_Runner*>(runner);
+        const auto indicationRunner = static_cast<N_USData_Indication_Runner*>(runner);
 
         if (!indicationRunner->setBlockSize(blockSize))
         {
