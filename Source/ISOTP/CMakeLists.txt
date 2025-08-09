@@ -15,5 +15,5 @@ file(GLOB ISOTP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 target_sources(ISOTP PRIVATE ${ISOTP_SOURCES})
 target_include_directories(ISOTP PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-target_compile_options(ISOTP PRIVATE -Wall -Wextra -Werror)
+target_compile_options(ISOTP PRIVATE -Wall -Wextra -Werror -fno-rtti)
 target_link_libraries(ISOTP CANInterface OSInterface)
