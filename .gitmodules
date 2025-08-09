@@ -1,6 +1,0 @@
-[submodule "Tests/googletest"]
-	path = Tests/googletest
-	url = https://github.com/google/googletest.git
-[submodule "OSShim"]
-	path = OSShim
-	url = git@github.com:vacmg/PMW-OSShim.git
