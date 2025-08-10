@@ -70,17 +70,17 @@ public:
      * @return The result of the last ACK or ACK_NONE if no message was transmitted since the last call to this
      * function.
      */
-    CANInterface::ACKResult getWriteFrameACK(uint32_t nodeID);
+    ACKResult getWriteFrameACK(uint32_t nodeID);
 
     void overrideActive(bool forceDisable);
 
 private:
-    std::vector<std::queue<CANInterface::ACKResult>> lastACKQueueList;
-    [[nodiscard]] bool                               checkNodeID(uint32_t nodeID) const;
-    std::vector<std::list<CANFrame>>                 network;
-    uint32_t                                         nextNodeID      = 0;
-    bool                                             allowActiveFlag = true;
-    OSInterface_Mutex*                               accessMutex     = nullptr;
+    std::vector<std::queue<ACKResult>> lastACKQueueList;
+    [[nodiscard]] bool                 checkNodeID(uint32_t nodeID) const;
+    std::vector<std::list<CANFrame>>   network;
+    uint32_t                           nextNodeID      = 0;
+    bool                               allowActiveFlag = true;
+    OSInterface_Mutex*                 accessMutex     = nullptr;
 };
 
 /**

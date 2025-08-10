@@ -24,8 +24,9 @@
     {                                                                                                                  \
         auto oldStatus = internalStatus;                                                                               \
         internalStatus = newStatus;                                                                                    \
-        OSInterfaceLogDebug(tag, "internalStatus changed from %s (%d) to %s (%d)", internalStatusToString(oldStatus),  \
-                            oldStatus, internalStatusToString(internalStatus), internalStatus);                        \
+        OSInterfaceLogDebug(tag, "internalStatus changed from %s (%" PRIu8 ") to %s (%" PRIu8 ")",                     \
+                            internalStatusToString(oldStatus), oldStatus, internalStatusToString(internalStatus),      \
+                            internalStatus);                                                                           \
     }                                                                                                                  \
     while (0)
 
@@ -145,7 +146,7 @@ public:
      * @brief Callback for when a message is received.
      * @param success True if the message was received successfully, false otherwise.
      */
-    virtual void messageACKReceivedCallback(CANInterface::ACKResult success) = 0;
+    virtual void messageACKReceivedCallback(ACKResult success) = 0;
 
     /**
      * @brief Returns the logging tag of the runner.

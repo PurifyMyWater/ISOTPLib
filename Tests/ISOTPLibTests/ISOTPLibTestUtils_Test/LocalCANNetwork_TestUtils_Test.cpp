@@ -31,7 +31,7 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_none)
 {
     LocalCANNetwork network(linuxOSInterface);
     auto can = network.newCANInterfaceConnection();
-    ASSERT_EQ(network.getWriteFrameACK(0), CANInterface::ACK_NONE);
+    ASSERT_EQ(network.getWriteFrameACK(0), ACK_NONE);
     delete can;
 }
 
@@ -59,12 +59,12 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
 
     for (auto can : rcan)
     {
-        ASSERT_EQ(network.getWriteFrameACK(can->getNodeID()), CANInterface::ACK_NONE);
+        ASSERT_EQ(network.getWriteFrameACK(can->getNodeID()), ACK_NONE);
     }
     ASSERT_EQ(network.writeFrame(id, &frame), true);
-    ASSERT_EQ(network.getWriteFrameACK(id), CANInterface::ACK_SUCCESS);
-    ASSERT_EQ(network.getWriteFrameACK(id), CANInterface::ACK_NONE);
-    ASSERT_EQ(network.getWriteFrameACK(id + 1), CANInterface::ACK_NONE);
+    ASSERT_EQ(network.getWriteFrameACK(id), ACK_SUCCESS);
+    ASSERT_EQ(network.getWriteFrameACK(id), ACK_NONE);
+    ASSERT_EQ(network.getWriteFrameACK(id + 1), ACK_NONE);
 
     for (auto can : rcan)
     {
