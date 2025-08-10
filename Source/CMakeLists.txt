@@ -11,7 +11,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         CANInterface
         GIT_REPOSITORY  git@github.com:PurifyMyWater/CANInterface.git
-        GIT_TAG         164d834f0d662bb648b980c83d357693f8800713
+        GIT_TAG         v1.0.0
 )
 
 

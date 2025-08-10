@@ -20,7 +20,7 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     FetchContent_Declare(
             LocalCANNetwork
             GIT_REPOSITORY  git@github.com:PurifyMyWater/LocalCANNetwork.git
-            GIT_TAG         f93c2453a7227393af42f9e40328ba63ab5e7340
+            GIT_TAG         v1.0.0
     )
 
     FetchContent_MakeAvailable(LinuxOSInterface)
