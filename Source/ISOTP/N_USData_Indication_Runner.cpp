@@ -457,7 +457,7 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     }
     if (timerN_Cr->getElapsedTime_ms() > N_Cr_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %" PRIu32 " ms and timeout is %" PRIu32 " ms",
+        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms",
                            timerN_Cr->getElapsedTime_ms(), N_Cr_TIMEOUT_MS);
     }
     return N_OK;
