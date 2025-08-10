@@ -21,7 +21,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
-            GH_USER_NAME: vacmg
+            GH_USER_NAME: ${{ vars.PMW_CI_PAT_USERNAME }}
 
         steps:
             -   name: "Import GitHub credentials" # ~/.gitconfig
@@ -46,7 +46,7 @@ jobs:
 
             -   name: Build Project
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
-                run: cmake --build ./build --target ISOTP
+                run: cmake --build ./build --target ISOTPLib
 
             -   name: Build Tests & Dependencies
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
@@ -68,7 +68,7 @@ jobs:
                     path: 'build'
 
             -   name: Test
-                run: build/Tests/*_GoogleTestsExe
+                run: build/Tests/*_GoogleTest*
 
             -   name: Install Coverage Report tool
                 run: sudo apt-get update && sudo apt-get install -y gcovr
@@ -101,7 +101,7 @@ jobs:
                     path: 'build'
 
             -   name: Valgrind Memory Check Report Generation
-                run: valgrind --error-exitcode=1 --tool=helgrind --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTestsExe
+                run: valgrind --error-exitcode=1 --tool=helgrind --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTest*
 
             -   name: Cache Valgrind Report
                 uses: actions/cache/save@v4
@@ -114,7 +114,7 @@ jobs:
         needs: Build
         env:
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
-            GH_USER_NAME: vacmg
+            GH_USER_NAME: ${{ vars.PMW_CI_PAT_USERNAME }}
 
         permissions:
             contents: write
@@ -170,7 +170,7 @@ jobs:
         env:
             BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
-            GH_USER_NAME: vacmg
+            GH_USER_NAME: ${{ vars.PMW_CI_PAT_USERNAME }}
 
         steps:
             -   name: Restore cached Coverage Report

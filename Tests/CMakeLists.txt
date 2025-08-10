@@ -17,8 +17,15 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
             GIT_TAG         v1.17.0
     )
 
+    FetchContent_Declare(
+            LocalCANNetwork
+            GIT_REPOSITORY  git@github.com:PurifyMyWater/LocalCANNetwork.git
+            GIT_TAG         f93c2453a7227393af42f9e40328ba63ab5e7340
+    )
+
     FetchContent_MakeAvailable(LinuxOSInterface)
     FetchContent_MakeAvailable(googletest)
+    FetchContent_MakeAvailable(LocalCANNetwork)
 
     include_directories("${gtest_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/ISOTPLibTestUtils")
 
@@ -30,7 +37,7 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     target_include_directories(ISOTPLib_GoogleTestsExe PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/ISOTPLibTestUtils")
 
     # linking Google_Tests_run with ISOTPLib which will be tested
-    target_link_libraries(ISOTPLib_GoogleTestsExe ISOTPLib LinuxOSInterface)
+    target_link_libraries(ISOTPLib_GoogleTestsExe ISOTPLib LinuxOSInterface LocalCANNetwork)
 
     target_link_libraries(ISOTPLib_GoogleTestsExe gtest gtest_main)
 endif ()
