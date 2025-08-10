@@ -5,7 +5,7 @@
 #include "LinuxOSInterface.h"
 #include "gtest/gtest.h"
 
-static LinuxOSInterface   osInterface;
+static LinuxOSInterface   linuxOSInterface;
 constexpr uint32_t DEFAULT_TIMEOUT = 10000;
 
 volatile bool senderKeepRunning   = true;
@@ -58,21 +58,21 @@ TEST(ISOTP_SystemTests, SimpleSendReceiveTestSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, SimpleSendReceiveTestSF_N_USData_confirm_cb,
                      SimpleSendReceiveTestSF_N_USData_indication_cb, SimpleSendReceiveTestSF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
+                     linuxOSInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, SimpleSendReceiveTestSF_N_USData_confirm_cb,
                      SimpleSendReceiveTestSF_N_USData_indication_cb, SimpleSendReceiveTestSF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
+                     linuxOSInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -89,7 +89,7 @@ TEST(ISOTP_SystemTests, SimpleSendReceiveTestSF)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, SimpleSendReceiveTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestSF_N_USData_confirm_cb_calls);
@@ -172,21 +172,21 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, ManySendReceiveTestSF_N_USData_confirm_cb, ManySendReceiveTestSF_N_USData_indication_cb,
-                     ManySendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     ManySendReceiveTestSF_N_USData_FF_indication_cb, linuxOSInterface, *senderInterface, 2,
                      ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, ManySendReceiveTestSF_N_USData_confirm_cb, ManySendReceiveTestSF_N_USData_indication_cb,
-                     ManySendReceiveTestSF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2,
+                     ManySendReceiveTestSF_N_USData_FF_indication_cb, linuxOSInterface, *receiverInterface, 2,
                      ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -207,7 +207,7 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestSF)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, ManySendReceiveTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, ManySendReceiveTestSF_N_USData_confirm_cb_calls);
@@ -269,30 +269,30 @@ TEST(ISOTP_SystemTests, BigSFTestBroadcast)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface    = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface1 = network.newCANInterfaceConnection("receiverInterface1");
     CANInterface*   receiverInterface2 = network.newCANInterfaceConnection("receiverInterface2");
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, BigSFTestBroadcast_N_USData_confirm_cb, BigSFTestBroadcast_N_USData_indication_cb,
-                     BigSFTestBroadcast_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     BigSFTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface, *senderInterface, 2,
                      ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP1 =
         new ISOTP(2, 2000, BigSFTestBroadcast_N_USData_confirm_cb, BigSFTestBroadcast_N_USData_indication_cb,
-                     BigSFTestBroadcast_N_USData_FF_indication_cb, osInterface, *receiverInterface1, 2,
+                     BigSFTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface, *receiverInterface1, 2,
                      ISOTP_DefaultSTmin, "receiverISOTP1");
     ISOTP* receiverISOTP2 =
         new ISOTP(3, 2000, BigSFTestBroadcast_N_USData_confirm_cb, BigSFTestBroadcast_N_USData_indication_cb,
-                     BigSFTestBroadcast_N_USData_FF_indication_cb, osInterface, *receiverInterface2, 2,
+                     BigSFTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface, *receiverInterface2, 2,
                      ISOTP_DefaultSTmin, "receiverISOTP2");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
 
     receiverISOTP1->addAcceptedFunctionalN_TA(2);
     receiverISOTP2->addAcceptedFunctionalN_TA(2);
 
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -316,7 +316,7 @@ TEST(ISOTP_SystemTests, BigSFTestBroadcast)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, BigSFTestBroadcast_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(0, BigSFTestBroadcast_N_USData_confirm_cb_calls);
@@ -381,30 +381,30 @@ TEST(ISOTP_SystemTests, SimpleSendReceiveTestBroadcast)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface    = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface1 = network.newCANInterfaceConnection("receiverInterface1");
     CANInterface*   receiverInterface2 = network.newCANInterfaceConnection("receiverInterface2");
     ISOTP*       senderISOTP     = new ISOTP(1, 2000, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb,
                                                       SimpleSendReceiveTestBroadcast_N_USData_indication_cb,
-                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                       *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP*       receiverISOTP1  = new ISOTP(2, 2000, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb,
                                                       SimpleSendReceiveTestBroadcast_N_USData_indication_cb,
-                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                       *receiverInterface1, 2, ISOTP_DefaultSTmin, "receiverISOTP1");
     ISOTP*       receiverISOTP2  = new ISOTP(3, 2000, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb,
                                                       SimpleSendReceiveTestBroadcast_N_USData_indication_cb,
-                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                       *receiverInterface2, 2, ISOTP_DefaultSTmin, "receiverISOTP2");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
 
     receiverISOTP1->addAcceptedFunctionalN_TA(2);
     receiverISOTP2->addAcceptedFunctionalN_TA(2);
 
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -423,7 +423,7 @@ TEST(ISOTP_SystemTests, SimpleSendReceiveTestBroadcast)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestBroadcast_N_USData_confirm_cb_calls);
@@ -531,24 +531,24 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestBroadcast)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface    = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface1 = network.newCANInterfaceConnection("receiverInterface1");
     CANInterface*   receiverInterface2 = network.newCANInterfaceConnection("receiverInterface2");
     ISOTP*       senderISOTP     = new ISOTP(1, 2000, ManySendReceiveTestBroadcast_N_USData_confirm_cb,
                                                       ManySendReceiveTestBroadcast_N_USData_indication_cb,
-                                                      ManySendReceiveTestBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                      ManySendReceiveTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                       *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP*       receiverISOTP1  = new ISOTP(2, 2000, ManySendReceiveTestBroadcast_N_USData_confirm_cb,
                                                       ManySendReceiveTestBroadcast_N_USData_indication_cb,
-                                                      ManySendReceiveTestBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                      ManySendReceiveTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                       *receiverInterface1, 2, ISOTP_DefaultSTmin, "receiverISOTP1");
     ISOTP*       receiverISOTP2  = new ISOTP(3, 2000, ManySendReceiveTestBroadcast_N_USData_confirm_cb,
                                                       ManySendReceiveTestBroadcast_N_USData_indication_cb,
-                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                      SimpleSendReceiveTestBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                       *receiverInterface2, 2, ISOTP_DefaultSTmin, "receiverISOTP2");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
 
     receiverISOTP1->addAcceptedFunctionalN_TA(2);
@@ -556,7 +556,7 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestBroadcast)
 
     receiverISOTP2->addAcceptedFunctionalN_TA(2);
 
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -579,7 +579,7 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestBroadcast)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, ManySendReceiveTestBroadcast_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, ManySendReceiveTestBroadcast_N_USData_confirm_cb_calls);
@@ -647,21 +647,21 @@ TEST(ISOTP_SystemTests, SimpleSendReceiveTestMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, SimpleSendReceiveTestMF_N_USData_confirm_cb,
                      SimpleSendReceiveTestMF_N_USData_indication_cb, SimpleSendReceiveTestMF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
+                     linuxOSInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, SimpleSendReceiveTestMF_N_USData_confirm_cb,
                      SimpleSendReceiveTestMF_N_USData_indication_cb, SimpleSendReceiveTestMF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
+                     linuxOSInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -677,7 +677,7 @@ TEST(ISOTP_SystemTests, SimpleSendReceiveTestMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(1, SimpleSendReceiveTestMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, SimpleSendReceiveTestMF_N_USData_confirm_cb_calls);
@@ -780,21 +780,21 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, ManySendReceiveTestMF_N_USData_confirm_cb, ManySendReceiveTestMF_N_USData_indication_cb,
-                     ManySendReceiveTestMF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     ManySendReceiveTestMF_N_USData_FF_indication_cb, linuxOSInterface, *senderInterface, 2,
                      ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, ManySendReceiveTestMF_N_USData_confirm_cb, ManySendReceiveTestMF_N_USData_indication_cb,
-                     ManySendReceiveTestMF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2,
+                     ManySendReceiveTestMF_N_USData_FF_indication_cb, linuxOSInterface, *receiverInterface, 2,
                      ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -814,7 +814,7 @@ TEST(ISOTP_SystemTests, ManySendReceiveTestMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(2, ManySendReceiveTestMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, ManySendReceiveTestMF_N_USData_confirm_cb_calls);
@@ -881,21 +881,21 @@ TEST(ISOTP_SystemTests, NullCharSendReceiveTestSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP    = new ISOTP(1, 2000, NullCharSendReceiveTestSF_N_USData_confirm_cb,
                                                      NullCharSendReceiveTestSF_N_USData_indication_cb,
-                                                     NullCharSendReceiveTestSF_N_USData_FF_indication_cb, osInterface,
+                                                     NullCharSendReceiveTestSF_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP*       receiverISOTP  = new ISOTP(2, 2000, NullCharSendReceiveTestSF_N_USData_confirm_cb,
                                                      NullCharSendReceiveTestSF_N_USData_indication_cb,
-                                                     NullCharSendReceiveTestSF_N_USData_FF_indication_cb, osInterface,
+                                                     NullCharSendReceiveTestSF_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -912,7 +912,7 @@ TEST(ISOTP_SystemTests, NullCharSendReceiveTestSF)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, NullCharSendReceiveTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, NullCharSendReceiveTestSF_N_USData_confirm_cb_calls);
@@ -983,21 +983,21 @@ TEST(ISOTP_SystemTests, NullCharSendReceiveTestMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP    = new ISOTP(1, 2000, NullCharSendReceiveTestMF_N_USData_confirm_cb,
                                                      NullCharSendReceiveTestMF_N_USData_indication_cb,
-                                                     NullCharSendReceiveTestMF_N_USData_FF_indication_cb, osInterface,
+                                                     NullCharSendReceiveTestMF_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP*       receiverISOTP  = new ISOTP(2, 2000, NullCharSendReceiveTestMF_N_USData_confirm_cb,
                                                      NullCharSendReceiveTestMF_N_USData_indication_cb,
-                                                     NullCharSendReceiveTestMF_N_USData_FF_indication_cb, osInterface,
+                                                     NullCharSendReceiveTestMF_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -1013,7 +1013,7 @@ TEST(ISOTP_SystemTests, NullCharSendReceiveTestMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(1, NullCharSendReceiveTestMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, NullCharSendReceiveTestMF_N_USData_confirm_cb_calls);
@@ -1075,21 +1075,21 @@ TEST(ISOTP_SystemTests, LowMemorySenderTestSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP =
         new ISOTP(1, 100, LowMemorySenderTestSF_N_USData_confirm_cb, LowMemorySenderTestSF_N_USData_indication_cb,
-                     LowMemorySenderTestSF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     LowMemorySenderTestSF_N_USData_FF_indication_cb, linuxOSInterface, *senderInterface, 2,
                      ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, LowMemorySenderTestSF_N_USData_confirm_cb, LowMemorySenderTestSF_N_USData_indication_cb,
-                     LowMemorySenderTestSF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2,
+                     LowMemorySenderTestSF_N_USData_FF_indication_cb, linuxOSInterface, *receiverInterface, 2,
                      ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -1111,7 +1111,7 @@ TEST(ISOTP_SystemTests, LowMemorySenderTestSF)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, LowMemorySenderTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(0, LowMemorySenderTestSF_N_USData_confirm_cb_calls);
@@ -1172,21 +1172,21 @@ TEST(ISOTP_SystemTests, LowMemoryReceiverTestSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection("senderInterface");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, LowMemoryReceiverTestSF_N_USData_confirm_cb,
                      LowMemoryReceiverTestSF_N_USData_indication_cb, LowMemoryReceiverTestSF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
+                     linuxOSInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 100, LowMemoryReceiverTestSF_N_USData_confirm_cb,
                      LowMemoryReceiverTestSF_N_USData_indication_cb, LowMemoryReceiverTestSF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
+                     linuxOSInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -1203,7 +1203,7 @@ TEST(ISOTP_SystemTests, LowMemoryReceiverTestSF)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, LowMemoryReceiverTestSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, LowMemoryReceiverTestSF_N_USData_confirm_cb_calls);
@@ -1269,21 +1269,21 @@ TEST(ISOTP_SystemTests, LowMemorySenderTestMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP =
         new ISOTP(1, 100, LowMemorySenderTestMF_N_USData_confirm_cb, LowMemorySenderTestMF_N_USData_indication_cb,
-                     LowMemorySenderTestMF_N_USData_FF_indication_cb, osInterface, *senderInterface, 2,
+                     LowMemorySenderTestMF_N_USData_FF_indication_cb, linuxOSInterface, *senderInterface, 2,
                      ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, LowMemorySenderTestMF_N_USData_confirm_cb, LowMemorySenderTestMF_N_USData_indication_cb,
-                     LowMemorySenderTestMF_N_USData_FF_indication_cb, osInterface, *receiverInterface, 2,
+                     LowMemorySenderTestMF_N_USData_FF_indication_cb, linuxOSInterface, *receiverInterface, 2,
                      ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -1305,7 +1305,7 @@ TEST(ISOTP_SystemTests, LowMemorySenderTestMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, LowMemorySenderTestMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(0, LowMemorySenderTestMF_N_USData_confirm_cb_calls);
@@ -1370,21 +1370,21 @@ TEST(ISOTP_SystemTests, LowMemoryReceiverTestMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface   = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP =
         new ISOTP(1, 2000, LowMemoryReceiverTestMF_N_USData_confirm_cb,
                      LowMemoryReceiverTestMF_N_USData_indication_cb, LowMemoryReceiverTestMF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
+                     linuxOSInterface, *senderInterface, 2, ISOTP_DefaultSTmin, "senderISOTP");
     ISOTP* receiverISOTP =
         new ISOTP(2, 100, LowMemoryReceiverTestMF_N_USData_confirm_cb,
                      LowMemoryReceiverTestMF_N_USData_indication_cb, LowMemoryReceiverTestMF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
+                     linuxOSInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP->runStep();
         senderISOTP->canMessageACKQueueRunStep();
@@ -1400,7 +1400,7 @@ TEST(ISOTP_SystemTests, LowMemoryReceiverTestMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, LowMemoryReceiverTestMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(1, LowMemoryReceiverTestMF_N_USData_confirm_cb_calls);
@@ -1510,26 +1510,26 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface1  = network.newCANInterfaceConnection("senderInterface1");
     CANInterface*   senderInterface2  = network.newCANInterfaceConnection("senderInterface2");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP1 =
         new ISOTP(1, 2000, ManySenderToOneTargetSF_N_USData_confirm_cb,
                      ManySenderToOneTargetSF_N_USData_indication_cb, ManySenderToOneTargetSF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface1, 2, ISOTP_DefaultSTmin, "senderISOTP1");
+                     linuxOSInterface, *senderInterface1, 2, ISOTP_DefaultSTmin, "senderISOTP1");
     ISOTP* senderISOTP2 =
         new ISOTP(3, 2000, ManySenderToOneTargetSF_N_USData_confirm_cb,
                      ManySenderToOneTargetSF_N_USData_indication_cb, ManySenderToOneTargetSF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface2, 2, ISOTP_DefaultSTmin, "senderISOTP2");
+                     linuxOSInterface, *senderInterface2, 2, ISOTP_DefaultSTmin, "senderISOTP2");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, ManySenderToOneTargetSF_N_USData_confirm_cb,
                      ManySenderToOneTargetSF_N_USData_indication_cb, ManySenderToOneTargetSF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
+                     linuxOSInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP1->runStep();
         senderISOTP1->canMessageACKQueueRunStep();
@@ -1552,7 +1552,7 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetSF)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, ManySenderToOneTargetSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, ManySenderToOneTargetSF_N_USData_confirm_cb_calls);
@@ -1667,28 +1667,28 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetBroadcast)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface1  = network.newCANInterfaceConnection("senderInterface1");
     CANInterface*   senderInterface2  = network.newCANInterfaceConnection("senderInterface2");
     CANInterface*   receiverInterface = network.newCANInterfaceConnection("receiverInterface");
     ISOTP*       senderISOTP1   = new ISOTP(1, 2000, ManySenderToOneTargetBroadcast_N_USData_confirm_cb,
                                                      ManySenderToOneTargetBroadcast_N_USData_indication_cb,
-                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface1, 2, ISOTP_DefaultSTmin, "senderISOTP1");
     ISOTP*       senderISOTP2   = new ISOTP(3, 2000, ManySenderToOneTargetBroadcast_N_USData_confirm_cb,
                                                      ManySenderToOneTargetBroadcast_N_USData_indication_cb,
-                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface2, 2, ISOTP_DefaultSTmin, "senderISOTP2");
     ISOTP*       receiverISOTP  = new ISOTP(2, 2000, ManySenderToOneTargetBroadcast_N_USData_confirm_cb,
                                                      ManySenderToOneTargetBroadcast_N_USData_indication_cb,
-                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
     receiverISOTP->addAcceptedFunctionalN_TA(2);
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP1->runStep();
         senderISOTP1->canMessageACKQueueRunStep();
@@ -1711,7 +1711,7 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetBroadcast)
 
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, ManySenderToOneTargetBroadcast_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, ManySenderToOneTargetBroadcast_N_USData_confirm_cb_calls);
@@ -1851,26 +1851,26 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface1  = network.newCANInterfaceConnection();
     CANInterface*   senderInterface2  = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP1 =
         new ISOTP(1, 2000, ManySenderToOneTargetMF_N_USData_confirm_cb,
                      ManySenderToOneTargetMF_N_USData_indication_cb, ManySenderToOneTargetMF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface1, 2, ISOTP_DefaultSTmin, "senderISOTP1");
+                     linuxOSInterface, *senderInterface1, 2, ISOTP_DefaultSTmin, "senderISOTP1");
     ISOTP* senderISOTP2 =
         new ISOTP(3, 2000, ManySenderToOneTargetMF_N_USData_confirm_cb,
                      ManySenderToOneTargetMF_N_USData_indication_cb, ManySenderToOneTargetMF_N_USData_FF_indication_cb,
-                     osInterface, *senderInterface2, 2, ISOTP_DefaultSTmin, "senderISOTP2");
+                     linuxOSInterface, *senderInterface2, 2, ISOTP_DefaultSTmin, "senderISOTP2");
     ISOTP* receiverISOTP =
         new ISOTP(2, 2000, ManySenderToOneTargetMF_N_USData_confirm_cb,
                      ManySenderToOneTargetMF_N_USData_indication_cb, ManySenderToOneTargetMF_N_USData_FF_indication_cb,
-                     osInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
+                     linuxOSInterface, *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP1->runStep();
         senderISOTP1->canMessageACKQueueRunStep();
@@ -1892,7 +1892,7 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(2, ManySenderToOneTargetMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, ManySenderToOneTargetMF_N_USData_confirm_cb_calls);
@@ -2023,33 +2023,33 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetMIX)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   senderInterface1  = network.newCANInterfaceConnection();
     CANInterface*   senderInterface2  = network.newCANInterfaceConnection();
     CANInterface*   senderInterface3  = network.newCANInterfaceConnection();
     CANInterface*   receiverInterface = network.newCANInterfaceConnection();
     ISOTP*       senderISOTP1   = new ISOTP(1, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
                                                      ManySenderToOneTargetMIX_N_USData_indication_cb,
-                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface1, 2, ISOTP_DefaultSTmin, "senderISOTP1");
     ISOTP*       senderISOTP2   = new ISOTP(3, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
                                                      ManySenderToOneTargetMIX_N_USData_indication_cb,
-                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface2, 2, ISOTP_DefaultSTmin, "senderISOTP2");
     ISOTP*       senderISOTP3   = new ISOTP(4, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
                                                      ManySenderToOneTargetMIX_N_USData_indication_cb,
-                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *senderInterface3, 2, ISOTP_DefaultSTmin, "senderISOTP3");
     ISOTP*       receiverISOTP  = new ISOTP(2, 2000, ManySenderToOneTargetMIX_N_USData_confirm_cb,
                                                      ManySenderToOneTargetMIX_N_USData_indication_cb,
-                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, osInterface,
+                                                     ManySenderToOneTargetMIX_N_USData_FF_indication_cb, linuxOSInterface,
                                                      *receiverInterface, 2, ISOTP_DefaultSTmin, "receiverISOTP");
 
     receiverISOTP->addAcceptedFunctionalN_TA(2);
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         senderISOTP1->runStep();
         senderISOTP1->canMessageACKQueueRunStep();
@@ -2077,7 +2077,7 @@ TEST(ISOTP_SystemTests, ManySenderToOneTargetMIX)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(1, ManySenderToOneTargetMIX_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(3, ManySenderToOneTargetMIX_N_USData_confirm_cb_calls);
@@ -2219,19 +2219,19 @@ TEST(ISOTP_SystemTests, MessageExchangeSF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   interface1 = network.newCANInterfaceConnection();
     CANInterface*   interface2 = network.newCANInterfaceConnection();
     ISOTP*       ISOTP1  = new ISOTP(
         1, 2000, MessageExchangeSF_N_USData_confirm_cb, MessageExchangeSF_N_USData_indication_cb,
-        MessageExchangeSF_N_USData_FF_indication_cb, osInterface, *interface1, 2, ISOTP_DefaultSTmin, "ISOTP1");
+        MessageExchangeSF_N_USData_FF_indication_cb, linuxOSInterface, *interface1, 2, ISOTP_DefaultSTmin, "ISOTP1");
     ISOTP* ISOTP2 = new ISOTP(
         2, 2000, MessageExchangeSF_N_USData_confirm_cb, MessageExchangeSF_N_USData_indication_cb,
-        MessageExchangeSF_N_USData_FF_indication_cb, osInterface, *interface2, 2, ISOTP_DefaultSTmin, "ISOTP2");
+        MessageExchangeSF_N_USData_FF_indication_cb, linuxOSInterface, *interface2, 2, ISOTP_DefaultSTmin, "ISOTP2");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         ISOTP1->runStep();
         ISOTP1->canMessageACKQueueRunStep();
@@ -2249,7 +2249,7 @@ TEST(ISOTP_SystemTests, MessageExchangeSF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(0, MessageExchangeSF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, MessageExchangeSF_N_USData_confirm_cb_calls);
@@ -2387,19 +2387,19 @@ TEST(ISOTP_SystemTests, MessageExchangeMF)
     senderKeepRunning          = true;
     receiverKeepRunning        = true;
 
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   interface1 = network.newCANInterfaceConnection();
     CANInterface*   interface2 = network.newCANInterfaceConnection();
     ISOTP*       ISOTP1  = new ISOTP(
         1, 2000, MessageExchangeMF_N_USData_confirm_cb, MessageExchangeMF_N_USData_indication_cb,
-        MessageExchangeMF_N_USData_FF_indication_cb, osInterface, *interface1, 2, ISOTP_DefaultSTmin, "ISOTP1");
+        MessageExchangeMF_N_USData_FF_indication_cb, linuxOSInterface, *interface1, 2, ISOTP_DefaultSTmin, "ISOTP1");
     ISOTP* ISOTP2 = new ISOTP(
         2, 2000, MessageExchangeMF_N_USData_confirm_cb, MessageExchangeMF_N_USData_indication_cb,
-        MessageExchangeMF_N_USData_FF_indication_cb, osInterface, *interface2, 2, ISOTP_DefaultSTmin, "ISOTP2");
+        MessageExchangeMF_N_USData_FF_indication_cb, linuxOSInterface, *interface2, 2, ISOTP_DefaultSTmin, "ISOTP2");
 
-    uint32_t initialTime = osInterface.osMillis();
+    uint32_t initialTime = linuxOSInterface.osMillis();
     uint32_t step        = 0;
-    while ((senderKeepRunning || receiverKeepRunning) && osInterface.osMillis() - initialTime < TIMEOUT)
+    while ((senderKeepRunning || receiverKeepRunning) && linuxOSInterface.osMillis() - initialTime < TIMEOUT)
     {
         ISOTP1->runStep();
         ISOTP1->canMessageACKQueueRunStep();
@@ -2417,7 +2417,7 @@ TEST(ISOTP_SystemTests, MessageExchangeMF)
         }
         step++;
     }
-    uint32_t elapsedTime = osInterface.osMillis() - initialTime;
+    uint32_t elapsedTime = linuxOSInterface.osMillis() - initialTime;
 
     EXPECT_EQ(2, MessageExchangeMF_N_USData_FF_indication_cb_calls);
     EXPECT_EQ(2, MessageExchangeMF_N_USData_confirm_cb_calls);

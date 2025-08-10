@@ -14,7 +14,7 @@ static LinuxOSInterface linuxOSInterface;
 TEST(CANMessageACKQueue, removeFromQueue)
 {
     // Given
-    LocalCANNetwork    localCANNetwork;
+    LocalCANNetwork    localCANNetwork(linuxOSInterface);
     CANInterface*      canInterface = localCANNetwork.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     CANFrame           frame  = NewCANFrameISOTP();
@@ -56,7 +56,7 @@ TEST(CANMessageACKQueue, removeFromQueue)
 TEST(CANMessageACKQueue, writeFrame)
 {
     // Given
-    LocalCANNetwork    localCANNetwork;
+    LocalCANNetwork    localCANNetwork(linuxOSInterface);
     CANInterface*      canInterface = localCANNetwork.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     CANFrame           frame = NewCANFrameISOTP();
