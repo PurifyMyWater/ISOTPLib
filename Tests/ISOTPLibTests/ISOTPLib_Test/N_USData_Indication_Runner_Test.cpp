@@ -2,6 +2,7 @@
 #include <LocalCANNetwork.h>
 #include <N_USData_Indication_Runner.h>
 #include "ASSERT_MACROS.h"
+#include "LinuxOSInterface.h"
 #include "gtest/gtest.h"
 
 static LinuxOSInterface linuxOSInterface;
@@ -10,7 +11,7 @@ constexpr int64_t DEFAULT_AVAILABLE_MEMORY_CONST = 200;
 
 TEST(N_USData_Indication_Runner, constructor_getters)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -42,7 +43,7 @@ TEST(N_USData_Indication_Runner, constructor_getters)
 
 TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemoryTest)
 {
-    LocalCANNetwork    can_network;
+    LocalCANNetwork    can_network(linuxOSInterface);
     Atomic_int64_t     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
@@ -68,7 +69,7 @@ TEST(N_USData_Indication_Runner, constructor_destructor_argument_availableMemory
 
 TEST(N_USData_Indication_Runner, constructor_destructor_argument_notAvailableMemoryTest)
 {
-    LocalCANNetwork    can_network;
+    LocalCANNetwork    can_network(linuxOSInterface);
     int64_t            availableMemoryConst = 2;
     Atomic_int64_t     availableMemoryMock(availableMemoryConst, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
@@ -96,7 +97,7 @@ TEST(N_USData_Indication_Runner, constructor_destructor_argument_notAvailableMem
 
 TEST(N_USData_Indication_Runner, runStep_SF_valid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -134,7 +135,7 @@ TEST(N_USData_Indication_Runner, runStep_SF_valid)
 
 TEST(N_USData_Indication_Runner, runStep_SF_valid_void)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -171,7 +172,7 @@ TEST(N_USData_Indication_Runner, runStep_SF_valid_void)
 
 TEST(N_USData_Indication_Runner, runStep_SF_Mtype_invalid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -205,7 +206,7 @@ TEST(N_USData_Indication_Runner, runStep_SF_Mtype_invalid)
 
 TEST(N_USData_Indication_Runner, runStep_SF_big_invalid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -273,7 +274,7 @@ void assertFCFrame(const CANFrame* receivedFrame, N_USData_Runner::FlowStatus fs
 
 TEST(N_USData_Indication_Runner, runStep_FF_valid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -326,7 +327,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_valid)
 
 TEST(N_USData_Indication_Runner, runStep_FF_small)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -363,7 +364,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_small)
 
 TEST(N_USData_Indication_Runner, runStep_FF_big_valid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     int64_t        availableMemoryConst = 10000;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
@@ -421,7 +422,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_big_valid)
 
 TEST(N_USData_Indication_Runner, runStep_FF_invalid_no_memory)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     int64_t        availableMemoryConst = 1000;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
@@ -460,7 +461,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_invalid_no_memory)
 
 TEST(N_USData_Indication_Runner, runStep_FF_nullptr)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     int64_t        availableMemoryConst = 10000;
     Atomic_int64_t availableMemoryMock(availableMemoryConst, linuxOSInterface);
@@ -485,7 +486,7 @@ TEST(N_USData_Indication_Runner, runStep_FF_nullptr)
 
 TEST(N_USData_Indication_Runner, runStep_CF_valid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -568,7 +569,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_valid)
 
 TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -666,7 +667,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_variable_bs_stmin_valid)
 
 TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -742,7 +743,7 @@ TEST(N_USData_Indication_Runner, runStep_CF_blockSize0_valid)
 
 TEST(N_USData_Indication_Runner, timeout_N_Br_FF_Performance)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -784,7 +785,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Br_FF_Performance)
 
 TEST(N_USData_Indication_Runner, timeout_N_Br_CF_Performance)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -869,7 +870,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Br_CF_Performance)
 
 TEST(N_USData_Indication_Runner, timeout_N_Ar_lateACK)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -934,7 +935,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Ar_lateACK)
 
 TEST(N_USData_Indication_Runner, timeout_N_Ar_noACK)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -996,7 +997,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Ar_noACK)
 
 TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_lateCF)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -1060,7 +1061,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_lateCF)
 
 TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_noCF)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -1124,7 +1125,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_FC_CF_noCF)
 
 TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_lateCF)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 
@@ -1193,7 +1194,7 @@ TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_lateCF)
 
 TEST(N_USData_Indication_Runner, timeout_N_Cr_CF_CF_noCF)
 {
-    LocalCANNetwork can_network;
+    LocalCANNetwork can_network(linuxOSInterface);
 
     Atomic_int64_t availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
 

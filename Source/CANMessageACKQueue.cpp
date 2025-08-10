@@ -12,16 +12,16 @@ CANMessageACKQueue::~CANMessageACKQueue()
     delete mutex;
 }
 
-void CANMessageACKQueue::saveAck(const CANInterface::ACKResult ack)
+void CANMessageACKQueue::saveAck(const ACKResult ack)
 {
     if (!messageQueue.empty())
     {
         for (auto& [runner, runnerAck] : messageQueue)
         {
-            if (runnerAck == CANInterface::ACK_NONE)
+            if (runnerAck == ACK_NONE)
             {
-                OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s",
-                                    CANInterface::ackResultToString(ack), nAiToString(runner->getN_AI()));
+                OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s", ackResultToString(ack),
+                                    nAiToString(runner->getN_AI()));
                 runnerAck = ack; // Update the ACK result for the runner.
                 break;
             }
@@ -34,9 +34,9 @@ void CANMessageACKQueue::saveAck(const CANInterface::ACKResult ack)
 }
 void CANMessageACKQueue::runStep()
 {
-    if (const CANInterface::ACKResult ack = canInterface->getWriteFrameACK(); ack != CANInterface::ACK_NONE)
+    if (const ACKResult ack = canInterface->getWriteFrameACK(); ack != ACK_NONE)
     {
-        OSInterfaceLogDebug(this->tag, "ACK received: %s", CANInterface::ackResultToString(ack));
+        OSInterfaceLogDebug(this->tag, "ACK received: %s", ackResultToString(ack));
         if (mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
         {
             saveAck(ack);
@@ -44,8 +44,7 @@ void CANMessageACKQueue::runStep()
         }
         else
         {
-            OSInterfaceLogError(this->tag, "Failed to acquire mutex for ACK storage of %s",
-                                CANInterface::ackResultToString(ack));
+            OSInterfaceLogError(this->tag, "Failed to acquire mutex for ACK storage of %s", ackResultToString(ack));
         }
     }
 }
@@ -67,7 +66,7 @@ bool CANMessageACKQueue::runNextAvailableAckCallback()
     {
         if (!messageQueue.empty())
         {
-            if (const auto ack = messageQueue.front().second; ack != CANInterface::ACK_NONE)
+            if (const auto ack = messageQueue.front().second; ack != ACK_NONE)
             {
                 auto* runner = messageQueue.front().first;
 
@@ -75,7 +74,7 @@ bool CANMessageACKQueue::runNextAvailableAckCallback()
                 mutex->signal();
 
                 OSInterfaceLogDebug(this->tag, "Running callback for runner with N_AI=%s and ACK=%s",
-                                    nAiToString(runner->getN_AI()), CANInterface::ackResultToString(ack));
+                                    nAiToString(runner->getN_AI()), ackResultToString(ack));
                 runner->messageACKReceivedCallback(ack);
                 callbackHasRun = true;
             }
@@ -103,7 +102,7 @@ bool CANMessageACKQueue::writeFrame(N_USData_Runner& runner, CANFrame& frame)
     bool res = canInterface->writeFrame(&frame);
     if (res && mutex->wait(ISOTP_MaxTimeToWaitForSync_MS))
     {
-        messageQueue.emplace_back(&runner, CANInterface::ACK_NONE);
+        messageQueue.emplace_back(&runner, ACK_NONE);
         mutex->signal();
     }
     return res;
