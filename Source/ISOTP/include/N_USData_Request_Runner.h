@@ -8,6 +8,8 @@
 
 constexpr char    N_USDATA_REQUEST_RUNNER_STATIC_TAG[] = "ISOTP_RequestRunner_";
 constexpr int32_t N_USDATA_REQUEST_RUNNER_TAG_SIZE     = MAX_N_AI_STR_SIZE + sizeof(N_USDATA_REQUEST_RUNNER_STATIC_TAG);
+constexpr uint8_t DEFAULT_STMIN_VALUE_MS =
+    127; // 127 ms is the maximum value for STmin in ms unit and is used if an invalid value is selected.
 
 // Class that handles the request aka transmission of a message
 class N_USData_Request_Runner : public N_USData_Runner
@@ -23,7 +25,7 @@ public:
 
     [[nodiscard]] uint32_t getNextRunTime() override;
 
-    void messageACKReceivedCallback(CANInterface::ACKResult success) override;
+    void messageACKReceivedCallback(ACKResult success) override;
 
     [[nodiscard]] N_AI getN_AI() const override;
 
@@ -49,9 +51,9 @@ private:
     N_Result runStep_CF(const CANFrame* receivedFrame);
     N_Result runStep_FC(const CANFrame* receivedFrame, bool firstFc = false);
 
-    void SF_ACKReceivedCallback(CANInterface::ACKResult success);
-    void FF_ACKReceivedCallback(CANInterface::ACKResult success);
-    void CF_ACKReceivedCallback(CANInterface::ACKResult success);
+    void SF_ACKReceivedCallback(ACKResult success);
+    void FF_ACKReceivedCallback(ACKResult success);
+    void CF_ACKReceivedCallback(ACKResult success);
 
     N_Result               parseFCFrame(const CANFrame* receivedFrame, FlowStatus& fs, uint8_t& blcksize, STmin& stM);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;

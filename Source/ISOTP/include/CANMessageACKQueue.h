@@ -25,12 +25,12 @@ public:
 
 private:
     bool runNextAvailableAckCallback();
-    void saveAck(CANInterface::ACKResult ack);
+    void saveAck(ACKResult ack);
 
-    const char*                                                     tag;
-    OSInterface_Mutex*                                              mutex;
-    std::list<std::pair<N_USData_Runner*, CANInterface::ACKResult>> messageQueue;
-    CANInterface*                                                   canInterface;
+    const char*                                       tag;
+    OSInterface_Mutex*                                mutex;
+    std::list<std::pair<N_USData_Runner*, ACKResult>> messageQueue;
+    CANInterface*                                     canInterface;
 };
 
 #endif // CANMESSAGEACKQUEUE_H

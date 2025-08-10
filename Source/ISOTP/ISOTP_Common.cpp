@@ -38,7 +38,7 @@ const char* N_ResultToString(const N_Result result)
 const char* STminToString(const STmin& stMin)
 {
     static char buffer[MAX_STMIN_STR_SIZE];
-    snprintf(buffer, MAX_STMIN_STR_SIZE, "%u%s", stMin.value, stMin.unit == ms ? " ms" : "00 us");
+    snprintf(buffer, MAX_STMIN_STR_SIZE, "%" PRIu8 "%s", stMin.value, stMin.unit == ms ? " ms" : "00 us");
     return buffer;
 }
 

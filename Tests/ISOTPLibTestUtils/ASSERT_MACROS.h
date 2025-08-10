@@ -18,8 +18,10 @@
     {                                                                                                                  \
         for (uint32_t i = 0; i < (ARRAY_SIZE); i++)                                                                    \
         {                                                                                                              \
-            OSInterfaceLogVerbose("ASSERT_EQ_ARRAY", "REAL_ARRAY[%u]: %c (%02X)\tEXPECTED_ARRAY[%u]: %c (%02X)",       \
-                                  (REAL_ARRAY)[i], (REAL_ARRAY)[i], i, (EXPECTED_ARRAY)[i], (EXPECTED_ARRAY)[i], i);   \
+            OSInterfaceLogVerbose("ASSERT_EQ_ARRAY",                                                                   \
+                                  "REAL_ARRAY[%" PRIu8 "]: %c (%02" PRIX8 ")\tEXPECTED_ARRAY[%" PRIu8                  \
+                                  "]: %c (%02" PRIX8 ")",                                                              \
+                                  i, (REAL_ARRAY)[i], (REAL_ARRAY)[i], i, (EXPECTED_ARRAY)[i], (EXPECTED_ARRAY)[i]);   \
             ASSERT_EQ((REAL_ARRAY)[i], (EXPECTED_ARRAY)[i]);                                                           \
         }                                                                                                              \
     }                                                                                                                  \

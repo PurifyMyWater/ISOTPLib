@@ -23,7 +23,7 @@ public:
 
     [[nodiscard]] uint32_t getNextRunTime() override;
 
-    void messageACKReceivedCallback(CANInterface::ACKResult success) override;
+    void messageACKReceivedCallback(ACKResult success) override;
 
     bool setBlockSize(uint8_t blockSize);
 
@@ -52,7 +52,7 @@ private:
     N_Result runStep_CF(const CANFrame* receivedFrame);
     N_Result runStep_FC_CTS(const CANFrame* receivedFrame);
 
-    void FC_ACKReceivedCallback(CANInterface::ACKResult success);
+    void FC_ACKReceivedCallback(ACKResult success);
 
     N_Result               sendFCFrame(FlowStatus fs);
     [[nodiscard]] uint32_t getNextTimeoutTime() const;
