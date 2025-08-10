@@ -155,7 +155,7 @@ N_Result N_USData_Indication_Runner::runStep_internal(const CANFrame* receivedFr
             res = result;
             break;
         default:
-            OSInterfaceLogError(tag, "Invalid internalStatus %s (%" PRId8 ")", internalStatusToString(internalStatus),
+            OSInterfaceLogError(tag, "Invalid internalStatus %s (%" PRIu8 ")", internalStatusToString(internalStatus),
                                 internalStatus);
             result = N_ERROR;
             updateInternalStatus(ERROR);
