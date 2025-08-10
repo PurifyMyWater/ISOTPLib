@@ -1,8 +1,9 @@
 #include "CANInterface.h"
 
 #include <cstdio>
+#include <cinttypes>
 
-#include "../ISOTP/include/ISOTP_Common.h"
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 const char* N_TAtypeToString(const N_TAtype_t nTAtype)
 {
