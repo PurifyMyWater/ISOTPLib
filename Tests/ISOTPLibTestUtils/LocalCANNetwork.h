@@ -17,7 +17,7 @@ class LocalCANNetworkCANInterface;
 class LocalCANNetwork
 {
 public:
-    LocalCANNetwork(OSInterface& osInterface);
+    explicit LocalCANNetwork(OSInterface& osInterface);
 
     ~LocalCANNetwork();
 
