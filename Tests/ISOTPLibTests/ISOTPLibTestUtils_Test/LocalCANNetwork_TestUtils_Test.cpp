@@ -1,10 +1,13 @@
 #include "ASSERT_MACROS.h"
+#include "LinuxOSInterface.h"
 #include "LocalCANNetwork.h"
 #include "gtest/gtest.h"
 
+LinuxOSInterface linuxOSInterface;
+
 TEST(LocalCANNetwork, network_newCANInterfaceConnection_test)
 {
-    LocalCANNetwork              network;
+    LocalCANNetwork              network(linuxOSInterface);
     LocalCANNetworkCANInterface* can = network.newCANInterfaceConnection();
     ASSERT_NE(can, nullptr);
     ASSERT_EQ(can->getNodeID(), 0);
@@ -14,7 +17,7 @@ TEST(LocalCANNetwork, network_newCANInterfaceConnection_test)
 TEST(LocalCANNetwork, network_newCANInterfaceConnection_test_N_nodes)
 {
     uint32_t        N = 100;
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     for (uint32_t i = 0; i < N; i++)
     {
         LocalCANNetworkCANInterface* can = network.newCANInterfaceConnection();
@@ -26,7 +29,7 @@ TEST(LocalCANNetwork, network_newCANInterfaceConnection_test_N_nodes)
 
 TEST(LocalCANNetwork, network_getWriteFrameACK_test_none)
 {
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     auto can = network.newCANInterfaceConnection();
     ASSERT_EQ(network.getWriteFrameACK(0), CANInterface::ACK_NONE);
     delete can;
@@ -34,7 +37,7 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_none)
 
 TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
 {
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     uint32_t        id = 0;
     CANFrame        frame;
     frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
@@ -71,7 +74,7 @@ TEST(LocalCANNetwork, network_getWriteFrameACK_test_success)
 
 TEST(LocalCANNetwork, network_read_write_peek_available_0_node)
 {
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     uint32_t        id = 0;
     CANFrame        frame;
     frame.identifier.N_TAtype = N_TATYPE_5_CAN_CLASSIC_29bit_Physical;
@@ -92,7 +95,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_0_node)
 
 TEST(LocalCANNetwork, network_read_write_peek_available_1_node)
 {
-    LocalCANNetwork              network;
+    LocalCANNetwork              network(linuxOSInterface);
     LocalCANNetworkCANInterface* can = network.newCANInterfaceConnection();
     ASSERT_NE(can, nullptr);
     uint32_t id = can->getNodeID();
@@ -118,7 +121,7 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_node)
 TEST(LocalCANNetwork, network_read_write_peek_available_1_to_N_node)
 {
     uint32_t                     N = 100;
-    LocalCANNetwork              network;
+    LocalCANNetwork              network(linuxOSInterface);
     LocalCANNetworkCANInterface* wcan = network.newCANInterfaceConnection();
     ASSERT_NE(wcan, nullptr);
     uint32_t writterId = wcan->getNodeID();
@@ -188,13 +191,13 @@ TEST(LocalCANNetwork, network_read_write_peek_available_1_to_N_node)
 
 TEST(LocalCANNetwork, active_test_0_nodes)
 {
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     ASSERT_EQ(network.active(), false);
 }
 
 TEST(LocalCANNetwork, network_active_test_1_node)
 {
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   can = network.newCANInterfaceConnection();
     ASSERT_EQ(network.active(), false);
     delete can;
@@ -203,7 +206,7 @@ TEST(LocalCANNetwork, network_active_test_1_node)
 TEST(LocalCANNetwork, network_active_test_N_nodes)
 {
     uint32_t        N = 100;
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     for (uint32_t i = 0; i < N; i++)
     {
         CANInterface* can = network.newCANInterfaceConnection();
@@ -221,7 +224,7 @@ TEST(LocalCANNetwork, network_active_test_N_nodes)
 
 TEST(LocalCANNetwork, CANInterface_active_test_1)
 {
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   can = network.newCANInterfaceConnection();
     ASSERT_NE(can, nullptr);
     ASSERT_EQ(can->active(), false);
@@ -231,7 +234,7 @@ TEST(LocalCANNetwork, CANInterface_active_test_1)
 TEST(LocalCANNetwork, CANInterface_active_test_N)
 {
     uint32_t        N = 100;
-    LocalCANNetwork network;
+    LocalCANNetwork network(linuxOSInterface);
     CANInterface*   can1 = network.newCANInterfaceConnection();
     ASSERT_NE(can1, nullptr);
     for (uint32_t i = 0; i < N; i++)
@@ -247,7 +250,7 @@ TEST(LocalCANNetwork, CANInterface_active_test_N)
 
 TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_node)
 {
-    LocalCANNetwork              network;
+    LocalCANNetwork              network(linuxOSInterface);
     LocalCANNetworkCANInterface* can = network.newCANInterfaceConnection();
     ASSERT_NE(can, nullptr);
     CANFrame frame;
@@ -271,7 +274,7 @@ TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_node)
 TEST(LocalCANNetwork, CANInterface_read_write_peek_available_1_to_N_node)
 {
     uint32_t                     N = 100;
-    LocalCANNetwork              network;
+    LocalCANNetwork              network(linuxOSInterface);
     LocalCANNetworkCANInterface* wcan = network.newCANInterfaceConnection();
     ASSERT_NE(wcan, nullptr);
     CANFrame frame;

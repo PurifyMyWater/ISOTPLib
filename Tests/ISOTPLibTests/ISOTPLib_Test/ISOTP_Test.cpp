@@ -5,7 +5,7 @@
 #include "LinuxOSInterface.h"
 #include "gtest/gtest.h"
 
-static LinuxOSInterface osInterface;
+static LinuxOSInterface linuxOSInterface;
 
 static uint32_t Dummy_N_USData_confirm_cb_calls = 0;
 void            Dummy_N_USData_confirm_cb(N_AI nAi, N_Result nResult, Mtype mtype)
@@ -36,11 +36,11 @@ void            Dummy_N_USData_FF_indication_cb(const N_AI nAi, const uint32_t m
 
 TEST(ISOTP, getN_SA)
 {
-    LocalCANNetwork canNetwork;
+    LocalCANNetwork canNetwork(linuxOSInterface);
     CANInterface*   canInterface = canNetwork.newCANInterfaceConnection();
 
     ISOTP ISOTP(1, 2000, Dummy_N_USData_confirm_cb, Dummy_N_USData_indication_cb, Dummy_N_USData_FF_indication_cb,
-                      osInterface, *canInterface, 2, ISOTP_DefaultSTmin);
+                      linuxOSInterface, *canInterface, 2, ISOTP_DefaultSTmin);
 
     EXPECT_EQ(ISOTP.getN_SA(), 1);
 
@@ -49,11 +49,11 @@ TEST(ISOTP, getN_SA)
 
 TEST(ISOTP, getTag)
 {
-    LocalCANNetwork canNetwork;
+    LocalCANNetwork canNetwork(linuxOSInterface);
     CANInterface*   canInterface = canNetwork.newCANInterfaceConnection();
 
     ISOTP ISOTP(1, 2000, Dummy_N_USData_confirm_cb, Dummy_N_USData_indication_cb, Dummy_N_USData_FF_indication_cb,
-                      osInterface, *canInterface, 2, ISOTP_DefaultSTmin, "TestISOTP");
+                      linuxOSInterface, *canInterface, 2, ISOTP_DefaultSTmin, "TestISOTP");
 
     EXPECT_STREQ(ISOTP.getTag(), "TestISOTP");
 
@@ -62,11 +62,11 @@ TEST(ISOTP, getTag)
 
 TEST(ISOTP, AcceptedFunctionalN_TA)
 {
-    LocalCANNetwork canNetwork;
+    LocalCANNetwork canNetwork(linuxOSInterface);
     CANInterface*   canInterface = canNetwork.newCANInterfaceConnection();
 
     ISOTP ISOTP(1, 2000, Dummy_N_USData_confirm_cb, Dummy_N_USData_indication_cb, Dummy_N_USData_FF_indication_cb,
-                      osInterface, *canInterface, 2, ISOTP_DefaultSTmin);
+                      linuxOSInterface, *canInterface, 2, ISOTP_DefaultSTmin);
 
     ISOTP.addAcceptedFunctionalN_TA(2);
     EXPECT_TRUE(ISOTP.hasAcceptedFunctionalN_TA(2));
@@ -81,11 +81,11 @@ TEST(ISOTP, AcceptedFunctionalN_TA)
 
 TEST(ISOTP, BlockSize)
 {
-    LocalCANNetwork canNetwork;
+    LocalCANNetwork canNetwork(linuxOSInterface);
     CANInterface*   canInterface = canNetwork.newCANInterfaceConnection();
 
     ISOTP ISOTP(1, 2000, Dummy_N_USData_confirm_cb, Dummy_N_USData_indication_cb, Dummy_N_USData_FF_indication_cb,
-                      osInterface, *canInterface, 2, ISOTP_DefaultSTmin);
+                      linuxOSInterface, *canInterface, 2, ISOTP_DefaultSTmin);
 
     EXPECT_EQ(ISOTP.getBlockSize(), 2);
 
@@ -97,11 +97,11 @@ TEST(ISOTP, BlockSize)
 
 TEST(ISOTP, STmin)
 {
-    LocalCANNetwork canNetwork;
+    LocalCANNetwork canNetwork(linuxOSInterface);
     CANInterface*   canInterface = canNetwork.newCANInterfaceConnection();
 
     ISOTP ISOTP(1, 2000, Dummy_N_USData_confirm_cb, Dummy_N_USData_indication_cb, Dummy_N_USData_FF_indication_cb,
-                      osInterface, *canInterface, 2, ISOTP_DefaultSTmin);
+                      linuxOSInterface, *canInterface, 2, ISOTP_DefaultSTmin);
 
     EXPECT_EQ(ISOTP.getSTmin().value, ISOTP_DefaultSTmin.value);
     EXPECT_EQ(ISOTP.getSTmin().unit, ISOTP_DefaultSTmin.unit);

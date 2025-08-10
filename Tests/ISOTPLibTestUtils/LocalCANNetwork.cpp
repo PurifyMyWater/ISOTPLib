@@ -43,9 +43,9 @@ uint32_t LocalCANNetworkCANInterface::getNodeID() const
     return nodeID;
 }
 
-LocalCANNetwork::LocalCANNetwork()
+LocalCANNetwork::LocalCANNetwork(OSInterface& osInterface)
 {
-    this->accessMutex = LinuxOSInterface().osCreateMutex();
+    this->accessMutex = osInterface.osCreateMutex();
 }
 
 LocalCANNetwork::~LocalCANNetwork()

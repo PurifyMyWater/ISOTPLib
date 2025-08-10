@@ -5,7 +5,7 @@
 #include <queue>
 #include <vector>
 #include "CANInterface.h"
-#include "LinuxOSInterface.h"
+#include "OSInterface.h"
 
 class LocalCANNetworkCANInterface;
 
@@ -17,7 +17,7 @@ class LocalCANNetworkCANInterface;
 class LocalCANNetwork
 {
 public:
-    LocalCANNetwork();
+    LocalCANNetwork(OSInterface& osInterface);
 
     ~LocalCANNetwork();
 
