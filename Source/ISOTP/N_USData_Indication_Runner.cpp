@@ -110,7 +110,7 @@ N_Result N_USData_Indication_Runner::runStep(CANFrame* receivedFrame)
         returnErrorWithLog(N_ERROR, "Failed to acquire mutex");
     }
 
-    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%" PRId8 ") and frame %s",
+    OSInterfaceLogVerbose(tag, "Running step with internalStatus = %s (%" PRIu8 ") and frame %s",
                           internalStatusToString(internalStatus), internalStatus,
                           receivedFrame != nullptr ? frameToString(*receivedFrame) : "null");
 
