@@ -20,8 +20,8 @@ void CANMessageACKQueue::saveAck(const ACKResult ack)
         {
             if (runnerAck == ACK_NONE)
             {
-                OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s",
-                                    ackResultToString(ack), nAiToString(runner->getN_AI()));
+                OSInterfaceLogDebug(this->tag, "Processing ACK %s for runner with N_AI=%s", ackResultToString(ack),
+                                    nAiToString(runner->getN_AI()));
                 runnerAck = ack; // Update the ACK result for the runner.
                 break;
             }
@@ -44,8 +44,7 @@ void CANMessageACKQueue::runStep()
         }
         else
         {
-            OSInterfaceLogError(this->tag, "Failed to acquire mutex for ACK storage of %s",
-                                ackResultToString(ack));
+            OSInterfaceLogError(this->tag, "Failed to acquire mutex for ACK storage of %s", ackResultToString(ack));
         }
     }
 }

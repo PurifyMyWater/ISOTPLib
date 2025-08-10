@@ -76,11 +76,11 @@ public:
 
 private:
     std::vector<std::queue<ACKResult>> lastACKQueueList;
-    [[nodiscard]] bool                               checkNodeID(uint32_t nodeID) const;
-    std::vector<std::list<CANFrame>>                 network;
-    uint32_t                                         nextNodeID      = 0;
-    bool                                             allowActiveFlag = true;
-    OSInterface_Mutex*                               accessMutex     = nullptr;
+    [[nodiscard]] bool                 checkNodeID(uint32_t nodeID) const;
+    std::vector<std::list<CANFrame>>   network;
+    uint32_t                           nextNodeID      = 0;
+    bool                               allowActiveFlag = true;
+    OSInterface_Mutex*                 accessMutex     = nullptr;
 };
 
 /**

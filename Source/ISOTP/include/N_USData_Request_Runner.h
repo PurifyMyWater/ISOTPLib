@@ -8,7 +8,8 @@
 
 constexpr char    N_USDATA_REQUEST_RUNNER_STATIC_TAG[] = "ISOTP_RequestRunner_";
 constexpr int32_t N_USDATA_REQUEST_RUNNER_TAG_SIZE     = MAX_N_AI_STR_SIZE + sizeof(N_USDATA_REQUEST_RUNNER_STATIC_TAG);
-constexpr uint8_t DEFAULT_STMIN_VALUE_MS = 127; // 127 ms is the maximum value for STmin in ms unit and is used if an invalid value is selected.
+constexpr uint8_t DEFAULT_STMIN_VALUE_MS =
+    127; // 127 ms is the maximum value for STmin in ms unit and is used if an invalid value is selected.
 
 // Class that handles the request aka transmission of a message
 class N_USData_Request_Runner : public N_USData_Runner

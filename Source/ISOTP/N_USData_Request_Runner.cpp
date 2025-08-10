@@ -77,8 +77,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
         {
             int64_t availableMemory;
             availableMemoryForRunners.get(&availableMemory);
-            OSInterfaceLogError(tag, "Not enough memory for message length %" PRIu32 ". Available memory is %" PRId64, messageLength,
-                                availableMemory);
+            OSInterfaceLogError(tag, "Not enough memory for message length %" PRIu32 ". Available memory is %" PRId64,
+                                messageLength, availableMemory);
         }
         else
         {
@@ -114,8 +114,8 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
     {
         int64_t availableMemory;
         availableMemoryForRunners.get(&availableMemory);
-        OSInterfaceLogError(tag, "Not enough memory for message length %" PRIu32 ". Available memory is %" PRId64, messageLength,
-                            availableMemory);
+        OSInterfaceLogError(tag, "Not enough memory for message length %" PRIu32 ". Available memory is %" PRId64,
+                            messageLength, availableMemory);
     }
 }
 
@@ -157,7 +157,8 @@ N_Result N_USData_Request_Runner::sendCFFrame()
 
     cfFrame.data_length_code = frameDataLength + 1; // 1 byte for N_PCI_SF
 
-    OSInterfaceLogDebug(tag, "Sending CF #%" PRId16 " in block with %" PRIu8 " data bytes", cfSentInThisBlock + 1, frameDataLength);
+    OSInterfaceLogDebug(tag, "Sending CF #%" PRId16 " in block with %" PRIu8 " data bytes", cfSentInThisBlock + 1,
+                        frameDataLength);
 
     if (CanMessageACKQueue->writeFrame(*this, cfFrame))
     {
@@ -181,18 +182,19 @@ N_Result N_USData_Request_Runner::checkTimeouts()
     uint32_t N_Cs_performance = timerN_Cs->getElapsedTime_ms() + timerN_As->getElapsedTime_ms();
     if (N_Cs_performance > N_Cs_TIMEOUT_MS)
     {
-        OSInterfaceLogWarning(tag, "N_Cs performance not met. Elapsed time is %" PRIu32 " ms and required is %" PRId32 " ms",
+        OSInterfaceLogWarning(tag,
+                              "N_Cs performance not met. Elapsed time is %" PRIu32 " ms and required is %" PRId32 " ms",
                               N_Cs_performance, N_Cs_TIMEOUT_MS);
     }
     if (timerN_As->getElapsedTime_ms() > N_As_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms", timerN_As->getElapsedTime_ms(),
-                           N_As_TIMEOUT_MS);
+        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms",
+                           timerN_As->getElapsedTime_ms(), N_As_TIMEOUT_MS);
     }
     if (timerN_Bs->getElapsedTime_ms() > N_Bs_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_Bs, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms", timerN_Bs->getElapsedTime_ms(),
-                           N_Bs_TIMEOUT_MS);
+        returnErrorWithLog(N_TIMEOUT_Bs, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms",
+                           timerN_Bs->getElapsedTime_ms(), N_Bs_TIMEOUT_MS);
     }
     return N_OK;
 }
@@ -296,7 +298,8 @@ N_Result N_USData_Request_Runner::runStep_holdFrame(const CANFrame* receivedFram
         returnErrorWithLog(N_ERROR, "Received frame is null");
     }
 
-    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK in %s (%" PRIu8 "). Storing it for later use Frame: %s",
+    OSInterfaceLogWarning(tag,
+                          "Received frame while waiting for ACK in %s (%" PRIu8 "). Storing it for later use Frame: %s",
                           internalStatusToString(internalStatus), internalStatus, frameToString(*receivedFrame));
 
     if (frameToHoldValid)
@@ -314,7 +317,8 @@ N_Result N_USData_Request_Runner::runStep_holdFrame(const CANFrame* receivedFram
 N_Result N_USData_Request_Runner::runStep_CF(const CANFrame* receivedFrame)
 {
     timerN_Cs->stopTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Cs stopped before sending CF in %" PRIu32 " ms", timerN_Cs->getElapsedTime_ms());
+    OSInterfaceLogVerbose(tag, "Timer N_Cs stopped before sending CF in %" PRIu32 " ms",
+                          timerN_Cs->getElapsedTime_ms());
     if (receivedFrame != nullptr)
     {
         returnErrorWithLog(N_ERROR, "Received frame is not null");
@@ -534,9 +538,9 @@ void N_USData_Request_Runner::messageACKReceivedCallback(const ACKResult success
         return;
     }
 
-    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%" PRIu8 ") and success = %s",
-                        internalStatusToString(internalStatus), internalStatus,
-                        ackResultToString(success));
+    OSInterfaceLogDebug(tag,
+                        "Running messageACKReceivedCallback with internalStatus = %s (%" PRIu8 ") and success = %s",
+                        internalStatusToString(internalStatus), internalStatus, ackResultToString(success));
 
     switch (internalStatus)
     {
@@ -677,13 +681,14 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
 
     if (receivedFrame->data_length_code != FC_MESSAGE_LENGTH)
     {
-        returnErrorWithLog(N_ERROR, "Received frame has invalid data length code %" PRIu8, receivedFrame->data_length_code);
+        returnErrorWithLog(N_ERROR, "Received frame has invalid data length code %" PRIu8,
+                           receivedFrame->data_length_code);
     }
 
     if (const FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4); frameCode != FC_CODE)
     {
-        returnErrorWithLog(N_ERROR, "Received frame type %s (%" PRIu8 ") is not a FC frame", frameCodeToString(frameCode),
-                           frameCode);
+        returnErrorWithLog(N_ERROR, "Received frame type %s (%" PRIu8 ") is not a FC frame",
+                           frameCodeToString(frameCode), frameCode);
     }
 
     fs = static_cast<FlowStatus>(receivedFrame->data[0] & 0b00001111);
@@ -706,7 +711,8 @@ N_Result N_USData_Request_Runner::parseFCFrame(const CANFrame* receivedFrame, Fl
     }
     else // Reserved values -> max stMin value
     {
-        OSInterfaceLogWarning(tag, "FC frame has reserved STmin value %" PRIu8 ". Defaulting to %" PRIu8 " ms", receivedFrame->data[2], DEFAULT_STMIN_VALUE_MS);
+        OSInterfaceLogWarning(tag, "FC frame has reserved STmin value %" PRIu8 ". Defaulting to %" PRIu8 " ms",
+                              receivedFrame->data[2], DEFAULT_STMIN_VALUE_MS);
         stM.unit  = ms;
         stM.value = DEFAULT_STMIN_VALUE_MS;
     }

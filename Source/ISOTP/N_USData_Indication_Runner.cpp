@@ -175,7 +175,8 @@ N_Result N_USData_Indication_Runner::runStep_holdFrame(const CANFrame* receivedF
         returnErrorWithLog(N_ERROR, "Received frame is null");
     }
 
-    OSInterfaceLogWarning(tag, "Received frame while waiting for ACK in %s (%" PRId8 "). Storing it for later use Frame: %s",
+    OSInterfaceLogWarning(tag,
+                          "Received frame while waiting for ACK in %s (%" PRId8 "). Storing it for later use Frame: %s",
                           internalStatusToString(internalStatus), internalStatus, frameToString(*receivedFrame));
 
     if (frameToHoldValid)
@@ -226,7 +227,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
             int64_t availableMemory;
             availableMemoryForRunners->get(&availableMemory);
-            returnErrorWithLog(N_ERROR, "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64,
+            returnErrorWithLog(N_ERROR,
+                               "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64,
                                messageLength, availableMemory);
         }
         case FF_CODE:
@@ -266,7 +268,8 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
                 if (this->messageData == nullptr)
                 {
-                    returnErrorWithLog(N_ERROR, "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64,
+                    returnErrorWithLog(N_ERROR,
+                                       "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64,
                                        messageLength, availableMemory);
                 }
 
@@ -287,9 +290,10 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
             }
 
             sendFCFrame(OVERFLOW);
-            returnErrorWithLog(
-                N_ERROR, "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64 ". OVERFLOW FC frame sent",
-                messageLength, availableMemory);
+            returnErrorWithLog(N_ERROR,
+                               "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64
+                               ". OVERFLOW FC frame sent",
+                               messageLength, availableMemory);
         }
         default:
             returnErrorWithLog(N_UNEXP_PDU, "Received frame with invalid PDU code %s (%" PRIu8 ")",
@@ -305,7 +309,8 @@ N_Result N_USData_Indication_Runner::runStep_FC_CTS(const CANFrame* receivedFram
     }
 
     timerN_Br->stopTimer();
-    OSInterfaceLogVerbose(tag, "Timer N_Br stopped before sending FC frame in %" PRIu32 " ms", timerN_Br->getElapsedTime_ms());
+    OSInterfaceLogVerbose(tag, "Timer N_Br stopped before sending FC frame in %" PRIu32 " ms",
+                          timerN_Br->getElapsedTime_ms());
 
     if (sendFCFrame(CONTINUE_TO_SEND) != N_OK)
     {
@@ -333,8 +338,8 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
 
     if (const FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4); frameCode != CF_CODE)
     {
-        returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%" PRIu8 ") is not a CF frame", frameCodeToString(frameCode),
-                           frameCode);
+        returnErrorWithLog(N_UNEXP_PDU, "Received frame type %s (%" PRIu8 ") is not a CF frame",
+                           frameCodeToString(frameCode), frameCode);
     }
 
     if (const uint8_t messageSequenceNumber = (receivedFrame->data[0] & 0b00001111);
@@ -362,7 +367,8 @@ N_Result N_USData_Indication_Runner::runStep_CF(const CANFrame* receivedFrame)
     messageOffset += bytesToCopy;
     cfReceivedInThisBlock++;
 
-    OSInterfaceLogDebug(tag, "Received CF #%" PRId16 " in block with %" PRIu8 " data bytes", cfReceivedInThisBlock, bytesToCopy);
+    OSInterfaceLogDebug(tag, "Received CF #%" PRId16 " in block with %" PRIu8 " data bytes", cfReceivedInThisBlock,
+                        bytesToCopy);
 
     if (messageOffset == messageLength)
     {
@@ -422,8 +428,8 @@ N_Result N_USData_Indication_Runner::sendFCFrame(const FlowStatus fs)
 
     fcFrame.data_length_code = FC_MESSAGE_LENGTH;
 
-    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %" PRIu8 ", block size %" PRIu8 " and STmin %s", fs, effectiveBlockSize,
-                        STminToString(stMin));
+    OSInterfaceLogDebug(tag, "Sending FC frame with flow status %" PRIu8 ", block size %" PRIu8 " and STmin %s", fs,
+                        effectiveBlockSize, STminToString(stMin));
 
     if (CanMessageACKQueue->writeFrame(*this, fcFrame))
     {
@@ -440,18 +446,19 @@ N_Result N_USData_Indication_Runner::checkTimeouts()
     uint32_t N_Br_performance = timerN_Br->getElapsedTime_ms() + timerN_Ar->getElapsedTime_ms();
     if (N_Br_performance > N_Br_TIMEOUT_MS)
     {
-        OSInterfaceLogWarning(tag, "N_Br performance not met. Elapsed time is %" PRIu32" ms and required is %" PRId32 " ms",
+        OSInterfaceLogWarning(tag,
+                              "N_Br performance not met. Elapsed time is %" PRIu32 " ms and required is %" PRId32 " ms",
                               N_Br_performance, N_Br_TIMEOUT_MS);
     }
     if (timerN_Ar->getElapsedTime_ms() > N_Ar_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms", timerN_Ar->getElapsedTime_ms(),
-                           N_Ar_TIMEOUT_MS);
+        returnErrorWithLog(N_TIMEOUT_A, "Elapsed time is %" PRIu32 " ms and timeout is %" PRId32 " ms",
+                           timerN_Ar->getElapsedTime_ms(), N_Ar_TIMEOUT_MS);
     }
     if (timerN_Cr->getElapsedTime_ms() > N_Cr_TIMEOUT_MS)
     {
-        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %" PRIu32 " ms and timeout is %" PRIu32 " ms", timerN_Cr->getElapsedTime_ms(),
-                           N_Cr_TIMEOUT_MS);
+        returnErrorWithLog(N_TIMEOUT_Cr, "Elapsed time is %" PRIu32 " ms and timeout is %" PRIu32 " ms",
+                           timerN_Cr->getElapsedTime_ms(), N_Cr_TIMEOUT_MS);
     }
     return N_OK;
 }
@@ -525,9 +532,9 @@ void N_USData_Indication_Runner::messageACKReceivedCallback(const ACKResult succ
         return;
     }
 
-    OSInterfaceLogDebug(tag, "Running messageACKReceivedCallback with internalStatus = %s (%" PRIu8 ") and success = %s",
-                        internalStatusToString(internalStatus), internalStatus,
-                        ackResultToString(success));
+    OSInterfaceLogDebug(tag,
+                        "Running messageACKReceivedCallback with internalStatus = %s (%" PRIu8 ") and success = %s",
+                        internalStatusToString(internalStatus), internalStatus, ackResultToString(success));
 
     switch (internalStatus)
     {
