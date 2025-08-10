@@ -176,7 +176,7 @@ N_Result N_USData_Indication_Runner::runStep_holdFrame(const CANFrame* receivedF
     }
 
     OSInterfaceLogWarning(tag,
-                          "Received frame while waiting for ACK in %s (%" PRId8 "). Storing it for later use Frame: %s",
+                          "Received frame while waiting for ACK in %s (%" PRIu8 "). Storing it for later use Frame: %s",
                           internalStatusToString(internalStatus), internalStatus, frameToString(*receivedFrame));
 
     if (frameToHoldValid)
