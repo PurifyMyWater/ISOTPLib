@@ -22,7 +22,7 @@ const char* nAiToString(const N_AI& nAi)
     static char buffer[MAX_N_AI_STR_SIZE]; // 72 = 40 (N_TAtype) + 3 (N_SA) + 3 (N_TA) + 25 (for the format string) + 1
                                            // (for the null terminator)
 
-    snprintf(buffer, sizeof(buffer), "{N_SA=%u, N_TA=%u, N_TAtype=%s}", nAi.N_SA, nAi.N_TA,
+    snprintf(buffer, sizeof(buffer), "{N_SA=%" PRIu8 ", N_TA=%" PRIu8 ", N_TAtype=%s}", nAi.N_SA, nAi.N_TA,
              N_TAtypeToString(nAi.N_TAtype));
 
     return buffer;
@@ -41,7 +41,7 @@ const char* frameDataToString(const uint8_t* data, const uint8_t data_length_cod
 
     for (int i = 0; i < size; i++)
     {
-        ptr += sprintf(ptr, "%02X", data[i]);
+        ptr += sprintf(ptr, "%02" PRIX8, data[i]);
     }
 
     return output;
@@ -53,14 +53,14 @@ const char* frameToString(const CANFrame& frame)
                                             // (format string) + 1 (null terminator)
 
     snprintf(buffer, sizeof(buffer),
-             "{N_AI=%s, flags={extd=%u, rtr=%u, ss=%u, self=%u, dlc_non_comp=%u}, data_length_code=%u, data=[0x%s]}",
+             "{N_AI=%s, flags={extd=%" PRIu8 ", rtr=%" PRIu8 ", ss=%" PRIu8 ", self=%" PRIu8 ", dlc_non_comp=%" PRIu8 "}, data_length_code=%" PRIu8 ", data=[0x%s]}",
              nAiToString(frame.identifier), frame.extd, frame.rtr, frame.ss, frame.self, frame.dlc_non_comp,
              frame.data_length_code, frameDataToString(frame.data, frame.data_length_code));
 
     return buffer;
 }
 
-const char* CANInterface::ackResultToString(const ACKResult ackResult)
+const char* ackResultToString(const ACKResult& ackResult)
 {
     switch (ackResult)
     {

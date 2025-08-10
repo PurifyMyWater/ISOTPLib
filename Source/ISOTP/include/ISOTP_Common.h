@@ -5,7 +5,7 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#include <cstdint>
+#include <cinttypes>
 
 constexpr uint32_t ISOTP_MaxTimeToWaitForSync_MS = 100;
 

@@ -15,6 +15,8 @@ using N_TAtype_t = enum N_TAtype {
     N_TATYPE_6_CAN_CLASSIC_29bit_Functional = 219
 };
 
+using ACKResult = enum ACKResult { ACK_SUCCESS, ACK_ERROR, ACK_NONE };
+
 constexpr uint8_t N_NFA_Header_Value = 0b110;
 constexpr uint8_t N_NFA_Padding_Value = 0b00;
 
@@ -89,13 +91,20 @@ const char* frameDataToString(const uint8_t* data, uint8_t data_length_code);
 const char* frameToString(const CANFrame& frame);
 
 /**
+ * @brief Convert ACKResult to string.
+ * @param ackResult The ACKResult to convert.
+ * @return String representation of the ACKResult.
+ *
+ * @note The output string is static and will be overwritten on the next call to this function.
+ */
+const char* ackResultToString(const ACKResult& ackResult);
+
+/**
  * @brief Interface for a CAN bus driver.
  */
 class CANInterface
 {
 public:
-    using ACKResult = enum ACKResult { ACK_SUCCESS, ACK_ERROR, ACK_NONE };
-
     /**
      * @brief Check if a frame is available to read.
      * @return Number of frames available to read. or 0 if no frames are available, or the bus is not active.
@@ -128,13 +137,6 @@ public:
      * function, or the bus is not active.
      */
     virtual ACKResult getWriteFrameACK() = 0;
-
-    /**
-     * @brief Convert ACKResult to string.
-     * @param ackResult The ACKResult to convert.
-     * @return String representation of the ACKResult.
-     */
-    static const char* ackResultToString(ACKResult ackResult);
 
     virtual ~CANInterface() = default;
 };
