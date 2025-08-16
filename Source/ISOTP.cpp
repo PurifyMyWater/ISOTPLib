@@ -35,6 +35,7 @@ ISOTP::ISOTP(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryFo
     assert(this->configMutex != nullptr && this->notStartedRunnersMutex != nullptr && "Mutex creation failed");
 
     ASSERT_SAFE(setSTmin(stMin), == true);
+    ASSERT_SAFE(setSTmin(stMin), == true);
 
     if (this->N_USData_confirm_cb == nullptr)
     {
