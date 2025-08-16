@@ -44,16 +44,17 @@ jobs:
                     key: "${{ runner.os }}-build-${{ hashFiles('.filelist') }}"
                     path: 'build'
 
-            -   name: Configure CMake
+            -   name: Create build directory
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
-                run: mkdir build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage -S . -B ./build
+                run: mkdir build
+
+            -   name: Configure CMake
+                run: cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=--coverage -DCMAKE_C_FLAGS=--coverage -S . -B ./build
 
             -   name: Build Project
-                if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
                 run: cmake --build ./build --target ISOTPLib
 
             -   name: Build Tests & Dependencies
-                if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
                 run: cmake --build ./build
 
     Test-Coverage:
