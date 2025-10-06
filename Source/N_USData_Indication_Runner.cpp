@@ -225,8 +225,11 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                 return result;
             }
 
-            int64_t availableMemory;
-            availableMemoryForRunners->get(&availableMemory);
+            int64_t availableMemory = 0;
+            if (!availableMemoryForRunners->get(&availableMemory))
+            {
+                returnErrorWithLog(N_ERROR, "Timeout getting available memory");
+            }
             returnErrorWithLog(N_ERROR,
                                "Not enough memory for message length %" PRId64 ". Available memory is %" PRId64,
                                messageLength, availableMemory);
@@ -258,8 +261,11 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
 
             OSInterfaceLogDebug(tag, "Received FF frame with full message length = %" PRId64, messageLength);
 
-            int64_t availableMemory;
-            availableMemoryForRunners->get(&availableMemory);
+            int64_t availableMemory = 0;
+            if (!availableMemoryForRunners->get(&availableMemory))
+            {
+                returnErrorWithLog(N_ERROR, "Timeout getting available memory");
+            }
 
             if (availableMemoryForRunners->subIfResIsGreaterThanZero(
                     this->messageLength * static_cast<int64_t>(sizeof(uint8_t)))) // Check if there is enough memory
