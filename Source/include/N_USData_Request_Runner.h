@@ -83,12 +83,12 @@ private:
     uint8_t  blockSize;
     STmin    stMin{};
 
-    N_Result        result;
-    uint32_t        lastRunTime;
-    uint8_t         sequenceNumber;
+    N_Result         result;
+    uint32_t         lastRunTime;
+    uint8_t          sequenceNumber;
     Atomic<int64_t>* availableMemoryForRunners;
-    uint32_t        messageOffset;
-    char*           tag{};
+    uint32_t         messageOffset;
+    char*            tag{};
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t   internalStatus;

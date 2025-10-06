@@ -79,7 +79,7 @@ private:
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t   internalStatus;
-    Atomic<int64_t>*    availableMemoryForRunners;
+    Atomic<int64_t>*   availableMemoryForRunners;
     uint32_t           messageOffset;
     int16_t            cfReceivedInThisBlock;
 

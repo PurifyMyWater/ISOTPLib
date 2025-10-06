@@ -1,7 +1,6 @@
 #ifndef ATOMIC_H
 #define ATOMIC_H
 
-#include <cstdint>
 #include "OSInterface.h"
 
 constexpr uint32_t DEFAULT_Atomic_TIMEOUT_ms = 100;
@@ -20,6 +19,7 @@ public:
     {
         delete mutex;
     }
+
     bool get(Type* out, uint32_t timeout = DEFAULT_Atomic_TIMEOUT_ms) const
     {
         if (mutex->wait(timeout))
@@ -30,6 +30,7 @@ public:
         }
         return false;
     }
+
     bool set(Type newValue, uint32_t timeout = DEFAULT_Atomic_TIMEOUT_ms)
     {
         if (mutex->wait(timeout))
@@ -40,6 +41,7 @@ public:
         }
         return false;
     }
+
     bool add(Type amount, uint32_t timeout = DEFAULT_Atomic_TIMEOUT_ms)
     {
         if (mutex->wait(timeout))
@@ -50,6 +52,7 @@ public:
         }
         return false;
     }
+
     bool sub(Type amount, uint32_t timeout = DEFAULT_Atomic_TIMEOUT_ms)
     {
         if (mutex->wait(timeout))
@@ -60,6 +63,7 @@ public:
         }
         return false;
     }
+
     bool subIfResIsGreaterThanZero(Type amount, uint32_t timeout = DEFAULT_Atomic_TIMEOUT_ms)
     {
         if (mutex->wait(timeout))
