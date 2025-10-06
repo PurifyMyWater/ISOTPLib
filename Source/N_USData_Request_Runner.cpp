@@ -75,7 +75,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
         }
         if (this->messageData == nullptr)
         {
-            int64_t availableMemory;
+            int64_t availableMemory = -1;
             availableMemoryForRunners.get(&availableMemory);
             OSInterfaceLogError(tag, "Not enough memory for message length %" PRIu32 ". Available memory is %" PRId64,
                                 messageLength, availableMemory);
@@ -112,7 +112,7 @@ N_USData_Request_Runner::N_USData_Request_Runner(bool& result, const N_AI nAi,
     }
     else
     {
-        int64_t availableMemory;
+        int64_t availableMemory = -1;
         availableMemoryForRunners.get(&availableMemory);
         OSInterfaceLogError(tag, "Not enough memory for message length %" PRIu32 ". Available memory is %" PRId64,
                             messageLength, availableMemory);
