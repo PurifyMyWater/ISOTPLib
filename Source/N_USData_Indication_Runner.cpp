@@ -3,7 +3,7 @@
 #include <cstring>
 
 N_USData_Indication_Runner::N_USData_Indication_Runner(bool& result, const N_AI nAi,
-                                                       Atomic_int64_t& availableMemoryForRunners,
+                                                       Atomic<int64_t>& availableMemoryForRunners,
                                                        const uint8_t blockSize, const STmin stMin,
                                                        OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue)
 {
