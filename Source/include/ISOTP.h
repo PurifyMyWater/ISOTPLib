@@ -187,7 +187,7 @@ private:
     STmin                                  stMin{};
 
     // Internal data
-    Atomic<int64_t>                                           availableMemoryForRunners;
+    Atomic<int64_t>                                          availableMemoryForRunners;
     uint32_t                                                 lastRunTime;
     std::list<N_USData_Runner*>                              notStartedRunners;
     std::unordered_map<typeof(N_AI::N_AI), N_USData_Runner*> activeRunners;
