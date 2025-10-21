@@ -8,17 +8,13 @@ constexpr uint32_t DEFAULT_Atomic_TIMEOUT_ms = 100;
 template <typename Type> class Atomic
 {
 public:
-    Atomic(Type initialValue, OSInterface& OSInterface)
+    Atomic(Type initialValue, OSInterface_Mutex* OSInterfaceMutex)
     {
-        this->osInterface = &OSInterface;
         internalValue     = initialValue;
-        this->mutex       = this->osInterface->osCreateMutex();
+        this->mutex       = OSInterfaceMutex;
     }
-
-    ~Atomic()
-    {
-        delete mutex;
-    }
+    
+    ~Atomic() = default;
 
     bool get(Type* out, uint32_t timeout = DEFAULT_Atomic_TIMEOUT_ms) const
     {
@@ -82,7 +78,6 @@ public:
 
 private:
     Type               internalValue;
-    OSInterface*       osInterface;
     OSInterface_Mutex* mutex;
 };
 

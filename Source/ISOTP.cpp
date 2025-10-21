@@ -12,7 +12,7 @@ ISOTP::ISOTP(const typeof(N_AI::N_SA) nSA, const uint32_t totalAvailableMemoryFo
              const N_USData_FF_indication_cb_t N_USData_FF_indication_cb, OSInterface& osInterface,
              CANInterface& canInterface, const uint8_t blockSize, const STmin stMin, const char* tag) :
     osInterface(osInterface), canInterface(canInterface),
-    availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface)
+    availableMemoryForRunners(totalAvailableMemoryForRunners, osInterface.osCreateMutex())
 {
     this->tag = tag;
 

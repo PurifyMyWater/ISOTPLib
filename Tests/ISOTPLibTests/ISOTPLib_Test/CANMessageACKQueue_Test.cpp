@@ -22,7 +22,7 @@ TEST(CANMessageACKQueue, removeFromQueue)
 
     // Create dumb runner
     int64_t                 availableMemoryConst = 100;
-    Atomic          availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic          availableMemoryMock(availableMemoryConst, linuxOSInterface.osCreateMutex());
     N_AI                    NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
     const char*             testMessageString = ""; // strlen = 0
     size_t                  messageLen        = strlen(testMessageString);
@@ -63,7 +63,7 @@ TEST(CANMessageACKQueue, writeFrame)
 
     // Create dumb runner
     int64_t                 availableMemoryConst = 100;
-    Atomic          availableMemoryMock(availableMemoryConst, linuxOSInterface);
+    Atomic          availableMemoryMock(availableMemoryConst, linuxOSInterface.osCreateMutex());
     N_AI                    NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
     const char*             testMessageString = ""; // strlen = 0
     size_t                  messageLen        = strlen(testMessageString);
