@@ -14,7 +14,7 @@ constexpr int64_t DEFAULT_AVAILABLE_MEMORY_CONST = 200;
 TEST(N_USData_Request_Runner, constructor_arguments_set)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -40,7 +40,7 @@ TEST(N_USData_Request_Runner, constructor_arguments_set)
 TEST(N_USData_Request_Runner, constructor_destructor_argument_availableMemoryTest)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -69,7 +69,7 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemory
 {
     LocalCANNetwork    can_network(linuxOSInterface);
     int64_t            availableMemoryConst = 2;
-    Atomic     availableMemoryMock(availableMemoryConst, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(availableMemoryConst, linuxOSInterface);
     CANInterface*      canInterface = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterface, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -98,7 +98,7 @@ TEST(N_USData_Request_Runner, constructor_destructor_argument_notAvailableMemory
 TEST(N_USData_Request_Runner, runStep_SF_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -136,7 +136,7 @@ TEST(N_USData_Request_Runner, runStep_SF_valid)
 TEST(N_USData_Request_Runner, runStep_SF_valid_empty)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -174,7 +174,7 @@ TEST(N_USData_Request_Runner, runStep_SF_valid_empty)
 TEST(N_USData_Request_Runner, runStep_SF_timeoutAs)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -200,7 +200,7 @@ TEST(N_USData_Request_Runner, runStep_SF_timeoutAs)
 TEST(N_USData_Request_Runner, runStep_SF_unexpectedFrame)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -222,7 +222,7 @@ TEST(N_USData_Request_Runner, runStep_SF_unexpectedFrame)
 TEST(N_USData_Request_Runner, runStep_FF_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -259,7 +259,7 @@ TEST(N_USData_Request_Runner, runStep_FF_big_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
     int64_t            availableMemoryConst = 10000;
-    Atomic     availableMemoryMock(availableMemoryConst, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(availableMemoryConst, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi                      = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -309,7 +309,7 @@ TEST(N_USData_Request_Runner, runStep_FF_big_valid)
 TEST(N_USData_Request_Runner, runStep_FF_unexpectedFrame)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -331,7 +331,7 @@ TEST(N_USData_Request_Runner, runStep_FF_unexpectedFrame)
 TEST(N_USData_Request_Runner, runStep_FF_wrong_frame_type)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_6_CAN_CLASSIC_29bit_Functional, 1, 2);
@@ -350,7 +350,7 @@ TEST(N_USData_Request_Runner, runStep_FF_wrong_frame_type)
 TEST(N_USData_Request_Runner, runStep_First_CF_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -410,7 +410,7 @@ TEST(N_USData_Request_Runner, runStep_First_CF_valid)
 TEST(N_USData_Request_Runner, runStep_First_Last_CF_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -475,7 +475,7 @@ TEST(N_USData_Request_Runner, runStep_First_Last_CF_valid)
 TEST(N_USData_Request_Runner, runStep_Intermediate_CF_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -547,7 +547,7 @@ TEST(N_USData_Request_Runner, runStep_Intermediate_CF_valid)
 TEST(N_USData_Request_Runner, runStep_Last_CF_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -626,7 +626,7 @@ TEST(N_USData_Request_Runner, runStep_Last_CF_valid)
 TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -689,7 +689,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_valid)
 TEST(N_USData_Request_Runner, runStep_AnotherFC_NotSent)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -747,7 +747,7 @@ TEST(N_USData_Request_Runner, runStep_AnotherFC_NotSent)
 TEST(N_USData_Request_Runner, timeout_N_As_FF_noACK)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -780,7 +780,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_FF_noACK)
 TEST(N_USData_Request_Runner, timeout_N_As_FF_lateACK)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -816,7 +816,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_FF_lateACK)
 TEST(N_USData_Request_Runner, timeout_N_As_CF_lateACK)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -876,7 +876,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_CF_lateACK)
 TEST(N_USData_Request_Runner, timeout_N_As_CF_noACK)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -933,7 +933,7 @@ TEST(N_USData_Request_Runner, timeout_N_As_CF_noACK)
 TEST(N_USData_Request_Runner, timeout_N_Bs_FF_lateFC)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -985,7 +985,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_FF_lateFC)
 TEST(N_USData_Request_Runner, timeout_N_Bs_FF_noFC)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -1022,7 +1022,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_lateFC)
 {
 
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -1098,7 +1098,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_noFC)
 {
 
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -1173,7 +1173,7 @@ TEST(N_USData_Request_Runner, timeout_N_Bs_CF_noFC)
 TEST(N_USData_Request_Runner, timeout_N_Cs_FC_CF)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -1227,7 +1227,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_CF)
 TEST(N_USData_Request_Runner, timeout_N_Cs_Performance)
 {
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
@@ -1282,7 +1282,7 @@ TEST(N_USData_Request_Runner, timeout_N_Cs_FC_LastCFInBlock)
 {
 
     LocalCANNetwork    can_network(linuxOSInterface);
-    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface.osCreateMutex());
+    Atomic     availableMemoryMock(DEFAULT_AVAILABLE_MEMORY_CONST, linuxOSInterface);
     CANInterface*      canInterfaceRunner = can_network.newCANInterfaceConnection();
     CANMessageACKQueue canMessageACKQueue(*canInterfaceRunner, linuxOSInterface);
     N_AI               NAi               = ISOTP_N_AI_CONFIG(N_TATYPE_5_CAN_CLASSIC_29bit_Physical, 1, 2);
