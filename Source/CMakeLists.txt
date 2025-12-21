@@ -6,12 +6,12 @@ set(FETCHCONTENT_QUIET OFF)
 FetchContent_Declare(
         OSInterface
         GIT_REPOSITORY  git@github.com:purifymywater/OSInterface.git
-        GIT_TAG         v1.1.1
+        GIT_TAG         v0.2.1
 )
 FetchContent_Declare(
         CANInterface
         GIT_REPOSITORY  git@github.com:PurifyMyWater/CANInterface.git
-        GIT_TAG         v1.0.0
+        GIT_TAG         v0.1.0
 )
 
 

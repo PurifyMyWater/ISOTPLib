@@ -8,7 +8,7 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     FetchContent_Declare(
             LinuxOSInterface
             GIT_REPOSITORY  git@github.com:purifymywater/LinuxOSInterface.git
-            GIT_TAG         v1.1.1
+            GIT_TAG         v0.2.1
     )
 
     FetchContent_Declare(
@@ -20,7 +20,7 @@ if (NOT ESP_PLATFORM) # Only configure tests if we are building in a computer.
     FetchContent_Declare(
             LocalCANNetwork
             GIT_REPOSITORY  git@github.com:PurifyMyWater/LocalCANNetwork.git
-            GIT_TAG         v1.0.0
+            GIT_TAG         v0.1.0
     )
 
     FetchContent_MakeAvailable(LinuxOSInterface)
