@@ -45,7 +45,7 @@ jobs:
 
             -   name: Build Project
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
-                run: cmake --build ./build --target SettingsStorageLib
+                run: cmake --build ./build --target ISOTPLib
 
             -   name: Build Tests & Dependencies
                 if: steps.CacheBuildEnvironment.outputs.cache-hit == '' # If the cache was not restored
@@ -102,7 +102,7 @@ jobs:
                     path: 'build'
 
             -   name: Valgrind Memory Check Report Generation
-                run: valgrind --error-exitcode=1 --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTest*
+                run: valgrind --error-exitcode=1 --tool=helgrind --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTest*
 
             -   name: Cache Valgrind Report
                 uses: actions/cache/save@v4
@@ -142,7 +142,7 @@ jobs:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 with:
                     version: 19
-                    ignore: 'Source/deps/'
+                    ignore: 'CANInterface/|Tests/ISOTPLibTests/'
                     style: 'file'  # Use .clang-format config file
                     tidy-checks: '' # Use .clang-tidy config file
                     database: '${{ runner.workspace }}/build'
@@ -238,7 +238,7 @@ jobs:
             statuses: read
         steps:
             -   name: Run Merge Gatekeeper
-                  # NOTE: v1 is updated to reflect the latest v1.x.y. Please use any tag/branch that suits your needs:
+                # NOTE: v1 is updated to reflect the latest v1.x.y. Please use any tag/branch that suits your needs:
                 #       https://github.com/upsidr/merge-gatekeeper/tags
                 #       https://github.com/upsidr/merge-gatekeeper/branches
                 uses: upsidr/merge-gatekeeper@v1
