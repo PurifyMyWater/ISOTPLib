@@ -170,7 +170,7 @@ jobs:
         env:
             BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
             GH_PAT: ${{ secrets.PMW_CI_PAT }}
-            GH_USER_NAME: vacmg
+            GH_USER_NAME: ${{ vars.PMW_CI_PAT_USERNAME }}
 
         steps:
             -   name: Restore cached Coverage Report
