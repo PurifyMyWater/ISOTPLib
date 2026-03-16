@@ -202,7 +202,7 @@ jobs:
                     fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis.
 
             -   name: Install Sonar Build Wrapper
-                uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6
+                uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v7
 
             -   name: Run Sonar Build Wrapper
                 run: |
@@ -211,7 +211,7 @@ jobs:
                     build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ./build
 
             -   name: SonarQube Scan
-                uses: SonarSource/sonarqube-scan-action@v6
+                uses: SonarSource/sonarqube-scan-action@v7
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
