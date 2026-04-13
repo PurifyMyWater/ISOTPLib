@@ -30,11 +30,11 @@ jobs:
                     git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" https://github.com/
 
             -   name: "Checkout repository"
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
 
             -   name: Cache Build Environment
                 id: CacheBuildEnvironment
-                uses: actions/cache@v4
+                uses: actions/cache@v5
                 with:
                     key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
                     path: 'build'
@@ -59,10 +59,10 @@ jobs:
 
         steps:
             -   name: "Checkout repository"
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
 
             -   name: Restore cached build environment
-                uses: actions/cache/restore@v4
+                uses: actions/cache/restore@v5
                 with:
                     key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
                     path: 'build'
@@ -77,7 +77,7 @@ jobs:
                 run: gcovr --sonarqube -r $GITHUB_WORKSPACE > ${{runner.workspace}}/coverage.xml
 
             -   name: Cache Coverage Report
-                uses: actions/cache/save@v4
+                uses: actions/cache/save@v5
                 with:
                     key: "${{ runner.os }}-coverage-${{ github.sha }}"
                     path: '${{runner.workspace}}/coverage.xml'
@@ -93,10 +93,10 @@ jobs:
                 run: sudo apt-get update && sudo apt-get install -y valgrind
 
             -   name: "Checkout repository"
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
 
             -   name: Restore cached build environment
-                uses: actions/cache/restore@v4
+                uses: actions/cache/restore@v5
                 with:
                     key: "${{ runner.os }}-${{ hashFiles('Source/**', 'Tests/**') }}-build"
                     path: 'build'
@@ -105,7 +105,7 @@ jobs:
                 run: valgrind --error-exitcode=1 --tool=helgrind --tool=memcheck --xml=yes --xml-file=${{runner.workspace}}/valgrind.xml --show-error-list=yes --leak-check=full --leak-resolution=high --track-origins=yes --vgdb=no build/Tests/*_GoogleTest*
 
             -   name: Cache Valgrind Report
-                uses: actions/cache/save@v4
+                uses: actions/cache/save@v5
                 with:
                     key: "${{ runner.os }}-valgrind-${{ github.sha }}"
                     path: '${{runner.workspace}}/valgrind.xml'
@@ -129,7 +129,7 @@ jobs:
                     git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" https://github.com/
 
             -   name: "Checkout repository"
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
 
             -   name: Configure CMake
                 working-directory: ${{ runner.workspace }}
@@ -177,14 +177,14 @@ jobs:
 
         steps:
             -   name: Restore cached Coverage Report
-                uses: actions/cache/restore@v4
+                uses: actions/cache/restore@v5
                 with:
                     key: "${{ runner.os }}-coverage-${{ github.sha }}"
                     path: '${{runner.workspace}}/coverage.xml'
                     fail-on-cache-miss: true
 
             -   name: Restore cached Valgrind Report
-                uses: actions/cache/restore@v4
+                uses: actions/cache/restore@v5
                 with:
                     key: "${{ runner.os }}-valgrind-${{ github.sha }}"
                     path: '${{runner.workspace}}/valgrind.xml'
@@ -197,12 +197,12 @@ jobs:
                     git config --global --add "url.https://$GH_USER_NAME:$GH_PAT@github.com/.insteadOf" https://github.com/
 
             -   name: "Checkout repository"
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
                 with:
                     fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis.
 
             -   name: Install Sonar Build Wrapper
-                uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6
+                uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v7
 
             -   name: Run Sonar Build Wrapper
                 run: |
@@ -211,7 +211,7 @@ jobs:
                     build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ./build
 
             -   name: SonarQube Scan
-                uses: SonarSource/sonarqube-scan-action@v6
+                uses: SonarSource/sonarqube-scan-action@v7
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
