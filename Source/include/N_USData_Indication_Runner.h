@@ -1,7 +1,7 @@
 #ifndef N_USDATA_INDICATION_RUNNER_H
 #define N_USDATA_INDICATION_RUNNER_H
 
-#include "Atomic_int64_t.h"
+#include "Atomic.h"
 #include "CANMessageACKQueue.h"
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
@@ -14,7 +14,7 @@ constexpr int32_t N_USDATA_INDICATION_RUNNER_TAG_SIZE =
 class N_USData_Indication_Runner : public N_USData_Runner
 {
 public:
-    N_USData_Indication_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, uint8_t blockSize,
+    N_USData_Indication_Runner(bool& result, N_AI nAi, Atomic<int64_t>& availableMemoryForRunners, uint8_t blockSize,
                                STmin stMin, OSInterface& osInterface, CANMessageACKQueue& canMessageACKQueue);
 
     ~N_USData_Indication_Runner() override;
@@ -79,7 +79,7 @@ private:
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t   internalStatus;
-    Atomic_int64_t*    availableMemoryForRunners;
+    Atomic<int64_t>*   availableMemoryForRunners;
     uint32_t           messageOffset;
     int16_t            cfReceivedInThisBlock;
 

@@ -1,7 +1,7 @@
 #ifndef N_USDATA_REQUEST_RUNNER_H
 #define N_USDATA_REQUEST_RUNNER_H
 
-#include "Atomic_int64_t.h"
+#include "Atomic.h"
 #include "CANMessageACKQueue.h"
 #include "N_USData_Runner.h"
 #include "Timer_N.h"
@@ -15,7 +15,7 @@ constexpr uint8_t DEFAULT_STMIN_VALUE_MS =
 class N_USData_Request_Runner : public N_USData_Runner
 {
 public:
-    N_USData_Request_Runner(bool& result, N_AI nAi, Atomic_int64_t& availableMemoryForRunners, Mtype mType,
+    N_USData_Request_Runner(bool& result, N_AI nAi, Atomic<int64_t>& availableMemoryForRunners, Mtype mType,
                             const uint8_t* messageData, uint32_t messageLength, OSInterface& osInterface,
                             CANMessageACKQueue& canMessageACKQueue);
 
@@ -83,12 +83,12 @@ private:
     uint8_t  blockSize;
     STmin    stMin{};
 
-    N_Result        result;
-    uint32_t        lastRunTime;
-    uint8_t         sequenceNumber;
-    Atomic_int64_t* availableMemoryForRunners;
-    uint32_t        messageOffset;
-    char*           tag{};
+    N_Result         result;
+    uint32_t         lastRunTime;
+    uint8_t          sequenceNumber;
+    Atomic<int64_t>* availableMemoryForRunners;
+    uint32_t         messageOffset;
+    char*            tag{};
 
     OSInterface_Mutex* mutex{};
     InternalStatus_t   internalStatus;
