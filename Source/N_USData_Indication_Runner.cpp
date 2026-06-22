@@ -205,7 +205,7 @@ N_Result N_USData_Indication_Runner::runStep_notRunning(const CANFrame* received
                            receivedFrame->identifier.N_TAtype); // The frame is not a Mtype_Diagnostics frame.
     }
     this->mType = Mtype_Diagnostics; // We check if the frame is a diagnostics frame by looking at the N_TAType. (205 &
-                                     // 206 is the value used for remote diagnostics)
+                                     // 206 are the values used for remote diagnostics)
 
     switch (FrameCode frameCode = static_cast<FrameCode>(receivedFrame->data[0] >> 4))
     {
